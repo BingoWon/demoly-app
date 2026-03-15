@@ -243,7 +243,14 @@ final class ProjectEditorViewModel {
             do {
                 try await Task.sleep(nanoseconds: autoSaveDelay)
                 guard !Task.isCancelled, hasContent, isDirty, !isSaving else { return }
+                let chatCount = chatMessages.filter { ($0["role"] as? String) != "system" }.count
+                print("[AutoSave] Saving project (id: \(projectId ?? "new"), chatMessages: \(chatCount))")
                 await save()
+                if saveError == nil {
+                    print("[AutoSave] Save successful")
+                } else {
+                    print("[AutoSave] Save failed: \(saveError!)")
+                }
             } catch {}
         }
     }

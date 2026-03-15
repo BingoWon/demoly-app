@@ -385,6 +385,9 @@ final class ChatViewModel {
     }
 
     private func processStream() async {
+        let streamStart = Date()
+        print("[ChatVM] Stream started, history size: \(history.count) messages")
+
         do {
             for try await event in AIService.shared.streamChat(messages: history) {
                 try Task.checkCancellation()
@@ -403,6 +406,9 @@ final class ChatViewModel {
                 case let .toolCallStart(index, id, name):
                     flushPendingContent()
                     finalizeCurrentThinking()
+
+                    let elapsed = Date().timeIntervalSince(streamStart)
+                    print("[ChatVM] Tool call started: \(name) (index \(index)) at +\(String(format: "%.1f", elapsed))s")
 
                     let segment = ChatMessage.ToolCallSegment(callId: id, name: name, arguments: "", isStreaming: true)
                     let segmentIndex = messages[currentMessageIndex].segments.count
@@ -423,6 +429,9 @@ final class ChatViewModel {
                        info.segmentIndex < messages[currentMessageIndex].segments.count,
                        case var .toolCall(segment) = messages[currentMessageIndex].segments[info.segmentIndex]
                     {
+                        let elapsed = Date().timeIntervalSince(streamStart)
+                        print("[ChatVM] Tool call complete: \(info.name) at +\(String(format: "%.1f", elapsed))s")
+
                         segment.arguments = arguments
                         segment.isStreaming = false
                         segment.result = executeToolCall(name: info.name, arguments: arguments)
@@ -436,6 +445,9 @@ final class ChatViewModel {
                 }
             }
 
+            let elapsed = Date().timeIntervalSince(streamStart)
+            print("[ChatVM] Stream completed in \(String(format: "%.1f", elapsed))s")
+
             if !streamingToolCalls.isEmpty {
                 await finalizeToolCallsAndContinue()
             } else {
@@ -444,22 +456,87 @@ final class ChatViewModel {
             }
         } catch is CancellationError {
             flushPendingContent()
+            print("[ChatVM] Stream cancelled")
         } catch {
+            let elapsed = Date().timeIntervalSince(streamStart)
+            print("[ChatVM] Stream failed at +\(String(format: "%.1f", elapsed))s: \(error)")
             handleStreamError(error)
         }
     }
 
     private func handleStreamError(_ error: Error) {
-        messages[currentMessageIndex].isStreaming = false
-        messages[currentMessageIndex].segments.removeAll { segment in
-            if case let .thinking(info) = segment { return info.text.isEmpty }
-            return false
+        flushPendingContent()
+        finalizeCurrentThinking()
+
+        if !streamingToolCalls.isEmpty {
+            preservePartialToolCalls()
         }
-        if messages[currentMessageIndex].segments.isEmpty {
-            messages.remove(at: currentMessageIndex)
+
+        if currentMessageIndex < messages.count {
+            messages[currentMessageIndex].isStreaming = false
+            messages[currentMessageIndex].segments.removeAll { segment in
+                if case let .thinking(info) = segment { return info.text.isEmpty }
+                return false
+            }
+
+            for (_, info) in streamingToolCalls {
+                if info.segmentIndex < messages[currentMessageIndex].segments.count,
+                   case var .toolCall(segment) = messages[currentMessageIndex].segments[info.segmentIndex]
+                {
+                    segment.isStreaming = false
+                    messages[currentMessageIndex].segments[info.segmentIndex] = .toolCall(segment)
+                }
+            }
+
+            if messages[currentMessageIndex].segments.isEmpty {
+                messages.remove(at: currentMessageIndex)
+            }
         }
+
+        streamingToolCalls = [:]
         messages.append(.error(friendlyErrorMessage(for: error)))
         isLoading = false
+
+        print("[ChatVM] Stream error: \(error.localizedDescription)")
+    }
+
+    private func preservePartialToolCalls() {
+        var assistantEntry: [String: Any] = ["role": "assistant", "content": NSNull()]
+
+        if !accumulatedReasoning.isEmpty {
+            assistantEntry["reasoning_content"] = accumulatedReasoning
+        }
+
+        var toolCallsArray: [[String: Any]] = []
+        for index in streamingToolCalls.keys.sorted() {
+            if let info = streamingToolCalls[index],
+               info.segmentIndex < messages[currentMessageIndex].segments.count,
+               case let .toolCall(segment) = messages[currentMessageIndex].segments[info.segmentIndex]
+            {
+                toolCallsArray.append([
+                    "id": segment.callId,
+                    "type": "function",
+                    "function": ["name": segment.name, "arguments": segment.arguments],
+                ])
+            }
+        }
+        if !toolCallsArray.isEmpty {
+            assistantEntry["tool_calls"] = toolCallsArray
+            history.append(assistantEntry)
+        }
+
+        for index in streamingToolCalls.keys.sorted() {
+            if let info = streamingToolCalls[index],
+               info.segmentIndex < messages[currentMessageIndex].segments.count,
+               case let .toolCall(segment) = messages[currentMessageIndex].segments[info.segmentIndex],
+               let result = segment.result
+            {
+                history.append(["role": "tool", "tool_call_id": segment.callId, "content": result])
+            }
+        }
+
+        syncToProjectEditor()
+        print("[ChatVM] Preserved \(toolCallsArray.count) partial tool calls to history")
     }
 
     private func scheduleUIUpdate() {

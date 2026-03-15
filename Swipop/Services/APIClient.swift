@@ -138,6 +138,13 @@ actor APIClient {
 
     // MARK: - Raw JSON POST (for [String: Any] bodies like AI chat)
 
+    private let streamingSession: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 120
+        config.timeoutIntervalForResource = 600
+        return URLSession(configuration: config)
+    }()
+
     func postRaw(_ path: String, jsonObject: Any) async throws -> (URLSession.AsyncBytes, HTTPURLResponse) {
         guard let url = URL(string: "\(Config.apiBaseURL)\(path)") else {
             throw APIError.invalidURL
@@ -154,7 +161,7 @@ actor APIClient {
 
         request.httpBody = try JSONSerialization.data(withJSONObject: jsonObject)
 
-        let (bytes, response) = try await session.bytes(for: request)
+        let (bytes, response) = try await streamingSession.bytes(for: request)
         guard let httpResponse = response as? HTTPURLResponse else {
             throw APIError.serverError(0, "Invalid response")
         }
