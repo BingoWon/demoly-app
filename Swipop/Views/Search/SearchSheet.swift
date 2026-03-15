@@ -9,7 +9,6 @@ import SwiftUI
 
 struct SearchSheet: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(AppearanceSettings.self) private var appearance
     @State private var viewModel = SearchViewModel()
     @State private var selectedProject: Project?
 
@@ -28,8 +27,8 @@ struct SearchSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $viewModel.searchQuery, prompt: "Projects, creators, #tags...")
             .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
+                ToolbarItem(placement: .topBarTrailing) {
+                    SheetCloseButton { dismiss() }
                 }
             }
             .navigationDestination(item: $selectedProject) { project in
@@ -39,7 +38,6 @@ struct SearchSheet: View {
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .glassSheetBackground()
-        .preferredColorScheme(appearance.colorScheme)
         .task {
             await viewModel.loadTrending()
         }

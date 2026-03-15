@@ -127,8 +127,13 @@ struct MainTabView: View {
     }
 
     private func closeCreate() {
+        let needsSave = projectEditor.hasContent && projectEditor.isDirty
         Task {
             await projectEditor.saveAndReset()
+            if needsSave {
+                await CurrentUserProfile.shared.refresh()
+                FeedViewModel.shared.markNeedsRefresh()
+            }
         }
         chatViewModel.clear()
         createSubTab = .chat

@@ -39,7 +39,9 @@ nonisolated struct Project: Identifiable, Equatable, Hashable, @unchecked Sendab
             lhs.htmlContent == rhs.htmlContent &&
             lhs.cssContent == rhs.cssContent &&
             lhs.jsContent == rhs.jsContent &&
-            lhs.isPublished == rhs.isPublished
+            lhs.thumbnailUrl == rhs.thumbnailUrl &&
+            lhs.isPublished == rhs.isPublished &&
+            lhs.updatedAt == rhs.updatedAt
     }
 
     func hash(into hasher: inout Hasher) {
@@ -60,7 +62,8 @@ nonisolated struct Project: Identifiable, Equatable, Hashable, @unchecked Sendab
     func resolvedThumbnailURL() -> URL? {
         guard let thumbnailUrl else { return nil }
         if thumbnailUrl.hasPrefix("http") { return URL(string: thumbnailUrl) }
-        return URL(string: "\(Config.hostURL)\(thumbnailUrl)")
+        let ts = Int(updatedAt.timeIntervalSince1970)
+        return URL(string: "\(Config.hostURL)\(thumbnailUrl)?v=\(ts)")
     }
 }
 

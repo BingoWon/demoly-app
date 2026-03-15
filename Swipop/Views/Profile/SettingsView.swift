@@ -116,10 +116,11 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    Button(role: .destructive) {
+                    Button {
                         showLogoutConfirm = true
                     } label: {
                         Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                            .foregroundStyle(.red)
                     }
                     .listRowBackground(Color.tertiaryBackground.opacity(0.8))
                 }
@@ -130,8 +131,8 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
+                ToolbarItem(placement: .topBarTrailing) {
+                    SheetCloseButton { dismiss() }
                 }
             }
             .confirmationDialog("Sign Out", isPresented: $showLogoutConfirm) {
@@ -151,7 +152,6 @@ struct SettingsView: View {
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .glassSheetBackground()
-        .preferredColorScheme(appearance.colorScheme)
     }
 }
 

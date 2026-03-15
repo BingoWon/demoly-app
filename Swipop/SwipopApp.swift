@@ -25,8 +25,8 @@ struct SwipopApp: App {
                     RootView()
                         .environment(clerk)
                         .environment(authManager)
-                        .preferredColorScheme(appearance.colorScheme)
                         .environment(appearance)
+                        .onAppear { appearance.applyToWindow() }
                 } else {
                     VStack(spacing: 16) {
                         ProgressView()

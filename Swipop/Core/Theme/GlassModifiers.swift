@@ -80,6 +80,24 @@ struct GlassSheetModifier: ViewModifier {
     }
 }
 
+// MARK: - Sheet Close Button
+
+struct SheetCloseButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        if #available(iOS 26.0, *) {
+            Button(role: .close, action: action)
+        } else {
+            Button(action: action) {
+                Image(systemName: "xmark.circle.fill")
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+}
+
 // MARK: - View Extensions
 
 extension View {

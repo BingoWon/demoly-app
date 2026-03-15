@@ -13,7 +13,6 @@ struct ProjectOptionsSheet: View {
     @Bindable var chatViewModel: ChatViewModel
     var onDelete: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
-    @Environment(AppearanceSettings.self) private var appearance
     @State private var tagInput = ""
     @State private var showDeleteConfirmation = false
     @State private var selectedPhoto: PhotosPickerItem?
@@ -73,7 +72,6 @@ struct ProjectOptionsSheet: View {
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         .glassSheetBackground()
-        .preferredColorScheme(appearance.colorScheme)
     }
 
     // MARK: - Form Content

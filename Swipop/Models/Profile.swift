@@ -81,7 +81,8 @@ nonisolated struct Profile: Identifiable, Codable, Equatable, Sendable {
     var resolvedAvatarURL: URL? {
         guard let avatarUrl else { return nil }
         if avatarUrl.hasPrefix("http") { return URL(string: avatarUrl) }
-        return URL(string: "\(Config.hostURL)\(avatarUrl)")
+        let ts = Int(updatedAt.timeIntervalSince1970)
+        return URL(string: "\(Config.hostURL)\(avatarUrl)?v=\(ts)")
     }
 
     private enum CodingKeys: String, CodingKey {

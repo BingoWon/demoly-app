@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 /// App appearance mode
 enum AppearanceMode: String, CaseIterable, Identifiable {
@@ -31,16 +32,16 @@ enum AppearanceMode: String, CaseIterable, Identifiable {
         }
     }
 
-    var colorScheme: ColorScheme? {
+    var interfaceStyle: UIUserInterfaceStyle {
         switch self {
-        case .system: nil // Follow system
+        case .system: .unspecified
         case .light: .light
         case .dark: .dark
         }
     }
 }
 
-/// Global appearance settings
+/// Global appearance settings — uses UIKit window override to bypass SwiftUI sheet bugs
 @MainActor
 @Observable
 final class AppearanceSettings {
@@ -49,13 +50,19 @@ final class AppearanceSettings {
     var mode: AppearanceMode {
         didSet {
             UserDefaults.standard.set(mode.rawValue, forKey: "appearanceMode")
+            applyToWindow()
         }
     }
-
-    var colorScheme: ColorScheme? { mode.colorScheme }
 
     private init() {
         let saved = UserDefaults.standard.string(forKey: "appearanceMode") ?? "system"
         mode = AppearanceMode(rawValue: saved) ?? .system
+    }
+
+    func applyToWindow() {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+        for window in windowScene.windows {
+            window.overrideUserInterfaceStyle = mode.interfaceStyle
+        }
     }
 }

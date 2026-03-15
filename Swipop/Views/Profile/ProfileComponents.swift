@@ -17,17 +17,8 @@ struct ProfileHeaderView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            // Avatar + Name + Handle row
             HStack(spacing: 16) {
-                // Avatar
-                Circle()
-                    .fill(Color.brand)
-                    .frame(width: 72, height: 72)
-                    .overlay(
-                        Text(profile?.initial ?? "U")
-                            .font(.system(size: 28, weight: .bold))
-                            .foregroundStyle(.white)
-                    )
+                avatarImage
                     .redacted(reason: isLoading ? .placeholder : [])
 
                 // Name + Handle
@@ -84,6 +75,35 @@ struct ProfileHeaderView: View {
     }
 
     @ViewBuilder
+    private var avatarImage: some View {
+        if let url = profile?.resolvedAvatarURL {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                    image.resizable().scaledToFill()
+                default:
+                    avatarFallback
+                }
+            }
+            .frame(width: 72, height: 72)
+            .clipShape(Circle())
+        } else {
+            avatarFallback
+        }
+    }
+
+    private var avatarFallback: some View {
+        Circle()
+            .fill(Color.brand)
+            .frame(width: 72, height: 72)
+            .overlay(
+                Text(profile?.initial ?? "U")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundStyle(.white)
+            )
+    }
+
+    @ViewBuilder
     private func linksView(_ links: [ProfileLink]) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
@@ -103,7 +123,7 @@ private struct LinkChip: View {
     var body: some View {
         Link(destination: URL(string: link.url) ?? URL(string: "https://swipop.app")!) {
             HStack(spacing: 6) {
-                Image(systemName: iconForLink(link))
+                Image(systemName: "link")
                     .font(.system(size: 12))
                 Text(link.title)
                     .font(.system(size: 12, weight: .medium))
@@ -114,16 +134,6 @@ private struct LinkChip: View {
             .background(Color.brand.opacity(0.1))
             .clipShape(Capsule())
         }
-    }
-
-    private func iconForLink(_ link: ProfileLink) -> String {
-        let lowercased = link.url.lowercased()
-        if lowercased.contains("github") { return "link" }
-        if lowercased.contains("twitter") || lowercased.contains("x.com") { return "link" }
-        if lowercased.contains("instagram") { return "link" }
-        if lowercased.contains("youtube") { return "link" }
-        if lowercased.contains("linkedin") { return "link" }
-        return "link"
     }
 }
 
@@ -171,26 +181,3 @@ struct ProfileStatsRow: View {
     }
 }
 
-// MARK: - Profile Tab Button
-
-struct ProfileTabButton: View {
-    let icon: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 8) {
-                Image(systemName: isSelected ? "\(icon).fill" : icon)
-                    .font(.system(size: 18))
-                    .foregroundStyle(isSelected ? .primary : .tertiary)
-
-                Rectangle()
-                    .fill(isSelected ? Color.primary : Color.clear)
-                    .frame(height: 2)
-            }
-            .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.plain)
-    }
-}

@@ -188,15 +188,19 @@ struct EditProfileView: View {
                             .scaledToFill()
                             .frame(width: 72, height: 72)
                             .clipShape(Circle())
+                    } else if let url = profile?.resolvedAvatarURL {
+                        AsyncImage(url: url) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image.resizable().scaledToFill()
+                            default:
+                                avatarFallback
+                            }
+                        }
+                        .frame(width: 72, height: 72)
+                        .clipShape(Circle())
                     } else {
-                        Circle()
-                            .fill(Color.brand)
-                            .frame(width: 72, height: 72)
-                            .overlay(
-                                Text((displayName.isEmpty ? "U" : displayName).prefix(1).uppercased())
-                                    .font(.system(size: 28, weight: .bold))
-                                    .foregroundStyle(.white)
-                            )
+                        avatarFallback
                     }
 
                     Circle()
@@ -212,6 +216,17 @@ struct EditProfileView: View {
             .buttonStyle(.plain)
             Spacer()
         }
+    }
+
+    private var avatarFallback: some View {
+        Circle()
+            .fill(Color.brand)
+            .frame(width: 72, height: 72)
+            .overlay(
+                Text((displayName.isEmpty ? "U" : displayName).prefix(1).uppercased())
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundStyle(.white)
+            )
     }
 
     // MARK: - Save

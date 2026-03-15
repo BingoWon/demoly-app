@@ -53,9 +53,6 @@ struct CachedThumbnail: View {
     private func kfImage(_ url: URL) -> KFImage {
         KFImage(url)
             .retry(maxCount: 2, interval: .seconds(1))
-            .onFailure { error in
-                print("Thumbnail load failed (\(url.lastPathComponent)): \(error.localizedDescription)")
-            }
             .fade(duration: 0.2)
             .resizable()
     }
