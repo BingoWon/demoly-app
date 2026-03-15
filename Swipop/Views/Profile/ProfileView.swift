@@ -13,9 +13,7 @@ struct ProfileView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color.appBackground.ignoresSafeArea()
-
+            Group {
                 if Clerk.shared.user != nil {
                     ProfileContentView(editProject: editProject, refreshTrigger: refreshTrigger)
                 } else {
@@ -50,7 +48,7 @@ struct ProfileView: View {
     }
 }
 
-// MARK: - Profile Content View (Current User)
+// MARK: - Profile Content View
 
 struct ProfileContentView: View {
     let editProject: (Project) -> Void
@@ -86,7 +84,6 @@ struct ProfileContentView: View {
             }
             .refreshable { await userProfile.refresh() }
         }
-        .background(Color.appBackground)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { toolbarContent }
         .task { await userProfile.refresh() }
@@ -117,17 +114,10 @@ struct ProfileContentView: View {
     @ViewBuilder
     private func projectGrid(columnWidth: CGFloat) -> some View {
         if userProfile.projects.isEmpty {
-            VStack(spacing: 12) {
-                Image(systemName: "square.grid.2x2")
-                    .font(.system(size: 40))
-                    .foregroundStyle(.tertiary)
-
-                Text("No projects created yet")
-                    .font(.system(size: 14))
-                    .foregroundStyle(.secondary)
+            ContentUnavailableView {
+                Label("No projects created yet", systemImage: "square.grid.2x2")
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 60)
+            .padding(.vertical, 40)
         } else {
             MasonryGrid(projects: userProfile.projects, columnWidth: columnWidth, columns: 3, spacing: 2) { project in
                 ProfileProjectCell(project: project, columnWidth: columnWidth, showDraftBadge: !project.isPublished)
@@ -138,7 +128,7 @@ struct ProfileContentView: View {
     }
 }
 
-// MARK: - Profile Project Cell (Cover only, minimal)
+// MARK: - Profile Project Cell
 
 struct ProfileProjectCell: View {
     let project: Project
@@ -152,7 +142,7 @@ struct ProfileProjectCell: View {
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            coverImage
+            CachedThumbnail(project: project, size: CGSize(width: columnWidth, height: imageHeight))
                 .clipShape(RoundedRectangle(cornerRadius: 4))
 
             if showDraftBadge {
@@ -166,10 +156,6 @@ struct ProfileProjectCell: View {
                     .padding(3)
             }
         }
-    }
-
-    private var coverImage: some View {
-        CachedThumbnail(project: project, size: CGSize(width: columnWidth, height: imageHeight))
     }
 }
 

@@ -15,7 +15,7 @@ struct SearchSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                Color.clear
 
                 if viewModel.searchQuery.isEmpty {
                     trendingContent
@@ -37,7 +37,6 @@ struct SearchSheet: View {
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
-        .glassSheetBackground()
         .task {
             await viewModel.loadTrending()
         }
@@ -72,9 +71,7 @@ struct SearchSheet: View {
 
     private var trendingSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Trending", systemImage: "flame.fill")
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(.primary)
+            trendingLabel
 
             FlowLayout(spacing: 8) {
                 ForEach(viewModel.trendingTags, id: \.self) { tag in
@@ -91,6 +88,19 @@ struct SearchSheet: View {
                     }
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var trendingLabel: some View {
+        let label = Label("Trending", systemImage: "flame.fill")
+            .font(.system(size: 17, weight: .semibold))
+            .foregroundStyle(.primary)
+
+        if #available(iOS 26.0, *) {
+            label.labelIconToTitleSpacing(8)
+        } else {
+            label
         }
     }
 
@@ -125,16 +135,7 @@ struct SearchSheet: View {
     }
 
     private var emptyResults: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 40))
-                .foregroundStyle(.tertiary)
-            Text("No results for \"\(viewModel.searchQuery)\"")
-                .font(.system(size: 15))
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 60)
+        ContentUnavailableView.search(text: viewModel.searchQuery)
     }
 
     // MARK: - Users Results

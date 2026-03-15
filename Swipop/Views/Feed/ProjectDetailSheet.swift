@@ -11,23 +11,18 @@ import SwiftUI
 struct ProjectDetailSheet: View {
     let project: Project
     @Environment(AuthManager.self) private var authManager
-
     @Environment(\.dismiss) private var dismiss
-    @State private var followState = FollowState()
+
+    @State private var isFollowing = false
+    @State private var isFollowLoading = false
     @State private var showComments = false
-    @State private var showShareSheet = false
     @State private var showCreatorProfile = false
     @State private var selectedLanguage: CodeLanguage = .html
     @State private var codeCopied = false
 
     private let store = InteractionStore.shared
-    private var creator: Profile? {
-        project.creator
-    }
-
-    private var isSelf: Bool {
-        Clerk.shared.user?.id == creator?.id
-    }
+    private var creator: Profile? { project.creator }
+    private var isSelf: Bool { Clerk.shared.user?.id == creator?.id }
 
     var body: some View {
         NavigationStack {
@@ -43,7 +38,6 @@ struct ProjectDetailSheet: View {
                 }
                 .padding(20)
             }
-            .background(Color.appBackground)
             .navigationTitle(project.displayTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -59,17 +53,13 @@ struct ProjectDetailSheet: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
-        .glassSheetBackground()
         .task {
             if let profile = creator {
-                followState.isFollowing = profile.isFollowing ?? false
+                isFollowing = profile.isFollowing ?? false
             }
         }
         .sheet(isPresented: $showComments) {
             CommentSheet(project: project)
-        }
-        .sheet(isPresented: $showShareSheet) {
-            ShareSheet(project: project)
         }
     }
 
@@ -110,19 +100,19 @@ struct ProjectDetailSheet: View {
 
             if !isSelf {
                 Button {
-                    requireLogin {
+                    authManager.requireLogin {
                         Task { await toggleFollow() }
                     }
                 } label: {
-                    Text(followState.isFollowing ? "Following" : "Follow")
+                    Text(isFollowing ? "Following" : "Follow")
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(followState.isFollowing ? Color.primary : .white)
+                        .foregroundStyle(isFollowing ? Color.primary : .white)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 8)
-                        .background(followState.isFollowing ? Color.secondaryBackground : Color.brand)
+                        .background(isFollowing ? Color.secondaryBackground : Color.brand)
                         .clipShape(Capsule())
                 }
-                .disabled(followState.isLoading)
+                .disabled(isFollowLoading)
             }
         }
     }
@@ -154,9 +144,10 @@ struct ProjectDetailSheet: View {
             StatActionTile(
                 icon: store.isLiked(project.id) ? "heart.fill" : "heart",
                 count: store.likeCount(project.id),
-                tint: store.isLiked(project.id) ? .red : .primary
+                tint: store.isLiked(project.id) ? .red : .primary,
+                bounceValue: store.isLiked(project.id)
             ) {
-                requireLogin { Task { await store.toggleLike(projectId: project.id) } }
+                authManager.requireLogin { Task { await store.toggleLike(projectId: project.id) } }
             }
 
             StatActionTile(icon: "bubble.right", count: project.commentCount, tint: .primary) {
@@ -166,13 +157,22 @@ struct ProjectDetailSheet: View {
             StatActionTile(
                 icon: store.isCollected(project.id) ? "bookmark.fill" : "bookmark",
                 count: store.collectCount(project.id),
-                tint: store.isCollected(project.id) ? .yellow : .primary
+                tint: store.isCollected(project.id) ? .yellow : .primary,
+                bounceValue: store.isCollected(project.id)
             ) {
-                requireLogin { Task { await store.toggleCollect(projectId: project.id) } }
+                authManager.requireLogin { Task { await store.toggleCollect(projectId: project.id) } }
             }
 
-            StatActionTile(icon: "square.and.arrow.up", count: project.shareCount, tint: .primary) {
-                showShareSheet = true
+            ProjectShareLink(project: project) {
+                VStack(spacing: 4) {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 22))
+                        .foregroundStyle(.primary)
+                    Text(project.shareCount.formatted)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity)
             }
         }
     }
@@ -203,18 +203,18 @@ struct ProjectDetailSheet: View {
                 }
                 .buttonStyle(.plain)
                 .fixedSize()
-                .animation(.easeInOut(duration: 0.2), value: codeCopied)
+                .animation(.feedback, value: codeCopied)
             }
 
-            GeometryReader { _ in
-                RunestoneCodeView(language: selectedLanguage, code: currentCode)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.border, lineWidth: 1)
-                    )
-            }
-            .frame(height: UIScreen.main.bounds.height * 2 / 3)
+            RunestoneCodeView(language: selectedLanguage, code: currentCode)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.border, lineWidth: 1)
+                )
+                .containerRelativeFrame(.vertical) { length, _ in
+                    length * 0.6
+                }
         }
         .padding(.horizontal, -20)
         .padding(.horizontal, 8)
@@ -222,8 +222,7 @@ struct ProjectDetailSheet: View {
 
     private func copyCode() {
         UIPasteboard.general.string = currentCode
-        let generator = UIImpactFeedbackGenerator(style: .light)
-        generator.impactOccurred()
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
         codeCopied = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             codeCopied = false
@@ -246,35 +245,20 @@ struct ProjectDetailSheet: View {
             creatorId != currentUserId
         else { return }
 
-        let wasFollowing = followState.isFollowing
-        followState.isFollowing.toggle()
+        let wasFollowing = isFollowing
+        isFollowing.toggle()
 
         do {
-            if followState.isFollowing {
+            if isFollowing {
                 try await UserService.shared.follow(userId: creatorId)
             } else {
                 try await UserService.shared.unfollow(userId: creatorId)
             }
         } catch {
-            followState.isFollowing = wasFollowing
+            isFollowing = wasFollowing
             print("Failed to toggle follow: \(error)")
         }
     }
-
-    private func requireLogin(action: @escaping () -> Void) {
-        if Clerk.shared.user != nil {
-            action()
-        } else {
-            authManager.showAuthSheet = true
-        }
-    }
-}
-
-// MARK: - Follow State
-
-private struct FollowState {
-    var isFollowing = false
-    var isLoading = false
 }
 
 // MARK: - Stat Action Tile
@@ -283,6 +267,7 @@ private struct StatActionTile: View {
     let icon: String
     let count: Int
     var tint: Color = .primary
+    var bounceValue: Bool = false
     var action: (() -> Void)?
 
     var body: some View {
@@ -301,6 +286,7 @@ private struct StatActionTile: View {
             Image(systemName: icon)
                 .font(.system(size: 22))
                 .foregroundStyle(tint)
+                .symbolEffect(.bounce, value: bounceValue)
             Text(count.formatted)
                 .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(.secondary)

@@ -116,8 +116,6 @@ struct EditProfileView: View {
                     Text("Links")
                 }
             }
-            .scrollContentBackground(.hidden)
-            .background(Color.appBackground)
             .navigationTitle("Edit Profile")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

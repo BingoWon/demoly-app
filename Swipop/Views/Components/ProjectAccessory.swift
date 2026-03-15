@@ -2,24 +2,85 @@
 //  ProjectAccessory.swift
 //  Swipop
 //
-//  Floating project accessory with Liquid Glass (iOS 26) / Material (iOS 18)
+//  Floating accessories with Liquid Glass (iOS 26) / Material (iOS 18)
 //
 
 import SwiftUI
 
-// MARK: - Project Accessory Content (Shared)
+// MARK: - Floating Project Accessory
 
-struct ProjectAccessoryContent: View {
+struct FloatingProjectAccessory: View {
+    @Binding var showDetail: Bool
+
+    var body: some View {
+        if #available(iOS 26.0, *) {
+            GlassProjectAccessory(showDetail: $showDetail)
+        } else {
+            ProjectAccessoryContent(showDetail: $showDetail)
+                .frame(height: 48)
+                .glassBackground()
+                .padding(.horizontal, 20)
+        }
+    }
+}
+
+@available(iOS 26.0, *)
+private struct GlassProjectAccessory: View {
+    @Binding var showDetail: Bool
+    @Namespace private var ns
+
+    var body: some View {
+        GlassEffectContainer(spacing: 8) {
+            ProjectAccessoryContent(showDetail: $showDetail)
+                .frame(height: 48)
+                .glassEffect(.regular.interactive(), in: .capsule)
+                .glassEffectID("projectAccessory", in: ns)
+        }
+        .padding(.horizontal, 20)
+    }
+}
+
+// MARK: - Floating Create Accessory
+
+struct FloatingCreateAccessory: View {
+    @Binding var selectedSubTab: CreateSubTab
+
+    var body: some View {
+        if #available(iOS 26.0, *) {
+            GlassCreateAccessory(selectedSubTab: $selectedSubTab)
+        } else {
+            CreateTabContent(selectedSubTab: $selectedSubTab)
+                .frame(height: 48)
+                .glassBackground()
+                .padding(.horizontal, 20)
+        }
+    }
+}
+
+@available(iOS 26.0, *)
+private struct GlassCreateAccessory: View {
+    @Binding var selectedSubTab: CreateSubTab
+    @Namespace private var ns
+
+    var body: some View {
+        GlassEffectContainer(spacing: 4) {
+            CreateTabContent(selectedSubTab: $selectedSubTab)
+                .frame(height: 48)
+                .glassEffect(.regular.interactive(), in: .capsule)
+                .glassEffectID("createAccessory", in: ns)
+        }
+        .padding(.horizontal, 20)
+    }
+}
+
+// MARK: - Shared Content Views
+
+private struct ProjectAccessoryContent: View {
     @Binding var showDetail: Bool
 
     private let feed = FeedViewModel.shared
-    private var currentProject: Project? {
-        feed.currentProject
-    }
-
-    private var creator: Profile? {
-        currentProject?.creator
-    }
+    private var currentProject: Project? { feed.currentProject }
+    private var creator: Profile? { currentProject?.creator }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -68,9 +129,7 @@ struct ProjectAccessoryContent: View {
     private var navigationButtons: some View {
         HStack(spacing: 0) {
             Button {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                    feed.goToPrevious()
-                }
+                withAnimation(.contentNavigation) { feed.goToPrevious() }
             } label: {
                 Image(systemName: "chevron.up")
                     .font(.system(size: 16, weight: .semibold))
@@ -81,9 +140,7 @@ struct ProjectAccessoryContent: View {
             Divider().frame(height: 18).overlay(Color.border)
 
             Button {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                    feed.goToNext()
-                }
+                withAnimation(.contentNavigation) { feed.goToNext() }
             } label: {
                 Image(systemName: "chevron.down")
                     .font(.system(size: 16, weight: .semibold))
@@ -93,60 +150,36 @@ struct ProjectAccessoryContent: View {
     }
 }
 
-// MARK: - Floating Project Accessory
-
-struct FloatingProjectAccessory: View {
-    @Binding var showDetail: Bool
-
-    var body: some View {
-        ProjectAccessoryContent(showDetail: $showDetail)
-            .frame(height: 48)
-            .glassBackground()
-            .padding(.horizontal, 20)
-    }
-}
-
-// MARK: - Floating Create Accessory
-
-struct FloatingCreateAccessory: View {
+private struct CreateTabContent: View {
     @Binding var selectedSubTab: CreateSubTab
 
     var body: some View {
         HStack(spacing: 0) {
             ForEach(CreateSubTab.allCases) { tab in
-                tabButton(for: tab)
+                Button {
+                    withAnimation(.interactive) { selectedSubTab = tab }
+                } label: {
+                    VStack(spacing: 3) {
+                        Image(systemName: tab.icon)
+                            .font(.system(size: 16, weight: .medium))
+                        Text(tab.title)
+                            .font(.system(size: 11, weight: .medium))
+                    }
+                    .foregroundStyle(selectedSubTab == tab ? tab.color : .secondary)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .contentShape(Rectangle())
+                }
 
                 if tab != CreateSubTab.allCases.last {
-                    Divider()
-                        .frame(height: 18)
-                        .overlay(Color.border)
+                    Divider().frame(height: 18).overlay(Color.border)
                 }
             }
         }
-        .frame(height: 48)
-        .glassBackground()
-        .padding(.horizontal, 20)
-    }
-
-    private func tabButton(for tab: CreateSubTab) -> some View {
-        Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                selectedSubTab = tab
-            }
-        } label: {
-            VStack(spacing: 3) {
-                Image(systemName: tab.icon)
-                    .font(.system(size: 16, weight: .medium))
-                Text(tab.title)
-                    .font(.system(size: 11, weight: .medium))
-            }
-            .foregroundStyle(selectedSubTab == tab ? tab.color : .secondary)
-            .frame(maxWidth: .infinity)
-            .frame(height: 48)
-            .contentShape(Rectangle())
-        }
     }
 }
+
+// MARK: - Previews
 
 #Preview("Project Accessory") {
     ZStack {

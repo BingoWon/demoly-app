@@ -16,13 +16,15 @@ struct InboxView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color.appBackground.ignoresSafeArea()
-
+            Group {
                 if viewModel.isLoading, viewModel.activities.isEmpty {
                     ProgressView().tint(.primary)
                 } else if viewModel.activities.isEmpty {
-                    emptyState
+                    ContentUnavailableView {
+                        Label("No Activity", systemImage: "bell.slash")
+                    } description: {
+                        Text("When someone interacts with your projects, you'll see it here.")
+                    }
                 } else {
                     activityList
                 }
@@ -49,16 +51,6 @@ struct InboxView: View {
         .onChange(of: refreshTrigger) { _, _ in
             guard refreshTrigger > 0 else { return }
             Task { await viewModel.loadActivities() }
-        }
-    }
-
-    // MARK: - Empty State
-
-    private var emptyState: some View {
-        ContentUnavailableView {
-            Label("No Activity", systemImage: "bell.slash")
-        } description: {
-            Text("When someone interacts with your projects, you'll see it here.")
         }
     }
 
@@ -100,7 +92,6 @@ struct InboxView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(Color.appBackground)
     }
 
     // MARK: - Navigation

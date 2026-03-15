@@ -2,30 +2,58 @@
 //  ProjectWebView.swift
 //  Swipop
 //
-//  SwiftUI wrapper for WKWebView to render projects (full screen)
+//  iOS 26: Native SwiftUI WebView + WebPage
+//  iOS 18: UIViewRepresentable + WKWebView
 //
 
 import SwiftUI
 import WebKit
 
-struct ProjectWebView: UIViewRepresentable {
+struct ProjectWebView: View {
     let project: Project
-    var onError: ((Error) -> Void)?
+
+    var body: some View {
+        if #available(iOS 26.0, *) {
+            NativeProjectWebView(project: project)
+        } else {
+            LegacyProjectWebView(project: project)
+        }
+    }
+}
+
+// MARK: - iOS 26: Native SwiftUI WebView
+
+@available(iOS 26.0, *)
+private struct NativeProjectWebView: View {
+    let project: Project
+    @State private var webPage = WebPage()
+
+    var body: some View {
+        WebView(webPage)
+            .webViewContentBackground(.hidden)
+            .webViewBackForwardNavigationGestures(.disabled)
+            .task(id: project.id) {
+                let html = ProjectRenderer.render(project)
+                webPage.load(html: html)
+            }
+    }
+}
+
+// MARK: - iOS 18: WKWebView via UIViewRepresentable
+
+private struct LegacyProjectWebView: UIViewRepresentable {
+    let project: Project
 
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
 
-        // Allow content to extend into safe areas
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.isOpaque = false
         webView.backgroundColor = .black
         webView.scrollView.backgroundColor = .black
         webView.scrollView.contentInsetAdjustmentBehavior = .never
-        webView.navigationDelegate = context.coordinator
-
-        // Disable scrolling bounces for immersive feel
         webView.scrollView.bounces = false
         webView.scrollView.alwaysBounceVertical = false
         webView.scrollView.alwaysBounceHorizontal = false
@@ -33,30 +61,17 @@ struct ProjectWebView: UIViewRepresentable {
         return webView
     }
 
-    func updateUIView(_ webView: WKWebView, context _: Context) {
+    func updateUIView(_ webView: WKWebView, context: Context) {
         let html = ProjectRenderer.render(project)
-        webView.loadHTMLString(html, baseURL: nil)
+        if context.coordinator.lastProjectId != project.id {
+            context.coordinator.lastProjectId = project.id
+            webView.loadHTMLString(html, baseURL: nil)
+        }
     }
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator(onError: onError)
-    }
+    func makeCoordinator() -> Coordinator { Coordinator() }
 
-    // MARK: - Coordinator
-
-    class Coordinator: NSObject, WKNavigationDelegate {
-        let onError: ((Error) -> Void)?
-
-        init(onError: ((Error) -> Void)?) {
-            self.onError = onError
-        }
-
-        func webView(_: WKWebView, didFail _: WKNavigation!, withError error: Error) {
-            onError?(error)
-        }
-
-        func webView(_: WKWebView, didFailProvisionalNavigation _: WKNavigation!, withError error: Error) {
-            onError?(error)
-        }
+    class Coordinator {
+        var lastProjectId: String?
     }
 }

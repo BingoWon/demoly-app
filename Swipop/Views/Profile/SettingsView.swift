@@ -44,7 +44,6 @@ struct SettingsView: View {
                             Spacer()
                         }
                         .padding(.vertical, 4)
-                        .listRowBackground(Color.tertiaryBackground.opacity(0.8))
                     } header: {
                         Label("Profile", systemImage: "person.circle")
                     }
@@ -59,7 +58,6 @@ struct SettingsView: View {
                     } label: {
                         Label("Theme", systemImage: "paintbrush")
                     }
-                    .listRowBackground(Color.tertiaryBackground.opacity(0.8))
                 } header: {
                     Label("Appearance", systemImage: "paintbrush.pointed")
                 }
@@ -70,14 +68,12 @@ struct SettingsView: View {
                     } label: {
                         Label("Notifications", systemImage: "bell")
                     }
-                    .listRowBackground(Color.tertiaryBackground.opacity(0.8))
 
                     NavigationLink {
                         PrivacySettingsView()
                     } label: {
                         Label("Privacy", systemImage: "lock")
                     }
-                    .listRowBackground(Color.tertiaryBackground.opacity(0.8))
                 } header: {
                     Label("Preferences", systemImage: "slider.horizontal.3")
                 }
@@ -88,7 +84,6 @@ struct SettingsView: View {
                     } label: {
                         Label("About Swipop", systemImage: "info.circle")
                     }
-                    .listRowBackground(Color.tertiaryBackground.opacity(0.8))
 
                     Link(destination: URL(string: "https://swipop.app/terms")!) {
                         HStack {
@@ -100,7 +95,6 @@ struct SettingsView: View {
                                 .foregroundStyle(.tertiary)
                         }
                     }
-                    .listRowBackground(Color.tertiaryBackground.opacity(0.8))
 
                     Link(destination: URL(string: "https://swipop.app/privacy")!) {
                         HStack {
@@ -112,7 +106,6 @@ struct SettingsView: View {
                                 .foregroundStyle(.tertiary)
                         }
                     }
-                    .listRowBackground(Color.tertiaryBackground.opacity(0.8))
                 } header: {
                     Label("About", systemImage: "info.circle")
                 }
@@ -124,12 +117,9 @@ struct SettingsView: View {
                         Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
                             .foregroundStyle(.red)
                     }
-                    .listRowBackground(Color.tertiaryBackground.opacity(0.8))
                 }
             }
             .tint(.brand)
-            .scrollContentBackground(.hidden)
-            .background(Color.appBackground)
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -153,7 +143,6 @@ struct SettingsView: View {
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
-        .glassSheetBackground()
     }
 }
 
@@ -168,18 +157,13 @@ struct NotificationSettingsView: View {
         List {
             Section {
                 Toggle("Likes", isOn: $likesEnabled)
-                    .listRowBackground(Color.tertiaryBackground.opacity(0.8))
                 Toggle("Comments", isOn: $commentsEnabled)
-                    .listRowBackground(Color.tertiaryBackground.opacity(0.8))
                 Toggle("New Followers", isOn: $followsEnabled)
-                    .listRowBackground(Color.tertiaryBackground.opacity(0.8))
             } header: {
                 Label("Push Notifications", systemImage: "bell.badge")
             }
         }
         .tint(.brand)
-        .scrollContentBackground(.hidden)
-        .background(Color.appBackground)
         .navigationTitle("Notifications")
     }
 }
@@ -193,7 +177,6 @@ struct PrivacySettingsView: View {
         List {
             Section {
                 Toggle("Private Account", isOn: $privateAccount)
-                    .listRowBackground(Color.tertiaryBackground.opacity(0.8))
             } header: {
                 Label("Account Visibility", systemImage: "eye")
             } footer: {
@@ -201,8 +184,6 @@ struct PrivacySettingsView: View {
             }
         }
         .tint(.brand)
-        .scrollContentBackground(.hidden)
-        .background(Color.appBackground)
         .navigationTitle("Privacy")
     }
 }
@@ -213,21 +194,13 @@ struct AboutView: View {
     var body: some View {
         List {
             Section {
-                HStack {
-                    Text("Version")
-                    Spacer()
+                LabeledContent("Version") {
                     Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0")
-                        .foregroundStyle(.secondary)
                 }
-                .listRowBackground(Color.tertiaryBackground.opacity(0.8))
 
-                HStack {
-                    Text("Build")
-                    Spacer()
+                LabeledContent("Build") {
                     Text(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1")
-                        .foregroundStyle(.secondary)
                 }
-                .listRowBackground(Color.tertiaryBackground.opacity(0.8))
             } header: {
                 Label("App Info", systemImage: "app.badge")
             }
@@ -237,11 +210,8 @@ struct AboutView: View {
                     "Swipop is a platform for discovering and sharing creative frontend projects. Built with SwiftUI and Cloudflare Workers."
                 )
                 .foregroundStyle(.secondary)
-                .listRowBackground(Color.tertiaryBackground.opacity(0.8))
             }
         }
-        .scrollContentBackground(.hidden)
-        .background(Color.appBackground)
         .navigationTitle("About")
     }
 }

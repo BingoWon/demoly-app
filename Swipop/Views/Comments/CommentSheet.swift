@@ -9,8 +9,8 @@ import SwiftUI
 struct CommentSheet: View {
     let project: Project
     @Environment(AuthManager.self) private var authManager
-
     @Environment(\.dismiss) private var dismiss
+
     @State private var comments: [Comment] = []
     @State private var newComment = ""
     @State private var isLoading = true
@@ -20,23 +20,19 @@ struct CommentSheet: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color.appBackground.ignoresSafeArea()
-
-                VStack(spacing: 0) {
-                    if isLoading {
-                        Spacer()
-                        ProgressView().tint(.primary)
-                        Spacer()
-                    } else if comments.isEmpty {
-                        emptyState
-                    } else {
-                        commentList
-                    }
-
-                    Divider().background(Color.border)
-                    commentInput
+            VStack(spacing: 0) {
+                if isLoading {
+                    Spacer()
+                    ProgressView().tint(.primary)
+                    Spacer()
+                } else if comments.isEmpty {
+                    emptyState
+                } else {
+                    commentList
                 }
+
+                Divider().background(Color.border)
+                commentInput
             }
             .navigationTitle("\(project.commentCount) Comments")
             .navigationBarTitleDisplayMode(.inline)
@@ -48,7 +44,6 @@ struct CommentSheet: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
-        .glassSheetBackground()
         .task {
             await loadComments()
         }
@@ -57,17 +52,10 @@ struct CommentSheet: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
-            Spacer()
-            Image(systemName: "bubble.left.and.bubble.right")
-                .font(.system(size: 48))
-                .foregroundStyle(.tertiary)
-            Text("No comments yet")
-                .foregroundStyle(.secondary)
+        ContentUnavailableView {
+            Label("No comments yet", systemImage: "bubble.left.and.bubble.right")
+        } description: {
             Text("Be the first to comment!")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-            Spacer()
         }
     }
 
@@ -120,7 +108,7 @@ struct CommentSheet: View {
             .disabled(newComment.isEmpty || isSending)
         }
         .padding(16)
-        .background(Color.secondaryBackground.opacity(0.5))
+        .background(.regularMaterial)
         .onTapGesture {
             if Clerk.shared.user == nil {
                 authManager.showAuthSheet = true
@@ -132,15 +120,10 @@ struct CommentSheet: View {
 
     private func loadComments() async {
         do {
-            let result = try await service.fetchComments(projectId: project.id)
-            await MainActor.run {
-                comments = result
-                isLoading = false
-            }
+            comments = try await service.fetchComments(projectId: project.id)
+            isLoading = false
         } catch {
-            await MainActor.run {
-                isLoading = false
-            }
+            isLoading = false
             print("Failed to load comments: \(error)")
         }
     }
@@ -161,15 +144,11 @@ struct CommentSheet: View {
                 projectId: project.id,
                 content: content
             )
-            await MainActor.run {
-                comments.insert(comment, at: 0)
-                newComment = ""
-                isSending = false
-            }
+            comments.insert(comment, at: 0)
+            newComment = ""
+            isSending = false
         } catch {
-            await MainActor.run {
-                isSending = false
-            }
+            isSending = false
             print("Failed to send comment: \(error)")
         }
     }
@@ -177,9 +156,7 @@ struct CommentSheet: View {
     private func deleteComment(_ comment: Comment) async {
         do {
             try await service.deleteComment(projectId: project.id, commentId: comment.id)
-            await MainActor.run {
-                comments.removeAll { $0.id == comment.id }
-            }
+            comments.removeAll { $0.id == comment.id }
         } catch {
             print("Failed to delete comment: \(error)")
         }

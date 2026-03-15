@@ -24,88 +24,71 @@ struct MainTabView: View {
         _chatViewModel = State(initialValue: ChatViewModel(projectEditor: editor))
     }
 
-    private var homeTab: some View {
-        FeedView(refreshTrigger: feedRefreshTrigger)
-    }
-
-    private var createPlaceholder: some View {
-        Color.appBackground.ignoresSafeArea()
-    }
-
-    private var inboxTab: some View {
-        InboxView(refreshTrigger: inboxRefreshTrigger)
-    }
-
-    private var profileTab: some View {
-        ProfileView(editProject: editProject, refreshTrigger: profileRefreshTrigger)
-    }
-
     var body: some View {
-        Group {
-            if #available(iOS 26.0, *) {
-                iOS26Content
-            } else {
-                iOS18Content
-            }
-        }
-        .tint(.primary)
-        .fullScreenCover(isPresented: $showingCreate) {
-            NavigationStack {
-                CreateView(
-                    projectEditor: projectEditor,
-                    chatViewModel: chatViewModel,
-                    selectedSubTab: $createSubTab,
-                    onBack: closeCreate
-                )
-            }
+        tabContent
             .tint(.primary)
-        }
-        .task {
-            await loadUnreadCount()
-        }
-        .onChange(of: selectedTab) { oldValue, newValue in
-            handleTabChange(from: oldValue, to: newValue)
-        }
-        .onChange(of: showingCreate) { _, isShowing in
-            if !isShowing, selectedTab == 1 {
-                selectedTab = previousTab
+            .fullScreenCover(isPresented: $showingCreate) {
+                NavigationStack {
+                    CreateView(
+                        projectEditor: projectEditor,
+                        chatViewModel: chatViewModel,
+                        selectedSubTab: $createSubTab,
+                        onBack: closeCreate
+                    )
+                }
+                .tint(.primary)
+            }
+            .task {
+                await loadUnreadCount()
+            }
+            .onChange(of: selectedTab) { oldValue, newValue in
+                handleTabChange(from: oldValue, to: newValue)
+            }
+            .onChange(of: showingCreate) { _, isShowing in
+                if !isShowing, selectedTab == 1 {
+                    selectedTab = previousTab
+                }
+            }
+    }
+
+    // MARK: - Tab Content
+
+    @ViewBuilder
+    private var tabContent: some View {
+        if #available(iOS 26.0, *) {
+            TabView(selection: $selectedTab) {
+                Tab("Home", systemImage: "house.fill", value: 0) {
+                    FeedView(refreshTrigger: feedRefreshTrigger)
+                }
+                Tab("Create", systemImage: "wand.and.stars", value: 1) {
+                    Color.appBackground.ignoresSafeArea()
+                }
+                Tab("Inbox", systemImage: "bell.fill", value: 2) {
+                    InboxView(refreshTrigger: inboxRefreshTrigger)
+                }
+                .badge(unreadCount)
+                Tab("Profile", systemImage: "person.fill", value: 3) {
+                    ProfileView(editProject: editProject, refreshTrigger: profileRefreshTrigger)
+                }
+            }
+            .tabBarMinimizeBehavior(.onScrollDown)
+        } else {
+            TabView(selection: $selectedTab) {
+                FeedView(refreshTrigger: feedRefreshTrigger)
+                    .tabItem { Label("Home", systemImage: "house.fill") }
+                    .tag(0)
+                Color.appBackground.ignoresSafeArea()
+                    .tabItem { Label("Create", systemImage: "wand.and.stars") }
+                    .tag(1)
+                InboxView(refreshTrigger: inboxRefreshTrigger)
+                    .tabItem { Label("Inbox", systemImage: "bell.fill") }
+                    .tag(2)
+                    .badge(unreadCount)
+                ProfileView(editProject: editProject, refreshTrigger: profileRefreshTrigger)
+                    .tabItem { Label("Profile", systemImage: "person.fill") }
+                    .tag(3)
             }
         }
-    }
-
-    // MARK: - iOS 26
-
-    @available(iOS 26.0, *)
-    private var iOS26Content: some View {
-        TabView(selection: $selectedTab) {
-            Tab("Home", systemImage: "house.fill", value: 0) { homeTab }
-            Tab("Create", systemImage: "wand.and.stars", value: 1) { createPlaceholder }
-            Tab("Inbox", systemImage: "bell.fill", value: 2) { inboxTab }
-                .badge(unreadCount)
-            Tab("Profile", systemImage: "person.fill", value: 3) { profileTab }
-        }
-    }
-
-    // MARK: - iOS 18
-
-    private var iOS18Content: some View {
-        TabView(selection: $selectedTab) {
-            homeTab
-                .tabItem { Label("Home", systemImage: "house.fill") }
-                .tag(0)
-            createPlaceholder
-                .tabItem { Label("Create", systemImage: "wand.and.stars") }
-                .tag(1)
-            inboxTab
-                .tabItem { Label("Inbox", systemImage: "bell.fill") }
-                .tag(2)
-                .badge(unreadCount)
-            profileTab
-                .tabItem { Label("Profile", systemImage: "person.fill") }
-                .tag(3)
-        }
-        .toolbarBackground(.visible, for: .tabBar)
-        .toolbarBackground(.ultraThinMaterial, for: .tabBar)
     }
 
     // MARK: - Actions

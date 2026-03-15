@@ -9,7 +9,6 @@ import SwiftUI
 
 struct UserProfileView: View {
     let username: String
-    @Environment(\.dismiss) private var dismiss
     @State private var viewModel: OtherUserProfileViewModel
 
     init(username: String) {
@@ -38,18 +37,7 @@ struct UserProfileView: View {
                 }
             }
         }
-        .background(Color.appBackground)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .foregroundStyle(.primary)
-                }
-            }
-        }
         .task {
             await viewModel.load()
         }
@@ -84,16 +72,10 @@ struct UserProfileView: View {
     private func projectMasonryGrid(columnWidth: CGFloat) -> some View {
         Group {
             if viewModel.projects.isEmpty, !viewModel.isLoading {
-                VStack(spacing: 12) {
-                    Image(systemName: "square.grid.2x2")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.tertiary)
-                    Text("No projects yet")
-                        .font(.system(size: 14))
-                        .foregroundStyle(.secondary)
+                ContentUnavailableView {
+                    Label("No projects yet", systemImage: "square.grid.2x2")
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 60)
+                .padding(.vertical, 40)
             } else {
                 MasonryGrid(projects: viewModel.projects, columnWidth: columnWidth, columns: 3, spacing: 2) { project in
                     ProfileProjectCell(project: project, columnWidth: columnWidth)

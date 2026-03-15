@@ -127,28 +127,15 @@ struct FeedView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
-            Spacer()
-
-            Image(systemName: "sparkles")
-                .font(.system(size: 48))
-                .foregroundStyle(.tertiary)
-
-            Text("No projects yet")
-                .font(.system(size: 17, weight: .medium))
-                .foregroundStyle(.secondary)
-
+        ContentUnavailableView {
+            Label("No projects yet", systemImage: "sparkles")
+        } description: {
             Text("Be the first to create!")
-                .font(.system(size: 14))
-                .foregroundStyle(.tertiary)
-
-            Spacer()
         }
-        .frame(maxWidth: .infinity, minHeight: 400)
     }
 }
 
-// MARK: - Grid Cell (Xiaohongshu style with dynamic height)
+// MARK: - Grid Cell
 
 struct ProjectGridCell: View {
     let project: Project
@@ -199,7 +186,7 @@ struct ProjectGridCell: View {
     }
 }
 
-// MARK: - Reusable Like Button (Uses InteractionStore)
+// MARK: - Like Button
 
 struct LikeButton: View {
     let projectId: String
@@ -232,6 +219,7 @@ struct LikeButton: View {
             HStack(spacing: 3) {
                 Image(systemName: store.isLiked(projectId) ? "heart.fill" : "heart")
                     .font(.system(size: size.iconSize))
+                    .symbolEffect(.bounce, value: store.isLiked(projectId))
                 Text(store.likeCount(projectId).formatted)
                     .font(.system(size: size.textSize))
             }

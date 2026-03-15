@@ -22,8 +22,6 @@ struct ProjectOptionsSheet: View {
     var body: some View {
         NavigationStack {
             formContent
-                .scrollContentBackground(.hidden)
-                .background(Color.appBackground)
                 .navigationTitle("Project Options")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -71,7 +69,6 @@ struct ProjectOptionsSheet: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
-        .glassSheetBackground()
     }
 
     // MARK: - Form Content
@@ -105,7 +102,6 @@ struct ProjectOptionsSheet: View {
                 TextField("Enter title", text: $projectEditor.title)
                     .font(.system(size: 16))
             }
-            .listRowBackground(Color.tertiaryBackground.opacity(0.8))
 
             VStack(alignment: .leading, spacing: 6) {
                 Text("Description")
@@ -115,7 +111,6 @@ struct ProjectOptionsSheet: View {
                     .font(.system(size: 16))
                     .lineLimit(3...6)
             }
-            .listRowBackground(Color.tertiaryBackground.opacity(0.8))
         } header: {
             Label("Details", systemImage: "doc.text")
         }
@@ -188,7 +183,6 @@ struct ProjectOptionsSheet: View {
             captureHint
             removeButton
         }
-        .listRowBackground(Color.tertiaryBackground.opacity(0.8))
     }
 
     private var aspectRatioSelector: some View {
@@ -314,7 +308,6 @@ struct ProjectOptionsSheet: View {
             }
         }
         .pickerStyle(.menu)
-        .listRowBackground(Color.tertiaryBackground.opacity(0.8))
     }
 
     // MARK: - Context Window
@@ -385,7 +378,6 @@ struct ProjectOptionsSheet: View {
             }
         }
         .padding(.vertical, 4)
-        .listRowBackground(Color.tertiaryBackground.opacity(0.8))
     }
 
     private func statItem(label: String, value: String, color: Color) -> some View {
@@ -426,7 +418,6 @@ struct ProjectOptionsSheet: View {
             }
         }
         .tint(.green)
-        .listRowBackground(Color.tertiaryBackground.opacity(0.8))
     }
 
     // MARK: - Tags
@@ -456,7 +447,6 @@ struct ProjectOptionsSheet: View {
                 }
             }
         }
-        .listRowBackground(Color.tertiaryBackground.opacity(0.8))
     }
 
     private func addTag() {

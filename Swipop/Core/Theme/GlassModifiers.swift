@@ -2,12 +2,12 @@
 //  GlassModifiers.swift
 //  Swipop
 //
-//  Unified glass effect modifiers for iOS 26 (Liquid Glass) and iOS 18 (Material)
+//  Unified glass effect: Liquid Glass (iOS 26) / Material (iOS 18)
 //
 
 import SwiftUI
 
-// MARK: - Glass Background Modifier (for Floating Elements)
+// MARK: - Glass Background Modifier
 
 struct GlassBackgroundModifier: ViewModifier {
     var shape: GlassShape = .capsule
@@ -19,65 +19,27 @@ struct GlassBackgroundModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
-            content.modifier(LiquidGlassBackground(shape: shape))
+            switch shape {
+            case .capsule:
+                content.glassEffect(.regular.interactive(), in: .capsule)
+            case .roundedRect(let radius):
+                content.glassEffect(.regular.interactive(), in: .rect(cornerRadius: radius))
+            }
         } else {
-            content.modifier(MaterialGlassBackground(shape: shape))
+            switch shape {
+            case .capsule:
+                materialFallback(content, shape: Capsule())
+            case .roundedRect(let radius):
+                materialFallback(content, shape: RoundedRectangle(cornerRadius: radius))
+            }
         }
     }
-}
 
-@available(iOS 26.0, *)
-private struct LiquidGlassBackground: ViewModifier {
-    let shape: GlassBackgroundModifier.GlassShape
-
-    func body(content: Content) -> some View {
-        switch shape {
-        case .capsule:
-            content.background(Capsule().fill(.clear).glassEffect())
-        case .roundedRect(let radius):
-            content.background(RoundedRectangle(cornerRadius: radius).fill(.clear).glassEffect())
-        }
-    }
-}
-
-private struct MaterialGlassBackground: ViewModifier {
-    let shape: GlassBackgroundModifier.GlassShape
-
-    func body(content: Content) -> some View {
-        switch shape {
-        case .capsule:
-            content
-                .background(
-                    Capsule()
-                        .fill(.ultraThinMaterial)
-                        .overlay(Capsule().strokeBorder(Color.white.opacity(0.2), lineWidth: 0.5))
-                )
-                .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
-        case .roundedRect(let radius):
-            content
-                .background(
-                    RoundedRectangle(cornerRadius: radius)
-                        .fill(.ultraThinMaterial)
-                        .overlay(RoundedRectangle(cornerRadius: radius).strokeBorder(Color.white.opacity(0.2), lineWidth: 0.5))
-                )
-                .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
-        }
-    }
-}
-
-// MARK: - Sheet Presentation Modifier
-
-/// iOS 26: Remove background to let system apply Liquid Glass automatically
-/// iOS 18: Use ultra thin material for translucent glass-like effect
-struct GlassSheetModifier: ViewModifier {
-    func body(content: Content) -> some View {
-        if #available(iOS 26.0, *) {
-            // iOS 26: Don't set presentationBackground, system applies Liquid Glass automatically
-            content
-        } else {
-            // iOS 18: Use material for glass-like effect
-            content.presentationBackground(.ultraThinMaterial)
-        }
+    private func materialFallback<S: InsettableShape>(_ content: Content, shape: S) -> some View {
+        content
+            .background(shape.fill(.ultraThinMaterial))
+            .overlay(shape.strokeBorder(Color.white.opacity(0.2), lineWidth: 0.5))
+            .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
     }
 }
 
@@ -102,13 +64,7 @@ struct SheetCloseButton: View {
 // MARK: - View Extensions
 
 extension View {
-    /// Apply glass background (Liquid Glass on iOS 26, Material on iOS 18)
     func glassBackground(shape: GlassBackgroundModifier.GlassShape = .capsule) -> some View {
         modifier(GlassBackgroundModifier(shape: shape))
-    }
-
-    /// Apply glass sheet background (System Liquid Glass on iOS 26, Material on iOS 18)
-    func glassSheetBackground() -> some View {
-        modifier(GlassSheetModifier())
     }
 }
