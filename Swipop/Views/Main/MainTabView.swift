@@ -24,6 +24,22 @@ struct MainTabView: View {
         _chatViewModel = State(initialValue: ChatViewModel(projectEditor: editor))
     }
 
+    private var homeTab: some View {
+        FeedView(refreshTrigger: feedRefreshTrigger)
+    }
+
+    private var createPlaceholder: some View {
+        Color.appBackground.ignoresSafeArea()
+    }
+
+    private var inboxTab: some View {
+        InboxView(refreshTrigger: inboxRefreshTrigger)
+    }
+
+    private var profileTab: some View {
+        ProfileView(editProject: editProject, refreshTrigger: profileRefreshTrigger)
+    }
+
     var body: some View {
         Group {
             if #available(iOS 26.0, *) {
@@ -47,6 +63,14 @@ struct MainTabView: View {
         .task {
             await loadUnreadCount()
         }
+        .onChange(of: selectedTab) { oldValue, newValue in
+            handleTabChange(from: oldValue, to: newValue)
+        }
+        .onChange(of: showingCreate) { _, isShowing in
+            if !isShowing && selectedTab == 1 {
+                selectedTab = previousTab
+            }
+        }
     }
 
     // MARK: - iOS 26
@@ -54,27 +78,11 @@ struct MainTabView: View {
     @available(iOS 26.0, *)
     private var iOS26Content: some View {
         TabView(selection: $selectedTab) {
-            Tab("Home", systemImage: "house.fill", value: 0) {
-                FeedView(refreshTrigger: feedRefreshTrigger)
-            }
-            Tab("Create", systemImage: "wand.and.stars", value: 1) {
-                createPlaceholder
-            }
-            Tab("Inbox", systemImage: "bell.fill", value: 2) {
-                InboxView(refreshTrigger: inboxRefreshTrigger)
-            }
-            .badge(unreadCount)
-            Tab("Profile", systemImage: "person.fill", value: 3) {
-                ProfileView(editProject: editProject, refreshTrigger: profileRefreshTrigger)
-            }
-        }
-        .onChange(of: selectedTab) { oldValue, newValue in
-            handleTabChange(from: oldValue, to: newValue)
-        }
-        .onChange(of: showingCreate) { _, isShowing in
-            if !isShowing && selectedTab == 1 {
-                selectedTab = previousTab
-            }
+            Tab("Home", systemImage: "house.fill", value: 0) { homeTab }
+            Tab("Create", systemImage: "wand.and.stars", value: 1) { createPlaceholder }
+            Tab("Inbox", systemImage: "bell.fill", value: 2) { inboxTab }
+                .badge(unreadCount)
+            Tab("Profile", systemImage: "person.fill", value: 3) { profileTab }
         }
     }
 
@@ -82,34 +90,22 @@ struct MainTabView: View {
 
     private var iOS18Content: some View {
         TabView(selection: $selectedTab) {
-            FeedView(refreshTrigger: feedRefreshTrigger)
+            homeTab
                 .tabItem { Label("Home", systemImage: "house.fill") }
                 .tag(0)
             createPlaceholder
                 .tabItem { Label("Create", systemImage: "wand.and.stars") }
                 .tag(1)
-            InboxView(refreshTrigger: inboxRefreshTrigger)
+            inboxTab
                 .tabItem { Label("Inbox", systemImage: "bell.fill") }
                 .tag(2)
                 .badge(unreadCount)
-            ProfileView(editProject: editProject, refreshTrigger: profileRefreshTrigger)
+            profileTab
                 .tabItem { Label("Profile", systemImage: "person.fill") }
                 .tag(3)
         }
         .toolbarBackground(.visible, for: .tabBar)
         .toolbarBackground(.ultraThinMaterial, for: .tabBar)
-        .onChange(of: selectedTab) { oldValue, newValue in
-            handleTabChange(from: oldValue, to: newValue)
-        }
-        .onChange(of: showingCreate) { _, isShowing in
-            if !isShowing && selectedTab == 1 {
-                selectedTab = previousTab
-            }
-        }
-    }
-
-    private var createPlaceholder: some View {
-        Color.appBackground.ignoresSafeArea()
     }
 
     // MARK: - Actions
@@ -117,7 +113,7 @@ struct MainTabView: View {
     private func handleTabChange(from oldValue: Int, to newValue: Int) {
         if newValue == 1 {
             previousTab = oldValue
-            openCreate()
+            showingCreate = true
         }
 
         switch newValue {
@@ -129,8 +125,6 @@ struct MainTabView: View {
         default: break
         }
     }
-
-    private func openCreate() { showingCreate = true }
 
     private func closeCreate() {
         Task {

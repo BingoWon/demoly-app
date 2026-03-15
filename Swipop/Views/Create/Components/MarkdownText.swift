@@ -33,6 +33,7 @@ struct MarkdownText: View {
             Text(inlineMarkdown(text))
                 .font(.system(size: headingSize(level), weight: .bold))
                 .foregroundStyle(.primary)
+                .textSelection(.enabled)
                 .padding(.top, level == 1 ? 4 : 2)
 
         case let .listItem(text, ordered, index):
@@ -44,6 +45,7 @@ struct MarkdownText: View {
                 Text(inlineMarkdown(text))
                     .font(.system(size: 15))
                     .foregroundStyle(.primary)
+                    .textSelection(.enabled)
             }
 
         case let .paragraph(text):
@@ -60,6 +62,7 @@ struct MarkdownText: View {
                 Text(inlineMarkdown(text))
                     .font(.system(size: 14, weight: .regular))
                     .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
             }
             .padding(.vertical, 2)
         }
@@ -138,8 +141,7 @@ struct MarkdownText: View {
 
             if let match = trimmed.wholeMatch(of: /^(#{1,4})\s+(.+)/) {
                 flushParagraph()
-                let level = match.1.count
-                blocks.append(.heading(level: level, text: String(match.2)))
+                blocks.append(.heading(level: match.1.count, text: String(match.2)))
                 orderedIndex = 0
             } else if let match = trimmed.wholeMatch(of: /^[-*+]\s+(.+)/) {
                 flushParagraph()
@@ -148,18 +150,13 @@ struct MarkdownText: View {
             } else if let match = trimmed.wholeMatch(of: /^(\d+)[.)]\s+(.+)/) {
                 flushParagraph()
                 orderedIndex += 1
-                let displayIndex = Int(match.1) ?? orderedIndex
-                blocks.append(.listItem(text: String(match.2), ordered: true, index: displayIndex))
+                blocks.append(.listItem(text: String(match.2), ordered: true, index: Int(match.1) ?? orderedIndex))
             } else if let match = trimmed.wholeMatch(of: /^>\s*(.*)/) {
                 flushParagraph()
                 blocks.append(.blockquote(String(match.1)))
                 orderedIndex = 0
             } else {
-                if paragraph.isEmpty {
-                    paragraph = trimmed
-                } else {
-                    paragraph += "\n" + trimmed
-                }
+                paragraph += paragraph.isEmpty ? trimmed : "\n" + trimmed
             }
         }
 
@@ -222,6 +219,8 @@ struct CodeBlockView: View {
 struct RichMessageContent: View {
     let content: String
 
+    private static let codeBlockRegex = /```(\w*)\n?([\s\S]*?)```/
+
     var body: some View {
         let blocks = parseContentBlocks(content)
 
@@ -246,52 +245,32 @@ struct RichMessageContent: View {
 
     private func parseContentBlocks(_ content: String) -> [ContentBlock] {
         var blocks: [ContentBlock] = []
-        let remaining = content
+        var searchStart = content.startIndex
 
-        let codeBlockPattern = #"```(\w*)\n?([\s\S]*?)```"#
+        for match in content.matches(of: Self.codeBlockRegex) {
+            let matchRange = match.range
 
-        guard let regex = try? NSRegularExpression(pattern: codeBlockPattern) else {
-            return [.text(content)]
-        }
-
-        var lastEnd = 0
-        let nsString = remaining as NSString
-
-        regex.enumerateMatches(in: remaining, range: NSRange(location: 0, length: nsString.length)) { match, _, _ in
-            guard let match else { return }
-
-            if match.range.location > lastEnd {
-                let textRange = NSRange(location: lastEnd, length: match.range.location - lastEnd)
-                let text = nsString.substring(with: textRange).trimmingCharacters(in: .whitespacesAndNewlines)
-                if !text.isEmpty {
-                    blocks.append(.text(text))
-                }
+            if searchStart < matchRange.lowerBound {
+                let text = String(content[searchStart..<matchRange.lowerBound])
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                if !text.isEmpty { blocks.append(.text(text)) }
             }
 
-            let language = match.range(at: 1).location != NSNotFound
-                ? nsString.substring(with: match.range(at: 1))
-                : nil
-            let code = match.range(at: 2).location != NSNotFound
-                ? nsString.substring(with: match.range(at: 2)).trimmingCharacters(in: .whitespacesAndNewlines)
-                : ""
-
+            let language = String(match.1)
+            let code = String(match.2).trimmingCharacters(in: .whitespacesAndNewlines)
             if !code.isEmpty {
-                blocks.append(.code(code, language: language?.isEmpty == true ? nil : language))
+                blocks.append(.code(code, language: language.isEmpty ? nil : language))
             }
 
-            lastEnd = match.range.location + match.range.length
+            searchStart = matchRange.upperBound
         }
 
-        if lastEnd < nsString.length {
-            let text = nsString.substring(from: lastEnd).trimmingCharacters(in: .whitespacesAndNewlines)
-            if !text.isEmpty {
-                blocks.append(.text(text))
-            }
+        if searchStart < content.endIndex {
+            let text = String(content[searchStart...]).trimmingCharacters(in: .whitespacesAndNewlines)
+            if !text.isEmpty { blocks.append(.text(text)) }
         }
 
-        if blocks.isEmpty {
-            blocks.append(.text(content))
-        }
+        if blocks.isEmpty { blocks.append(.text(content)) }
 
         return blocks
     }

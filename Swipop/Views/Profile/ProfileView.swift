@@ -43,7 +43,7 @@ struct ProfileView: View {
                     .foregroundStyle(.white)
                     .frame(width: 200, height: 50)
                     .background(Color.brand)
-                    .cornerRadius(25)
+                    .clipShape(Capsule())
             }
             .buttonStyle(.plain)
         }
@@ -153,11 +153,11 @@ struct ProfileProjectCell: View {
             if showDraftBadge {
                 Text("Draft")
                     .font(.system(size: 8, weight: .semibold))
-                    .foregroundColor(.black)
+                    .foregroundStyle(.black)
                     .padding(.horizontal, 4)
                     .padding(.vertical, 2)
                     .background(Color.orange)
-                    .cornerRadius(3)
+                    .clipShape(RoundedRectangle(cornerRadius: 3))
                     .padding(3)
             }
         }

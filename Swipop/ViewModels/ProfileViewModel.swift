@@ -5,7 +5,6 @@
 
 import ClerkKit
 import Foundation
-import Kingfisher
 
 // MARK: - Current User Profile (Singleton)
 
@@ -46,7 +45,7 @@ final class CurrentUserProfile {
         }
         isRefreshing = true
         defer { isRefreshing = false }
-        ImageCache.default.clearMemoryCache()
+        ThumbnailCache.clearMemory()
         await fetchData()
     }
 
@@ -57,13 +56,12 @@ final class CurrentUserProfile {
     }
 
     private func fetchData() async {
+        guard let userId = Clerk.shared.user?.id else { return }
         do {
-            let me = try await userService.fetchMe()
-            profile = me
-
-            if let userId = Clerk.shared.user?.id {
-                projects = try await projectService.fetchUserProjects(userId: userId)
-            }
+            async let me = userService.fetchMe()
+            async let userProjects = projectService.fetchUserProjects(userId: userId)
+            profile = try await me
+            projects = try await userProjects
         } catch {
             print("Failed to load profile: \(error)")
         }

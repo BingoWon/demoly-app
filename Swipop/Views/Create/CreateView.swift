@@ -18,6 +18,7 @@ struct CreateView: View {
     let onBack: () -> Void
 
     @State private var showOptions = false
+    @State private var deleteError: String?
     @FocusState private var isInputFocused: Bool
 
     private var isSignedIn: Bool { Clerk.shared.user != nil }
@@ -50,6 +51,14 @@ struct CreateView: View {
                 deleteProject()
             }
         }
+        .alert("Delete Failed", isPresented: .init(
+            get: { deleteError != nil },
+            set: { if !$0 { deleteError = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(deleteError ?? "")
+        }
     }
 
     // MARK: - Content
@@ -74,20 +83,18 @@ struct CreateView: View {
     }
 
     private func deleteProject() {
-        let projectId = projectEditor.projectId
+        guard let projectId = projectEditor.projectId else { return }
         projectEditor.reset()
         chatViewModel.clear()
         onBack()
 
-        if let projectId {
-            Task {
-                do {
-                    try await ProjectService.shared.deleteProject(id: projectId)
-                    await CurrentUserProfile.shared.refresh()
-                    FeedViewModel.shared.markNeedsRefresh()
-                } catch {
-                    print("Failed to delete project: \(error)")
-                }
+        Task {
+            do {
+                try await ProjectService.shared.deleteProject(id: projectId)
+                await CurrentUserProfile.shared.refresh()
+                FeedViewModel.shared.markNeedsRefresh()
+            } catch {
+                deleteError = error.localizedDescription
             }
         }
     }
@@ -110,7 +117,7 @@ struct CreateView: View {
                     .foregroundStyle(.white)
                     .frame(width: 200, height: 50)
                     .background(Color.brand)
-                    .cornerRadius(25)
+                    .clipShape(Capsule())
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -158,14 +158,17 @@ struct ProjectOptionsSheet: View {
         }
     }
 
+    @ViewBuilder
     private var dangerSection: some View {
-        Section {
-            Button(role: .destructive) {
-                showDeleteConfirmation = true
-            } label: {
-                HStack {
-                    Image(systemName: "trash")
-                    Text("Delete Project")
+        if projectEditor.projectId != nil {
+            Section {
+                Button(role: .destructive) {
+                    showDeleteConfirmation = true
+                } label: {
+                    HStack {
+                        Image(systemName: "trash")
+                        Text("Delete Project")
+                    }
                 }
             }
         }
@@ -214,7 +217,7 @@ struct ProjectOptionsSheet: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(captureDisabled ? Color.secondaryBackground.opacity(0.5) : Color.brand.opacity(0.2))
-                    .foregroundColor(captureDisabled ? Color.secondary : Color.brand)
+                    .foregroundStyle(captureDisabled ? Color.secondary : Color.brand)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
             }
             .buttonStyle(.plain)
@@ -438,7 +441,7 @@ struct ProjectOptionsSheet: View {
 
                 Button(action: addTag) {
                     Image(systemName: "plus.circle.fill")
-                        .foregroundColor(tagInput.isEmpty ? Color.secondary : Color.brand)
+                        .foregroundStyle(tagInput.isEmpty ? Color.secondary : Color.brand)
                 }
                 .disabled(tagInput.isEmpty)
             }

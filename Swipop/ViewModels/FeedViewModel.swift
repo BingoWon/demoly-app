@@ -5,7 +5,6 @@
 
 import ClerkKit
 import Foundation
-import Kingfisher
 
 @MainActor
 @Observable
@@ -61,7 +60,7 @@ final class FeedViewModel {
 
     func refresh() async {
         currentTask?.cancel()
-        ImageCache.default.clearMemoryCache()
+        ThumbnailCache.clearMemory()
         await doLoadFeed()
     }
 
@@ -76,9 +75,7 @@ final class FeedViewModel {
 
     private func performLoad() {
         currentTask?.cancel()
-        currentTask = Task.detached { [weak self] in
-            await self?.doLoadFeed()
-        }
+        currentTask = Task { await doLoadFeed() }
     }
 
     private func doLoadFeed() async {
@@ -103,9 +100,7 @@ final class FeedViewModel {
 
     func loadMore() {
         guard !isLoading, hasMorePages else { return }
-        Task.detached { [weak self] in
-            await self?.doLoadMore()
-        }
+        Task { await doLoadMore() }
     }
 
     private func doLoadMore() async {

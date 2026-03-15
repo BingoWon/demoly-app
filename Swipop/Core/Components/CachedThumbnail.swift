@@ -118,7 +118,10 @@ enum ThumbnailCache {
         cache.diskStorage.config.expiration = .days(7)
     }
 
-    /// Clear all cache
+    static func clearMemory() {
+        ImageCache.default.clearMemoryCache()
+    }
+
     static func clearAll() {
         ImageCache.default.clearMemoryCache()
         ImageCache.default.clearDiskCache()

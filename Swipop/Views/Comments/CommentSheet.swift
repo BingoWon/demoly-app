@@ -115,7 +115,7 @@ struct CommentSheet: View {
                     ProgressView().tint(.primary)
                 } else {
                     Image(systemName: "paperplane.fill")
-                        .foregroundColor(newComment.isEmpty ? Color.secondary : Color.brand)
+                        .foregroundStyle(newComment.isEmpty ? Color.secondary : Color.brand)
                 }
             }
             .disabled(newComment.isEmpty || isSending)

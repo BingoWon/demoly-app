@@ -113,11 +113,11 @@ struct ProjectDetailSheet: View {
                 } label: {
                     Text(followState.isFollowing ? "Following" : "Follow")
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(followState.isFollowing ? .primary : .white)
+                        .foregroundStyle(followState.isFollowing ? Color.primary : .white)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 8)
                         .background(followState.isFollowing ? Color.secondaryBackground : Color.brand)
-                        .cornerRadius(20)
+                        .clipShape(Capsule())
                 }
                 .disabled(followState.isLoading)
             }

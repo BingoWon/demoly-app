@@ -64,11 +64,11 @@ struct UserProfileView: View {
                 } label: {
                     Text(viewModel.isFollowing ? "Following" : "Follow")
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(viewModel.isFollowing ? .primary : .white)
+                        .foregroundStyle(viewModel.isFollowing ? Color.primary : .white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 36)
                         .background(viewModel.isFollowing ? Color.secondaryBackground : Color.brand)
-                        .cornerRadius(8)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
                 .buttonStyle(.plain)
                 .disabled(viewModel.isLoading)
