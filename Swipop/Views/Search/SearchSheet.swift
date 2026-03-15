@@ -29,12 +29,7 @@ struct SearchSheet: View {
             .searchable(text: $viewModel.searchQuery, prompt: "Projects, creators, #tags...")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { dismiss() } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 22))
-                            .symbolRenderingMode(.hierarchical)
-                            .foregroundStyle(.secondary)
-                    }
+                    SheetCloseButton { dismiss() }
                 }
             }
             .navigationDestination(item: $selectedProject) { project in

@@ -43,11 +43,7 @@ struct ProjectDetailSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { dismiss() } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.secondary)
-                            .font(.title2)
-                    }
+                    SheetCloseButton { dismiss() }
                 }
             }
             .navigationDestination(isPresented: $showCreatorProfile) {

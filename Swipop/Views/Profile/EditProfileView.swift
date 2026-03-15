@@ -3,6 +3,7 @@
 //  Swipop
 //
 
+import PhotosUI
 import SwiftUI
 
 struct EditProfileView: View {
@@ -14,6 +15,9 @@ struct EditProfileView: View {
     @State private var bio: String
     @State private var links: [ProfileLink]
     @State private var isSaving = false
+    @State private var saveError: String?
+    @State private var selectedPhoto: PhotosPickerItem?
+    @State private var avatarImage: UIImage?
     @FocusState private var focusedField: Field?
 
     private enum Field { case displayName, username, bio }
@@ -31,14 +35,12 @@ struct EditProfileView: View {
     var body: some View {
         NavigationStack {
             Form {
-                // Avatar Section
                 Section {
                     avatarView
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
                 }
 
-                // Profile Section
                 Section("Profile") {
                     fieldRow(label: "Display Name") {
                         TextField("Your name", text: $displayName)
@@ -53,7 +55,6 @@ struct EditProfileView: View {
                     }
                 }
 
-                // Bio Section
                 Section {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Bio")
@@ -68,7 +69,6 @@ struct EditProfileView: View {
                     }
                 }
 
-                // Links Section
                 Section {
                     ForEach($links) { $link in
                         LinkEditRow(link: $link, onDelete: {
@@ -111,6 +111,24 @@ struct EditProfileView: View {
                     }
                 }
             }
+            .alert("Error", isPresented: .init(
+                get: { saveError != nil },
+                set: { if !$0 { saveError = nil } }
+            )) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(saveError ?? "")
+            }
+            .onChange(of: selectedPhoto) { _, item in
+                guard let item else { return }
+                Task {
+                    if let data = try? await item.loadTransferable(type: Data.self),
+                       let image = UIImage(data: data)
+                    {
+                        avatarImage = image
+                    }
+                }
+            }
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
@@ -136,25 +154,36 @@ struct EditProfileView: View {
     private var avatarView: some View {
         HStack {
             Spacer()
-            ZStack {
-                Circle()
-                    .fill(Color.brand)
-                    .frame(width: 64, height: 64)
-                    .overlay(
-                        Text((displayName.isEmpty ? "U" : displayName).prefix(1).uppercased())
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundStyle(.white)
-                    )
+            PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                ZStack {
+                    if let avatarImage {
+                        Image(uiImage: avatarImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 72, height: 72)
+                            .clipShape(Circle())
+                    } else {
+                        Circle()
+                            .fill(Color.brand)
+                            .frame(width: 72, height: 72)
+                            .overlay(
+                                Text((displayName.isEmpty ? "U" : displayName).prefix(1).uppercased())
+                                    .font(.system(size: 28, weight: .bold))
+                                    .foregroundStyle(.white)
+                            )
+                    }
 
-                Circle()
-                    .fill(Color.black.opacity(0.4))
-                    .frame(width: 64, height: 64)
-                    .overlay(
-                        Image(systemName: "camera.fill")
-                            .foregroundStyle(.white)
-                            .font(.system(size: 16))
-                    )
+                    Circle()
+                        .fill(.black.opacity(0.35))
+                        .frame(width: 72, height: 72)
+                        .overlay(
+                            Image(systemName: "camera.fill")
+                                .foregroundStyle(.white)
+                                .font(.system(size: 16))
+                        )
+                }
             }
+            .buttonStyle(.plain)
             Spacer()
         }
     }
@@ -177,7 +206,13 @@ struct EditProfileView: View {
             await CurrentUserProfile.shared.refresh()
             dismiss()
         } catch {
-            print("Failed to save profile: \(error)")
+            if error.localizedDescription.lowercased().contains("unique") ||
+                error.localizedDescription.lowercased().contains("username")
+            {
+                saveError = "This username is already taken."
+            } else {
+                saveError = error.localizedDescription
+            }
         }
     }
 }

@@ -17,7 +17,6 @@ struct SettingsView: View {
 
         NavigationStack {
             List {
-                // Profile (Clerk native)
                 if let user = Clerk.shared.user {
                     Section {
                         HStack(spacing: 12) {
@@ -25,17 +24,13 @@ struct SettingsView: View {
                                 .frame(width: 40, height: 40)
 
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(
-                                    [user.firstName, user.lastName]
+                                Text({
+                                    let name = [user.firstName, user.lastName]
                                         .compactMap { $0 }
                                         .joined(separator: " ")
-                                        .isEmpty
-                                        ? "User"
-                                        : [user.firstName, user.lastName]
-                                            .compactMap { $0 }
-                                            .joined(separator: " ")
-                                )
-                                .font(.headline)
+                                    return name.isEmpty ? "User" : name
+                                }())
+                                    .font(.headline)
 
                                 if let email = user.primaryEmailAddress?.emailAddress {
                                     Text(email)
@@ -53,7 +48,6 @@ struct SettingsView: View {
                     }
                 }
 
-                // Appearance
                 Section {
                     Picker(selection: $appearance.mode) {
                         ForEach(AppearanceMode.allCases) { mode in
@@ -68,7 +62,6 @@ struct SettingsView: View {
                     Label("Appearance", systemImage: "paintbrush.pointed")
                 }
 
-                // Account
                 Section {
                     NavigationLink {
                         NotificationSettingsView()
@@ -87,7 +80,6 @@ struct SettingsView: View {
                     Label("Preferences", systemImage: "slider.horizontal.3")
                 }
 
-                // About
                 Section {
                     NavigationLink {
                         AboutView()
@@ -121,28 +113,27 @@ struct SettingsView: View {
                     Label("About", systemImage: "info.circle")
                 }
 
-                // Sign Out
                 Section {
-                    Button(role: .destructive) {
+                    Button {
                         showLogoutConfirm = true
                     } label: {
-                        Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                        HStack {
+                            Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                                .foregroundStyle(.primary)
+                            Spacer()
+                        }
                     }
                     .listRowBackground(Color.tertiaryBackground.opacity(0.8))
                 }
             }
+            .tint(.brand)
             .scrollContentBackground(.hidden)
             .background(Color.appBackground)
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { dismiss() } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 22))
-                            .symbolRenderingMode(.hierarchical)
-                            .foregroundStyle(.secondary)
-                    }
+                    SheetCloseButton { dismiss() }
                 }
             }
             .confirmationDialog("Sign Out", isPresented: $showLogoutConfirm) {
@@ -162,7 +153,6 @@ struct SettingsView: View {
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .glassSheetBackground()
-        .preferredColorScheme(appearance.colorScheme)
     }
 }
 
@@ -186,6 +176,7 @@ struct NotificationSettingsView: View {
                 Label("Push Notifications", systemImage: "bell.badge")
             }
         }
+        .tint(.brand)
         .scrollContentBackground(.hidden)
         .background(Color.appBackground)
         .navigationTitle("Notifications")
@@ -208,6 +199,7 @@ struct PrivacySettingsView: View {
                 Text("When enabled, only approved followers can see your projects.")
             }
         }
+        .tint(.brand)
         .scrollContentBackground(.hidden)
         .background(Color.appBackground)
         .navigationTitle("Privacy")
