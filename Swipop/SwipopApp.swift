@@ -9,6 +9,7 @@ import SwiftUI
 @main
 struct SwipopApp: App {
     @State private var clerk: Clerk
+    @State private var authManager = AuthManager()
     @State private var appearance = AppearanceSettings.shared
 
     init() {
@@ -23,6 +24,7 @@ struct SwipopApp: App {
                 if clerk.isLoaded {
                     RootView()
                         .environment(clerk)
+                        .environment(authManager)
                         .preferredColorScheme(appearance.colorScheme)
                         .environment(appearance)
                 } else {

@@ -8,8 +8,6 @@
 import SwiftUI
 
 struct FeedView: View {
-    @Binding var showLogin: Bool
-
     @State private var showSearch = false
     @State private var selectedProject: Project?
 
@@ -24,11 +22,11 @@ struct FeedView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
             .navigationDestination(item: $selectedProject) { project in
-                ProjectViewerPage(project: project, showLogin: $showLogin)
+                ProjectViewerPage(project: project)
             }
         }
         .sheet(isPresented: $showSearch) {
-            SearchSheet(showLogin: $showLogin)
+            SearchSheet()
         }
         .task {
             feed.loadInitial()
@@ -212,5 +210,6 @@ struct LikeButton: View {
 }
 
 #Preview {
-    FeedView(showLogin: .constant(false))
+    FeedView()
+        .environment(AuthManager())
 }

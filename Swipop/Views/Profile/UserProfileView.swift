@@ -9,13 +9,11 @@ import SwiftUI
 
 struct UserProfileView: View {
     let username: String
-    @Binding var showLogin: Bool
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: OtherUserProfileViewModel
 
-    init(username: String, showLogin: Binding<Bool>) {
+    init(username: String) {
         self.username = username
-        _showLogin = showLogin
         _viewModel = State(initialValue: OtherUserProfileViewModel(username: username))
     }
 
@@ -106,6 +104,7 @@ struct UserProfileView: View {
 
 #Preview {
     NavigationStack {
-        UserProfileView(username: "creator", showLogin: .constant(false))
+        UserProfileView(username: "creator")
     }
+    .environment(AuthManager())
 }

@@ -8,7 +8,7 @@ import SwiftUI
 
 struct CommentSheet: View {
     let project: Project
-    @Binding var showLogin: Bool
+    @Environment(AuthManager.self) private var authManager
 
     @Environment(\.dismiss) private var dismiss
     @State private var comments: [Comment] = []
@@ -124,10 +124,7 @@ struct CommentSheet: View {
         .background(Color.secondaryBackground.opacity(0.5))
         .onTapGesture {
             if Clerk.shared.user == nil {
-                dismiss()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    showLogin = true
-                }
+                authManager.showAuthSheet = true
             }
         }
     }
@@ -151,7 +148,7 @@ struct CommentSheet: View {
 
     private func sendComment() async {
         guard Clerk.shared.user != nil else {
-            showLogin = true
+            authManager.showAuthSheet = true
             return
         }
 
@@ -246,5 +243,6 @@ private struct CommentRow: View {
 }
 
 #Preview {
-    CommentSheet(project: .sample, showLogin: .constant(false))
+    CommentSheet(project: .sample)
+        .environment(AuthManager())
 }

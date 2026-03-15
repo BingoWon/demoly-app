@@ -11,7 +11,7 @@ import ClerkKit
 import SwiftUI
 
 struct CreateView: View {
-    @Binding var showLogin: Bool
+    @Environment(AuthManager.self) private var authManager
     @Bindable var projectEditor: ProjectEditorViewModel
     @Bindable var chatViewModel: ChatViewModel
     @Binding var selectedSubTab: CreateSubTab
@@ -86,7 +86,7 @@ struct CreateView: View {
                 .font(.title2)
                 .foregroundStyle(.primary)
 
-            Button { showLogin = true } label: {
+            Button { authManager.showAuthSheet = true } label: {
                 Text("Sign In")
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(.white)
@@ -284,9 +284,10 @@ private struct CreateViewPreview: View {
     var body: some View {
         NavigationStack {
             if let chat = chatViewModel {
-                CreateView(showLogin: .constant(false), projectEditor: projectEditor, chatViewModel: chat, selectedSubTab: .constant(.chat), onBack: {})
+                CreateView(projectEditor: projectEditor, chatViewModel: chat, selectedSubTab: .constant(.chat), onBack: {})
             }
         }
+        .environment(AuthManager())
         .onAppear {
             chatViewModel = ChatViewModel(projectEditor: projectEditor)
         }

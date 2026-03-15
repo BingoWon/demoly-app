@@ -10,7 +10,7 @@ import SwiftUI
 
 struct ProjectDetailSheet: View {
     let project: Project
-    @Binding var showLogin: Bool
+    @Environment(AuthManager.self) private var authManager
 
     @Environment(\.dismiss) private var dismiss
     @State private var followState = FollowState()
@@ -52,7 +52,7 @@ struct ProjectDetailSheet: View {
             }
             .navigationDestination(isPresented: $showCreatorProfile) {
                 if let handle = creator?.handle {
-                    UserProfileView(username: handle, showLogin: $showLogin)
+                    UserProfileView(username: handle)
                 }
             }
         }
@@ -65,7 +65,7 @@ struct ProjectDetailSheet: View {
             }
         }
         .sheet(isPresented: $showComments) {
-            CommentSheet(project: project, showLogin: $showLogin)
+            CommentSheet(project: project)
         }
         .sheet(isPresented: $showShareSheet) {
             ShareSheet(project: project)
@@ -261,10 +261,7 @@ struct ProjectDetailSheet: View {
         if Clerk.shared.user != nil {
             action()
         } else {
-            dismiss()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                showLogin = true
-            }
+            authManager.showAuthSheet = true
         }
     }
 }
@@ -308,5 +305,6 @@ private struct StatActionTile: View {
 }
 
 #Preview {
-    ProjectDetailSheet(project: .sample, showLogin: .constant(false))
+    ProjectDetailSheet(project: .sample)
+        .environment(AuthManager())
 }

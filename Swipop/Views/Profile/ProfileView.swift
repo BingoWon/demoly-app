@@ -7,7 +7,7 @@ import ClerkKit
 import SwiftUI
 
 struct ProfileView: View {
-    @Binding var showLogin: Bool
+    @Environment(AuthManager.self) private var authManager
     let editProject: (Project) -> Void
 
     var body: some View {
@@ -16,7 +16,7 @@ struct ProfileView: View {
                 Color.appBackground.ignoresSafeArea()
 
                 if Clerk.shared.user != nil {
-                    ProfileContentView(showLogin: $showLogin, editProject: editProject)
+                    ProfileContentView(editProject: editProject)
                 } else {
                     signInPrompt
                 }
@@ -35,7 +35,7 @@ struct ProfileView: View {
                 .foregroundStyle(.primary)
 
             Button {
-                showLogin = true
+                authManager.showAuthSheet = true
             } label: {
                 Text("Sign In")
                     .font(.system(size: 17, weight: .semibold))
@@ -52,7 +52,6 @@ struct ProfileView: View {
 // MARK: - Profile Content View (Current User)
 
 struct ProfileContentView: View {
-    @Binding var showLogin: Bool
     let editProject: (Project) -> Void
 
     private var userProfile: CurrentUserProfile { CurrentUserProfile.shared }
@@ -164,5 +163,6 @@ struct ProfileProjectCell: View {
 }
 
 #Preview {
-    ProfileView(showLogin: .constant(false), editProject: { _ in })
+    ProfileView(editProject: { _ in })
+        .environment(AuthManager())
 }

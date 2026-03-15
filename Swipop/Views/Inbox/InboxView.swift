@@ -11,7 +11,6 @@ import SwiftUI
 struct InboxView: View {
     @State private var viewModel = InboxViewModel()
     @State private var selectedActivity: Activity?
-    @State private var showLogin = false
 
     var body: some View {
         NavigationStack {
@@ -44,9 +43,6 @@ struct InboxView: View {
         }
         .task {
             await viewModel.loadActivities()
-        }
-        .sheet(isPresented: $showLogin) {
-            LoginView(isPresented: $showLogin)
         }
     }
 
@@ -113,13 +109,13 @@ struct InboxView: View {
         switch activity.type {
         case .follow:
             if let handle = activity.actor?.handle {
-                UserProfileView(username: handle, showLogin: $showLogin)
+                UserProfileView(username: handle)
             }
         case .like, .comment, .collect:
             if let project = activity.project {
-                ProjectViewerPage(project: project, showLogin: $showLogin)
+                ProjectViewerPage(project: project)
             } else if let handle = activity.actor?.handle {
-                UserProfileView(username: handle, showLogin: $showLogin)
+                UserProfileView(username: handle)
             }
         }
     }
@@ -284,4 +280,5 @@ struct ActivityGroup {
 
 #Preview {
     InboxView()
+        .environment(AuthManager())
 }

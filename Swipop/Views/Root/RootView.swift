@@ -5,20 +5,27 @@
 //  Root view - users can browse without login
 //
 
+import ClerkKit
+import ClerkKitUI
 import SwiftUI
 
 struct RootView: View {
-    @State private var showLogin = false
+    @Environment(AuthManager.self) private var authManager
 
     var body: some View {
-        MainTabView(showLogin: $showLogin)
-            .sheet(isPresented: $showLogin) {
-                LoginView(isPresented: $showLogin)
+        @Bindable var authManager = authManager
+        MainTabView()
+            .sheet(isPresented: $authManager.showAuthSheet) {
+                AuthView()
+            }
+            .onChange(of: Clerk.shared.user?.id) { _, newId in
+                if newId != nil { authManager.showAuthSheet = false }
             }
     }
 }
 
 #Preview {
     RootView()
+        .environment(AuthManager())
         .preferredColorScheme(.dark)
 }

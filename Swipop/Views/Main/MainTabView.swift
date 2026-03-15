@@ -7,7 +7,6 @@ import ClerkKit
 import SwiftUI
 
 struct MainTabView: View {
-    @Binding var showLogin: Bool
     @State private var selectedTab = 0
     @State private var previousTab = 0
     @State private var projectEditor: ProjectEditorViewModel
@@ -16,8 +15,7 @@ struct MainTabView: View {
     @State private var showingCreate = false
     @State private var unreadCount = 0
 
-    init(showLogin: Binding<Bool>) {
-        _showLogin = showLogin
+    init() {
         let editor = ProjectEditorViewModel()
         _projectEditor = State(initialValue: editor)
         _chatViewModel = State(initialValue: ChatViewModel(projectEditor: editor))
@@ -35,7 +33,6 @@ struct MainTabView: View {
         .fullScreenCover(isPresented: $showingCreate) {
             NavigationStack {
                 CreateView(
-                    showLogin: $showLogin,
                     projectEditor: projectEditor,
                     chatViewModel: chatViewModel,
                     selectedSubTab: $createSubTab,
@@ -55,7 +52,7 @@ struct MainTabView: View {
     private var iOS26Content: some View {
         TabView(selection: $selectedTab) {
             Tab("Home", systemImage: "house.fill", value: 0) {
-                FeedView(showLogin: $showLogin)
+                FeedView()
             }
             Tab("Create", systemImage: "wand.and.stars", value: 1) {
                 createPlaceholder
@@ -65,7 +62,7 @@ struct MainTabView: View {
             }
             .badge(unreadCount)
             Tab("Profile", systemImage: "person.fill", value: 3) {
-                ProfileView(showLogin: $showLogin, editProject: editProject)
+                ProfileView(editProject: editProject)
             }
         }
         .onChange(of: selectedTab) { oldValue, newValue in
@@ -88,7 +85,7 @@ struct MainTabView: View {
 
     private var iOS18Content: some View {
         TabView(selection: $selectedTab) {
-            FeedView(showLogin: $showLogin)
+            FeedView()
                 .tabItem { Label("Home", systemImage: "house.fill") }
                 .tag(0)
             createPlaceholder
@@ -98,7 +95,7 @@ struct MainTabView: View {
                 .tabItem { Label("Inbox", systemImage: "bell.fill") }
                 .tag(2)
                 .badge(unreadCount)
-            ProfileView(showLogin: $showLogin, editProject: editProject)
+            ProfileView(editProject: editProject)
                 .tabItem { Label("Profile", systemImage: "person.fill") }
                 .tag(3)
         }
@@ -158,5 +155,6 @@ struct MainTabView: View {
 }
 
 #Preview {
-    MainTabView(showLogin: .constant(false))
+    MainTabView()
+        .environment(AuthManager())
 }

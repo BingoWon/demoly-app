@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct SearchSheet: View {
-    @Binding var showLogin: Bool
     @Environment(\.dismiss) private var dismiss
     @Environment(AppearanceSettings.self) private var appearance
     @State private var viewModel = SearchViewModel()
@@ -39,7 +38,7 @@ struct SearchSheet: View {
                 }
             }
             .navigationDestination(item: $selectedProject) { project in
-                ProjectViewerPage(project: project, showLogin: .constant(false))
+                ProjectViewerPage(project: project)
             }
         }
         .presentationDetents([.large])
@@ -157,7 +156,7 @@ struct SearchSheet: View {
 
             ForEach(viewModel.users) { user in
                 NavigationLink {
-                    UserProfileView(username: user.handle, showLogin: $showLogin)
+                    UserProfileView(username: user.handle)
                 } label: {
                     HStack(spacing: 12) {
                         Circle()
@@ -252,5 +251,6 @@ struct SearchSheet: View {
 }
 
 #Preview {
-    SearchSheet(showLogin: .constant(false))
+    SearchSheet()
+        .environment(AuthManager())
 }

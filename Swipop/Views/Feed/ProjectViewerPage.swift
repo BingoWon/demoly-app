@@ -12,7 +12,7 @@ import SwiftUI
 
 struct ProjectViewerPage: View {
     let initialProject: Project
-    @Binding var showLogin: Bool
+    @Environment(AuthManager.self) private var authManager
 
     @Environment(\.dismiss) private var dismiss
     @State private var showComments = false
@@ -21,9 +21,8 @@ struct ProjectViewerPage: View {
 
     private let feed = FeedViewModel.shared
 
-    init(project: Project, showLogin: Binding<Bool>) {
+    init(project: Project) {
         initialProject = project
-        _showLogin = showLogin
     }
 
     private var currentProject: Project {
@@ -48,13 +47,13 @@ struct ProjectViewerPage: View {
             onCollect: handleCollect
         ))
         .sheet(isPresented: $showComments) {
-            CommentSheet(project: currentProject, showLogin: $showLogin)
+            CommentSheet(project: currentProject)
         }
         .sheet(isPresented: $showShare) {
             ShareSheet(project: currentProject)
         }
         .sheet(isPresented: $showDetail) {
-            ProjectDetailSheet(project: currentProject, showLogin: $showLogin)
+            ProjectDetailSheet(project: currentProject)
         }
         .onAppear {
             feed.setCurrentProject(initialProject)
@@ -65,7 +64,7 @@ struct ProjectViewerPage: View {
 
     private func handleLike() {
         guard Clerk.shared.user != nil else {
-            showLogin = true
+            authManager.showAuthSheet = true
             return
         }
         Task { await InteractionStore.shared.toggleLike(projectId: currentProject.id) }
@@ -73,7 +72,7 @@ struct ProjectViewerPage: View {
 
     private func handleCollect() {
         guard Clerk.shared.user != nil else {
-            showLogin = true
+            authManager.showAuthSheet = true
             return
         }
         Task { await InteractionStore.shared.toggleCollect(projectId: currentProject.id) }
@@ -229,6 +228,7 @@ extension SwipeBackEnablerController: UIGestureRecognizerDelegate {
 
 #Preview {
     NavigationStack {
-        ProjectViewerPage(project: .sample, showLogin: .constant(false))
+        ProjectViewerPage(project: .sample)
     }
+    .environment(AuthManager())
 }
