@@ -21,7 +21,9 @@ struct CreateView: View {
     @State private var deleteError: String?
     @FocusState private var isInputFocused: Bool
 
-    private var isSignedIn: Bool { Clerk.shared.user != nil }
+    private var isSignedIn: Bool {
+        Clerk.shared.user != nil
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -135,13 +137,23 @@ private struct CreateNavigationModifier: ViewModifier {
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
             content
-                .toolbar { iOS26CreateToolbar(onBack: onBack, projectEditor: projectEditor, selectedSubTab: selectedSubTab, showOptions: $showOptions) }
+                .toolbar { iOS26CreateToolbar(
+                    onBack: onBack,
+                    projectEditor: projectEditor,
+                    selectedSubTab: selectedSubTab,
+                    showOptions: $showOptions
+                ) }
                 .toolbarBackground(.hidden, for: .navigationBar)
         } else {
             content
                 .toolbar(.hidden, for: .navigationBar)
                 .safeAreaInset(edge: .top) {
-                    iOS18CreateTopBar(onBack: onBack, projectEditor: projectEditor, selectedSubTab: selectedSubTab, showOptions: $showOptions)
+                    iOS18CreateTopBar(
+                        onBack: onBack,
+                        projectEditor: projectEditor,
+                        selectedSubTab: selectedSubTab,
+                        showOptions: $showOptions
+                    )
                 }
         }
     }
@@ -254,7 +266,11 @@ private struct iOS18CreateTopBar: View {
                 if selectedSubTab.isCodeTab {
                     saveIndicator
                 }
-                glassIconButton(projectEditor.isPublished ? "eye" : "eye.slash", tint: projectEditor.isPublished ? .green : .orange, action: actions.toggleVisibility)
+                glassIconButton(
+                    projectEditor.isPublished ? "eye" : "eye.slash",
+                    tint: projectEditor.isPublished ? .green : .orange,
+                    action: actions.toggleVisibility
+                )
                 glassIconButton("slider.horizontal.3", action: { showOptions = true })
             }
             .frame(height: buttonHeight)

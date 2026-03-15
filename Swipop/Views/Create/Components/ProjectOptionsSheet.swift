@@ -151,8 +151,10 @@ struct ProjectOptionsSheet: View {
         } header: {
             Label("Context", systemImage: "brain")
         } footer: {
-            Text("Auto-summarize is always enabled. When context reaches capacity, conversation will be automatically compacted to continue.")
-                .font(.system(size: 12))
+            Text(
+                "Auto-summarize is always enabled. When context reaches capacity, conversation will be automatically compacted to continue."
+            )
+            .font(.system(size: 12))
         }
     }
 
@@ -236,7 +238,7 @@ struct ProjectOptionsSheet: View {
 
     @ViewBuilder
     private var captureHint: some View {
-        if captureDisabled && !projectEditor.isCapturingThumbnail {
+        if captureDisabled, !projectEditor.isCapturingThumbnail {
             Text("Visit Preview tab first to enable capture")
                 .font(.system(size: 12))
                 .foregroundStyle(.tertiary)

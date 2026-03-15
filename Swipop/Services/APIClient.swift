@@ -32,7 +32,7 @@ enum APIError: LocalizedError {
     }
 }
 
-nonisolated struct EmptyPayload: Encodable, Sendable {}
+nonisolated struct EmptyPayload: Encodable {}
 
 actor APIClient {
     static let shared = APIClient()
@@ -101,7 +101,13 @@ actor APIClient {
 
     // MARK: - Multipart Upload
 
-    func upload(_ path: String, fileData: Data, fileName: String, mimeType: String, extraFields: [String: String] = [:]) async throws -> Data {
+    func upload(
+        _ path: String,
+        fileData: Data,
+        fileName: String,
+        mimeType: String,
+        extraFields: [String: String] = [:]
+    ) async throws -> Data {
         guard let url = URL(string: "\(Config.apiBaseURL)\(path)") else {
             throw APIError.invalidURL
         }
@@ -168,7 +174,12 @@ actor APIClient {
 
     // MARK: - Private
 
-    private func request(_ method: String, path: String, query: [String: String]? = nil, body: (some Encodable)? = Optional<EmptyPayload>.none) async throws -> Data {
+    private func request(
+        _ method: String,
+        path: String,
+        query: [String: String]? = nil,
+        body: (some Encodable)? = EmptyPayload?.none
+    ) async throws -> Data {
         guard var components = URLComponents(string: "\(Config.apiBaseURL)\(path)") else {
             throw APIError.invalidURL
         }

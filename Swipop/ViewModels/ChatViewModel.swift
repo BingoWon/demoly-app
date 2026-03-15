@@ -46,13 +46,13 @@ final class ChatViewModel {
     private var history: [[String: Any]] = []
     private var streamTask: Task<Void, Never>?
 
-    private var currentMessageIndex: Int = 0
+    private var currentMessageIndex = 0
     private var currentThinkingIndex: Int?
-    private var accumulatedReasoning: String = ""
+    private var accumulatedReasoning = ""
     private var streamingToolCalls: [Int: (id: String, name: String, segmentIndex: Int)] = [:]
 
-    private var pendingContent: String = ""
-    private var pendingReasoning: String = ""
+    private var pendingContent = ""
+    private var pendingReasoning = ""
     private var debounceTask: Task<Void, Never>?
     private let debounceInterval: UInt64 = 50_000_000
 

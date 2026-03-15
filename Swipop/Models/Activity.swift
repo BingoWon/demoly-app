@@ -18,7 +18,9 @@ struct Activity: Identifiable, Codable, Hashable {
     let actor: Profile?
     let project: Project?
 
-    var timeAgo: String { createdAt.timeAgo }
+    var timeAgo: String {
+        createdAt.timeAgo
+    }
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)

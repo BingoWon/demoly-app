@@ -12,8 +12,13 @@ final class InboxViewModel {
     private(set) var activities: [Activity] = []
     private(set) var isLoading = false
 
-    var hasUnread: Bool { activities.contains { !$0.isRead } }
-    var unreadCount: Int { activities.filter { !$0.isRead }.count }
+    var hasUnread: Bool {
+        activities.contains { !$0.isRead }
+    }
+
+    var unreadCount: Int {
+        activities.filter { !$0.isRead }.count
+    }
 
     var groupedActivities: [ActivityGroup] {
         let calendar = Calendar.current

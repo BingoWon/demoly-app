@@ -60,9 +60,17 @@ final class ProjectEditorViewModel {
 
     // MARK: - Content
 
-    var html = defaultHTML { didSet { if html != oldValue { markDirty() } } }
-    var css = defaultCSS { didSet { if css != oldValue { markDirty() } } }
-    var javascript = defaultJS { didSet { if javascript != oldValue { markDirty() } } }
+    var html = defaultHTML {
+        didSet { if html != oldValue { markDirty() } }
+    }
+
+    var css = defaultCSS {
+        didSet { if css != oldValue { markDirty() } }
+    }
+
+    var javascript = defaultJS {
+        didSet { if javascript != oldValue { markDirty() } }
+    }
 
     // MARK: - Chat
 
@@ -70,10 +78,21 @@ final class ProjectEditorViewModel {
 
     // MARK: - Metadata
 
-    var title = "" { didSet { if title != oldValue { markDirty() } } }
-    var description = "" { didSet { if description != oldValue { markDirty() } } }
-    var tags: [String] = [] { didSet { if tags != oldValue { markDirty() } } }
-    var isPublished = false { didSet { if isPublished != oldValue { markDirty() } } }
+    var title = "" {
+        didSet { if title != oldValue { markDirty() } }
+    }
+
+    var description = "" {
+        didSet { if description != oldValue { markDirty() } }
+    }
+
+    var tags: [String] = [] {
+        didSet { if tags != oldValue { markDirty() } }
+    }
+
+    var isPublished = false {
+        didSet { if isPublished != oldValue { markDirty() } }
+    }
 
     // MARK: - Thumbnail
 
@@ -87,7 +106,10 @@ final class ProjectEditorViewModel {
     // MARK: - State
 
     private var isLoading = false
-    var isDirty = false { didSet { if isDirty && !oldValue && !isLoading { scheduleAutoSave() } } }
+    var isDirty = false {
+        didSet { if isDirty, !oldValue, !isLoading { scheduleAutoSave() } }
+    }
+
     var isSaving = false
     var lastSaved: Date?
     var saveError: Error?
@@ -99,11 +121,26 @@ final class ProjectEditorViewModel {
             || (css != Self.defaultCSS && !css.isEmpty)
             || (javascript != Self.defaultJS && !javascript.isEmpty)
     }
-    var hasMetadata: Bool { !title.isEmpty || !description.isEmpty || !tags.isEmpty }
-    var hasChat: Bool { chatMessages.contains { ($0["role"] as? String) != "system" } }
-    var hasContent: Bool { hasChat || hasMetadata || hasCustomCode }
-    var isNew: Bool { projectId == nil }
-    var hasThumbnail: Bool { thumbnailUrl != nil || thumbnailImage != nil }
+
+    var hasMetadata: Bool {
+        !title.isEmpty || !description.isEmpty || !tags.isEmpty
+    }
+
+    var hasChat: Bool {
+        chatMessages.contains { ($0["role"] as? String) != "system" }
+    }
+
+    var hasContent: Bool {
+        hasChat || hasMetadata || hasCustomCode
+    }
+
+    var isNew: Bool {
+        projectId == nil
+    }
+
+    var hasThumbnail: Bool {
+        thumbnailUrl != nil || thumbnailImage != nil
+    }
 
     var smallThumbnailURL: URL? {
         guard let thumbnailUrl else { return nil }

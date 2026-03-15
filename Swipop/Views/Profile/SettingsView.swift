@@ -30,7 +30,7 @@ struct SettingsView: View {
                                         .joined(separator: " ")
                                     return name.isEmpty ? "User" : name
                                 }())
-                                .font(.headline)
+                                    .font(.headline)
 
                                 if let email = user.primaryEmailAddress?.emailAddress {
                                     Text(email)
@@ -231,9 +231,11 @@ struct AboutView: View {
             }
 
             Section {
-                Text("Swipop is a platform for discovering and sharing creative frontend projects. Built with SwiftUI and Cloudflare Workers.")
-                    .foregroundStyle(.secondary)
-                    .listRowBackground(Color.tertiaryBackground.opacity(0.8))
+                Text(
+                    "Swipop is a platform for discovering and sharing creative frontend projects. Built with SwiftUI and Cloudflare Workers."
+                )
+                .foregroundStyle(.secondary)
+                .listRowBackground(Color.tertiaryBackground.opacity(0.8))
             }
         }
         .scrollContentBackground(.hidden)

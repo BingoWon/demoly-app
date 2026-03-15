@@ -1,0 +1,42 @@
+# SwiftFormat Configuration for Swipop iOS App
+# https://github.com/nicklockwood/SwiftFormat
+
+--swiftversion 5.10
+
+# Indentation (Xcode default)
+--indent 4
+--tabwidth 4
+--indentcase false
+--ifdef indent
+
+# Wrapping
+--maxwidth 140
+--wraparguments before-first
+--wrapparameters before-first
+--wrapcollections before-first
+
+# Spacing
+--trimwhitespace always
+--operatorfunc spaced
+
+# Semicolons
+--semicolons never
+
+# Redundancy
+--self remove
+--redundanttype inferred
+
+# Blank lines
+--emptybraces no-space
+
+# Imports
+--importgrouping alpha
+
+# Disable rules that conflict with project conventions
+--disable blankLinesAroundMark
+--disable sortSwitchCases
+--disable wrapSwitchCases
+--disable acronyms
+
+# Exclude build artifacts
+--exclude .build,DerivedData,Packages

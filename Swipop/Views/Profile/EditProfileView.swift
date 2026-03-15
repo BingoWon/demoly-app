@@ -162,7 +162,7 @@ struct EditProfileView: View {
 
     // MARK: - Field Row
 
-    private func fieldRow<Content: View>(label: String, @ViewBuilder content: () -> Content) -> some View {
+    private func fieldRow(label: String, @ViewBuilder content: () -> some View) -> some View {
         HStack {
             Text(label)
                 .font(.system(size: 14))
@@ -191,7 +191,7 @@ struct EditProfileView: View {
                     } else if let url = profile?.resolvedAvatarURL {
                         AsyncImage(url: url) { phase in
                             switch phase {
-                            case .success(let image):
+                            case let .success(image):
                                 image.resizable().scaledToFill()
                             default:
                                 avatarFallback

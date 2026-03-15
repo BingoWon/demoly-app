@@ -146,16 +146,16 @@ final class InteractionStore {
     }
 
     private func saveToDisk() {
-        let likedIds = states.filter { $0.value.isLiked }.map(\.key)
-        let collectedIds = states.filter { $0.value.isCollected }.map(\.key)
+        let likedIds = states.filter(\.value.isLiked).map(\.key)
+        let collectedIds = states.filter(\.value.isCollected).map(\.key)
         UserDefaults.standard.set(likedIds, forKey: likedKey)
         UserDefaults.standard.set(collectedIds, forKey: collectedKey)
     }
 }
 
 private struct InteractionState {
-    var isLiked: Bool = false
-    var isCollected: Bool = false
-    var likeCount: Int = 0
-    var collectCount: Int = 0
+    var isLiked = false
+    var isCollected = false
+    var likeCount = 0
+    var collectCount = 0
 }

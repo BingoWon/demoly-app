@@ -67,7 +67,7 @@ struct MainTabView: View {
             handleTabChange(from: oldValue, to: newValue)
         }
         .onChange(of: showingCreate) { _, isShowing in
-            if !isShowing && selectedTab == 1 {
+            if !isShowing, selectedTab == 1 {
                 selectedTab = previousTab
             }
         }

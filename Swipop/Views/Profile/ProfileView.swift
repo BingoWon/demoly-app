@@ -9,7 +9,7 @@ import SwiftUI
 struct ProfileView: View {
     @Environment(AuthManager.self) private var authManager
     let editProject: (Project) -> Void
-    var refreshTrigger: Int = 0
+    var refreshTrigger = 0
 
     var body: some View {
         NavigationStack {
@@ -54,9 +54,12 @@ struct ProfileView: View {
 
 struct ProfileContentView: View {
     let editProject: (Project) -> Void
-    var refreshTrigger: Int = 0
+    var refreshTrigger = 0
 
-    private var userProfile: CurrentUserProfile { CurrentUserProfile.shared }
+    private var userProfile: CurrentUserProfile {
+        CurrentUserProfile.shared
+    }
+
     @State private var showSettings = false
     @State private var showEditProfile = false
 

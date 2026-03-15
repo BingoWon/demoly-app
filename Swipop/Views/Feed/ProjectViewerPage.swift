@@ -92,7 +92,13 @@ private struct PlatformNavigationModifier: ViewModifier {
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
             content
-                .toolbar { iOS26ToolbarContent(projectId: projectId, showComments: $showComments, showShare: $showShare, onLike: onLike, onCollect: onCollect) }
+                .toolbar { iOS26ToolbarContent(
+                    projectId: projectId,
+                    showComments: $showComments,
+                    showShare: $showShare,
+                    onLike: onLike,
+                    onCollect: onCollect
+                ) }
                 .toolbarBackground(.hidden, for: .navigationBar)
         } else {
             content
@@ -100,7 +106,14 @@ private struct PlatformNavigationModifier: ViewModifier {
                 .navigationBarBackButtonHidden(true)
                 .background(SwipeBackEnabler())
                 .safeAreaInset(edge: .top) {
-                    iOS18TopBar(dismiss: dismiss, projectId: projectId, showComments: $showComments, showShare: $showShare, onLike: onLike, onCollect: onCollect)
+                    iOS18TopBar(
+                        dismiss: dismiss,
+                        projectId: projectId,
+                        showComments: $showComments,
+                        showShare: $showShare,
+                        onLike: onLike,
+                        onCollect: onCollect
+                    )
                 }
         }
     }
@@ -173,9 +186,17 @@ private struct iOS18TopBar: View {
             Spacer()
 
             HStack(spacing: 0) {
-                glassIconButton(store.isLiked(projectId) ? "heart.fill" : "heart", tint: store.isLiked(projectId) ? .red : .white, action: onLike)
+                glassIconButton(
+                    store.isLiked(projectId) ? "heart.fill" : "heart",
+                    tint: store.isLiked(projectId) ? .red : .white,
+                    action: onLike
+                )
                 glassIconButton("bubble.right", action: { showComments = true })
-                glassIconButton(store.isCollected(projectId) ? "bookmark.fill" : "bookmark", tint: store.isCollected(projectId) ? .yellow : .white, action: onCollect)
+                glassIconButton(
+                    store.isCollected(projectId) ? "bookmark.fill" : "bookmark",
+                    tint: store.isCollected(projectId) ? .yellow : .white,
+                    action: onCollect
+                )
                 glassIconButton("square.and.arrow.up", action: { showShare = true })
             }
             .frame(height: buttonHeight)
@@ -213,7 +234,7 @@ private class SwipeBackEnablerController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        if let navigationController = navigationController {
+        if let navigationController {
             navigationController.interactivePopGestureRecognizer?.isEnabled = true
             navigationController.interactivePopGestureRecognizer?.delegate = self
         }
@@ -222,7 +243,7 @@ private class SwipeBackEnablerController: UIViewController {
 
 extension SwipeBackEnablerController: UIGestureRecognizerDelegate {
     func gestureRecognizerShouldBegin(_: UIGestureRecognizer) -> Bool {
-        return navigationController?.viewControllers.count ?? 0 > 1
+        navigationController?.viewControllers.count ?? 0 > 1
     }
 }
 

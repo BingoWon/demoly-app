@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct FeedView: View {
-    var refreshTrigger: Int = 0
+    var refreshTrigger = 0
 
     @State private var showSearch = false
     @State private var selectedProject: Project?
@@ -66,9 +66,9 @@ struct FeedView: View {
                             .transition(.move(edge: .top).combined(with: .opacity))
                     }
 
-                    if feed.isLoading && feed.projects.isEmpty && !isAutoRefreshing {
+                    if feed.isLoading, feed.projects.isEmpty, !isAutoRefreshing {
                         loadingState
-                    } else if feed.isEmpty && !isAutoRefreshing {
+                    } else if feed.isEmpty, !isAutoRefreshing {
                         emptyState
                     } else {
                         MasonryGrid(projects: feed.projects, columnWidth: columnWidth, spacing: 4) { project in
@@ -210,15 +210,15 @@ struct LikeButton: View {
 
         var iconSize: CGFloat {
             switch self {
-            case .compact: return 13
-            case .regular: return 16
+            case .compact: 13
+            case .regular: 16
             }
         }
 
         var textSize: CGFloat {
             switch self {
-            case .compact: return 13
-            case .regular: return 14
+            case .compact: 13
+            case .regular: 14
             }
         }
     }

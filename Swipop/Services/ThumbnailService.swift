@@ -16,21 +16,23 @@ enum ThumbnailAspectRatio: String, CaseIterable, Identifiable {
     case square = "1:1"
     case landscape = "4:3"
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var ratio: CGFloat {
         switch self {
-        case .portrait: return 3.0 / 4.0
-        case .square: return 1.0
-        case .landscape: return 4.0 / 3.0
+        case .portrait: 3.0 / 4.0
+        case .square: 1.0
+        case .landscape: 4.0 / 3.0
         }
     }
 
     var icon: String {
         switch self {
-        case .portrait: return "rectangle.portrait"
-        case .square: return "square"
-        case .landscape: return "rectangle"
+        case .portrait: "rectangle.portrait"
+        case .square: "square"
+        case .landscape: "rectangle"
         }
     }
 }

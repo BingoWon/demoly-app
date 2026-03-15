@@ -14,7 +14,9 @@ nonisolated enum Config {
         return plist
     }()
 
-    static var apiBaseURL: String { "\(hostURL)/api" }
+    static var apiBaseURL: String {
+        "\(hostURL)/api"
+    }
 
     static let clerkPublishableKey: String = {
         guard let key = Bundle.main.infoDictionary?["CLERK_PUBLISHABLE_KEY"] as? String else {

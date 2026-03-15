@@ -21,8 +21,13 @@ struct ProjectDetailSheet: View {
     @State private var codeCopied = false
 
     private let store = InteractionStore.shared
-    private var creator: Profile? { project.creator }
-    private var isSelf: Bool { Clerk.shared.user?.id == creator?.id }
+    private var creator: Profile? {
+        project.creator
+    }
+
+    private var isSelf: Bool {
+        Clerk.shared.user?.id == creator?.id
+    }
 
     var body: some View {
         NavigationStack {

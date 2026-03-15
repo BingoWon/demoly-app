@@ -79,7 +79,7 @@ struct ProfileHeaderView: View {
         if let url = profile?.resolvedAvatarURL {
             AsyncImage(url: url) { phase in
                 switch phase {
-                case .success(let image):
+                case let .success(image):
                     image.resizable().scaledToFill()
                 default:
                     avatarFallback
@@ -103,7 +103,6 @@ struct ProfileHeaderView: View {
             )
     }
 
-    @ViewBuilder
     private func linksView(_ links: [ProfileLink]) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
@@ -180,4 +179,3 @@ struct ProfileStatsRow: View {
         .frame(maxWidth: .infinity)
     }
 }
-

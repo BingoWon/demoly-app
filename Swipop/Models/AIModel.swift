@@ -12,7 +12,9 @@ enum AIModel: String, CaseIterable, Identifiable {
     /// DeepSeek V3.2 Thinking - With reasoning/thinking capability
     case reasoner = "deepseek-reasoner"
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var displayName: String {
         switch self {

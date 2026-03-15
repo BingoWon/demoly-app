@@ -20,9 +20,17 @@ final class CurrentUserProfile {
     private(set) var isRefreshing = false
     private(set) var hasLoaded = false
 
-    var followerCount: Int { profile?.stats?.followersCount ?? 0 }
-    var followingCount: Int { profile?.stats?.followingCount ?? 0 }
-    var projectCount: Int { profile?.stats?.projectsCount ?? 0 }
+    var followerCount: Int {
+        profile?.stats?.followersCount ?? 0
+    }
+
+    var followingCount: Int {
+        profile?.stats?.followingCount ?? 0
+    }
+
+    var projectCount: Int {
+        profile?.stats?.projectsCount ?? 0
+    }
 
     private let userService = UserService.shared
     private let projectService = ProjectService.shared
@@ -80,11 +88,21 @@ final class OtherUserProfileViewModel {
     private(set) var isFollowing = false
     private(set) var isLoading = true
 
-    var followerCount: Int { profile?.stats?.followersCount ?? 0 }
-    var followingCount: Int { profile?.stats?.followingCount ?? 0 }
-    var projectCount: Int { profile?.stats?.projectsCount ?? 0 }
+    var followerCount: Int {
+        profile?.stats?.followersCount ?? 0
+    }
 
-    var isSelf: Bool { Clerk.shared.user?.id == profile?.id }
+    var followingCount: Int {
+        profile?.stats?.followingCount ?? 0
+    }
+
+    var projectCount: Int {
+        profile?.stats?.projectsCount ?? 0
+    }
+
+    var isSelf: Bool {
+        Clerk.shared.user?.id == profile?.id
+    }
 
     private let userService = UserService.shared
     private let projectService = ProjectService.shared

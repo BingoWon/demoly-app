@@ -60,7 +60,9 @@ struct MasonryGrid<Item: Identifiable, Content: View>: View {
 
 extension MasonryGrid where Item == Project {
     /// Default aspect ratio when thumbnail_aspect_ratio is not set
-    private static var defaultAspectRatio: CGFloat { 0.75 } // 3:4 portrait
+    private static var defaultAspectRatio: CGFloat {
+        0.75
+    } // 3:4 portrait
 
     /// Discover page: 2 columns with title and creator info
     init(

@@ -251,7 +251,7 @@ struct RichMessageContent: View {
             let matchRange = match.range
 
             if searchStart < matchRange.lowerBound {
-                let text = String(content[searchStart..<matchRange.lowerBound])
+                let text = String(content[searchStart ..< matchRange.lowerBound])
                     .trimmingCharacters(in: .whitespacesAndNewlines)
                 if !text.isEmpty { blocks.append(.text(text)) }
             }

@@ -9,7 +9,7 @@ import ClerkKit
 import SwiftUI
 
 struct InboxView: View {
-    var refreshTrigger: Int = 0
+    var refreshTrigger = 0
 
     @State private var viewModel = InboxViewModel()
     @State private var selectedActivity: Activity?
@@ -19,7 +19,7 @@ struct InboxView: View {
             ZStack {
                 Color.appBackground.ignoresSafeArea()
 
-                if viewModel.isLoading && viewModel.activities.isEmpty {
+                if viewModel.isLoading, viewModel.activities.isEmpty {
                     ProgressView().tint(.primary)
                 } else if viewModel.activities.isEmpty {
                     emptyState

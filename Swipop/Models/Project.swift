@@ -57,7 +57,9 @@ nonisolated struct Project: Identifiable, Equatable, Hashable, @unchecked Sendab
         case isCollectedByCurrentUser = "is_collected"
     }
 
-    var displayTitle: String { title.isEmpty ? "Untitled" : title }
+    var displayTitle: String {
+        title.isEmpty ? "Untitled" : title
+    }
 
     func resolvedThumbnailURL() -> URL? {
         guard let thumbnailUrl else { return nil }
@@ -152,7 +154,9 @@ nonisolated extension Project: Codable {
 nonisolated struct AnyCodable: Codable, @unchecked Sendable {
     let value: Any
 
-    init(_ value: Any) { self.value = value }
+    init(_ value: Any) {
+        self.value = value
+    }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()

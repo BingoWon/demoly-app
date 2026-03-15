@@ -15,7 +15,7 @@ struct ToolCallView: View {
         VStack(alignment: .leading, spacing: 0) {
             header
 
-            if isExpanded && !toolCall.arguments.isEmpty {
+            if isExpanded, !toolCall.arguments.isEmpty {
                 Divider()
                     .background(Color.border)
 

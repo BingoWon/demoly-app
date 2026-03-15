@@ -12,7 +12,9 @@ enum CreateSubTab: String, CaseIterable, Identifiable {
     case css
     case javascript
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var icon: String {
         switch self {

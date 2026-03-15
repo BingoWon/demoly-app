@@ -81,7 +81,7 @@ struct UserProfileView: View {
 
     private func projectMasonryGrid(columnWidth: CGFloat) -> some View {
         Group {
-            if viewModel.projects.isEmpty && !viewModel.isLoading {
+            if viewModel.projects.isEmpty, !viewModel.isLoading {
                 VStack(spacing: 12) {
                     Image(systemName: "square.grid.2x2")
                         .font(.system(size: 40))

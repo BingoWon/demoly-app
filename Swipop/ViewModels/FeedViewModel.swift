@@ -27,7 +27,9 @@ final class FeedViewModel {
         return projects[currentIndex]
     }
 
-    var isEmpty: Bool { !isLoading && projects.isEmpty }
+    var isEmpty: Bool {
+        !isLoading && projects.isEmpty
+    }
 
     private init() {}
 
@@ -64,7 +66,9 @@ final class FeedViewModel {
         await doLoadFeed()
     }
 
-    func markNeedsRefresh() { needsRefresh = true }
+    func markNeedsRefresh() {
+        needsRefresh = true
+    }
 
     func refreshIfNeeded() {
         if needsRefresh {

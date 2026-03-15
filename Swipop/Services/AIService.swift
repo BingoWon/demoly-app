@@ -53,7 +53,11 @@ final class AIService {
                             if let details = usage["completion_tokens_details"] as? [String: Any] {
                                 reasoningTokens = details["reasoning_tokens"] as? Int ?? 0
                             }
-                            continuation.yield(.usage(promptTokens: promptTokens, completionTokens: completionTokens, reasoningTokens: reasoningTokens))
+                            continuation.yield(.usage(
+                                promptTokens: promptTokens,
+                                completionTokens: completionTokens,
+                                reasoningTokens: reasoningTokens
+                            ))
                         }
 
                         guard let choices = json["choices"] as? [[String: Any]],
@@ -153,52 +157,68 @@ final class AIService {
     // MARK: - Tools Definition
 
     static let tools: [[String: Any]] = [
-        tool("update_metadata",
-             "Update project metadata. Only provide fields you want to change.",
-             properties: [
-                 "title": prop("string", "Project title"),
-                 "description": prop("string", "Brief description"),
-                 "tags": ["type": "array", "items": ["type": "string"], "description": "Tags for discovery"],
-             ]),
-        tool("write_html",
-             "Replace entire HTML content. Do NOT include <html>, <head>, or <body> tags.",
-             properties: ["content": prop("string", "Complete HTML content")],
-             required: ["content"]),
-        tool("write_css",
-             "Replace entire CSS content.",
-             properties: ["content": prop("string", "Complete CSS content")],
-             required: ["content"]),
-        tool("write_javascript",
-             "Replace entire JavaScript content.",
-             properties: ["content": prop("string", "Complete JavaScript content")],
-             required: ["content"]),
-        tool("replace_in_html",
-             "Make targeted edits to HTML. The search text must match exactly and be unique.",
-             properties: [
-                 "search": prop("string", "Exact text to find (must be unique)"),
-                 "replace": prop("string", "New text to substitute"),
-             ],
-             required: ["search", "replace"]),
-        tool("replace_in_css",
-             "Make targeted edits to CSS. The search text must match exactly and be unique.",
-             properties: [
-                 "search": prop("string", "Exact text to find (must be unique)"),
-                 "replace": prop("string", "New text to substitute"),
-             ],
-             required: ["search", "replace"]),
-        tool("replace_in_javascript",
-             "Make targeted edits to JavaScript. The search text must match exactly and be unique.",
-             properties: [
-                 "search": prop("string", "Exact text to find (must be unique)"),
-                 "replace": prop("string", "New text to substitute"),
-             ],
-             required: ["search", "replace"]),
-        tool("summarize_conversation",
-             "Create a summary when context window is nearly full. Only call when explicitly instructed.",
-             properties: [
-                 "summary": prop("string", "Comprehensive summary"),
-             ],
-             required: ["summary"]),
+        tool(
+            "update_metadata",
+            "Update project metadata. Only provide fields you want to change.",
+            properties: [
+                "title": prop("string", "Project title"),
+                "description": prop("string", "Brief description"),
+                "tags": ["type": "array", "items": ["type": "string"], "description": "Tags for discovery"],
+            ]
+        ),
+        tool(
+            "write_html",
+            "Replace entire HTML content. Do NOT include <html>, <head>, or <body> tags.",
+            properties: ["content": prop("string", "Complete HTML content")],
+            required: ["content"]
+        ),
+        tool(
+            "write_css",
+            "Replace entire CSS content.",
+            properties: ["content": prop("string", "Complete CSS content")],
+            required: ["content"]
+        ),
+        tool(
+            "write_javascript",
+            "Replace entire JavaScript content.",
+            properties: ["content": prop("string", "Complete JavaScript content")],
+            required: ["content"]
+        ),
+        tool(
+            "replace_in_html",
+            "Make targeted edits to HTML. The search text must match exactly and be unique.",
+            properties: [
+                "search": prop("string", "Exact text to find (must be unique)"),
+                "replace": prop("string", "New text to substitute"),
+            ],
+            required: ["search", "replace"]
+        ),
+        tool(
+            "replace_in_css",
+            "Make targeted edits to CSS. The search text must match exactly and be unique.",
+            properties: [
+                "search": prop("string", "Exact text to find (must be unique)"),
+                "replace": prop("string", "New text to substitute"),
+            ],
+            required: ["search", "replace"]
+        ),
+        tool(
+            "replace_in_javascript",
+            "Make targeted edits to JavaScript. The search text must match exactly and be unique.",
+            properties: [
+                "search": prop("string", "Exact text to find (must be unique)"),
+                "replace": prop("string", "New text to substitute"),
+            ],
+            required: ["search", "replace"]
+        ),
+        tool(
+            "summarize_conversation",
+            "Create a summary when context window is nearly full. Only call when explicitly instructed.",
+            properties: [
+                "summary": prop("string", "Comprehensive summary"),
+            ],
+            required: ["summary"]
+        ),
     ]
 
     private static func tool(_ name: String, _ description: String, properties: [String: Any], required: [String]? = nil) -> [String: Any] {

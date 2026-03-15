@@ -27,7 +27,7 @@ struct MessageBubble: View {
         HStack(spacing: 6) {
             Image(systemName: "info.circle.fill")
                 .font(.system(size: 12))
-            Text(message.segments.first.flatMap { if case let .content(t) = $0 { return t } else { return nil } } ?? "")
+            Text(message.segments.first.flatMap { if case let .content(t) = $0 { t } else { nil } } ?? "")
                 .font(.system(size: 13))
         }
         .foregroundStyle(.secondary)
@@ -72,7 +72,7 @@ struct MessageBubble: View {
         case let .content(text):
             if !text.isEmpty {
                 contentBubble(text)
-            } else if message.isStreaming && index == message.segments.count - 1 {
+            } else if message.isStreaming, index == message.segments.count - 1 {
                 Text("...")
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 14)
@@ -154,7 +154,7 @@ struct ThinkingSegmentView: View {
                     }
                 }
 
-            if isExpanded && !info.text.isEmpty {
+            if isExpanded, !info.text.isEmpty {
                 Divider()
                     .background(Color.border)
 

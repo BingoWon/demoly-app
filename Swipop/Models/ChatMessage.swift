@@ -36,10 +36,10 @@ struct ChatMessage: Identifiable {
 
     struct ThinkingSegment: Identifiable {
         let id = UUID()
-        var text: String = ""
+        var text = ""
         var startTime: Date?
         var endTime: Date?
-        var isActive: Bool = true
+        var isActive = true
 
         var duration: Int? {
             guard let start = startTime else { return nil }

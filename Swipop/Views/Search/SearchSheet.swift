@@ -101,7 +101,7 @@ struct SearchSheet: View {
             LazyVStack(alignment: .leading, spacing: 0) {
                 if viewModel.isSearching {
                     searchingIndicator
-                } else if viewModel.projects.isEmpty && viewModel.users.isEmpty {
+                } else if viewModel.projects.isEmpty, viewModel.users.isEmpty {
                     emptyResults
                 } else {
                     if !viewModel.users.isEmpty {
