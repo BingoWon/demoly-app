@@ -86,17 +86,22 @@ final class ProjectEditorViewModel {
 
     // MARK: - State
 
-    var isDirty = false { didSet { if isDirty && !oldValue { scheduleAutoSave() } } }
+    private var isLoading = false
+    var isDirty = false { didSet { if isDirty && !oldValue && !isLoading { scheduleAutoSave() } } }
     var isSaving = false
     var lastSaved: Date?
     var saveError: Error?
 
     // MARK: - Computed
 
-    var hasCode: Bool { !html.isEmpty || !css.isEmpty || !javascript.isEmpty }
+    var hasCustomCode: Bool {
+        (html != Self.defaultHTML && !html.isEmpty)
+            || (css != Self.defaultCSS && !css.isEmpty)
+            || (javascript != Self.defaultJS && !javascript.isEmpty)
+    }
     var hasMetadata: Bool { !title.isEmpty || !description.isEmpty || !tags.isEmpty }
     var hasChat: Bool { chatMessages.contains { ($0["role"] as? String) != "system" } }
-    var hasContent: Bool { hasChat || hasMetadata || hasCode }
+    var hasContent: Bool { hasChat || hasMetadata || hasCustomCode }
     var isNew: Bool { projectId == nil }
     var hasThumbnail: Bool { thumbnailUrl != nil || thumbnailImage != nil }
 
@@ -193,6 +198,8 @@ final class ProjectEditorViewModel {
     // MARK: - Reset & Load
 
     func reset() {
+        autoSaveTask?.cancel()
+        autoSaveTask = nil
         projectId = nil
         html = Self.defaultHTML
         css = Self.defaultCSS
@@ -212,6 +219,13 @@ final class ProjectEditorViewModel {
     }
 
     func load(project: Project) {
+        autoSaveTask?.cancel()
+        autoSaveTask = nil
+        isLoading = true
+        defer {
+            isLoading = false
+            isDirty = false
+        }
         projectId = project.id
         title = project.title
         description = project.description ?? ""
@@ -224,7 +238,6 @@ final class ProjectEditorViewModel {
         thumbnailUrl = project.thumbnailUrl
         thumbnailAspectRatio = project.thumbnailAspectRatio
         thumbnailImage = nil
-        isDirty = false
         lastSaved = project.updatedAt
     }
 
@@ -243,14 +256,7 @@ final class ProjectEditorViewModel {
             do {
                 try await Task.sleep(nanoseconds: autoSaveDelay)
                 guard !Task.isCancelled, hasContent, isDirty, !isSaving else { return }
-                let chatCount = chatMessages.filter { ($0["role"] as? String) != "system" }.count
-                print("[AutoSave] Saving project (id: \(projectId ?? "new"), chatMessages: \(chatCount))")
                 await save()
-                if saveError == nil {
-                    print("[AutoSave] Save successful")
-                } else {
-                    print("[AutoSave] Save failed: \(saveError!)")
-                }
             } catch {}
         }
     }

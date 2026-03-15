@@ -129,9 +129,9 @@ struct MainTabView: View {
     private func closeCreate() {
         Task {
             await projectEditor.saveAndReset()
-            chatViewModel.clear()
-            createSubTab = .chat
         }
+        chatViewModel.clear()
+        createSubTab = .chat
         showingCreate = false
     }
 

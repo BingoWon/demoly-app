@@ -198,7 +198,6 @@ final class ChatViewModel {
         completionTokens = 0
         reasoningTokens = 0
         pendingSummarizeRequest = nil
-        syncToProjectEditor()
     }
 
     // MARK: - Context Injection

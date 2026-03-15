@@ -177,7 +177,7 @@ struct ProjectOptionsSheet: View {
     // MARK: - Thumbnail Editor
 
     private var captureDisabled: Bool {
-        projectEditor.previewWebView == nil || !projectEditor.hasCode || projectEditor.isCapturingThumbnail
+        projectEditor.previewWebView == nil || !projectEditor.hasCustomCode || projectEditor.isCapturingThumbnail
     }
 
     private var thumbnailEditor: some View {
