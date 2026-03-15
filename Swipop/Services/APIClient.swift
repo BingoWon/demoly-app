@@ -30,7 +30,7 @@ enum APIError: LocalizedError {
     }
 }
 
-struct EmptyPayload: Encodable {}
+nonisolated struct EmptyPayload: Encodable, Sendable {}
 
 actor APIClient {
     static let shared = APIClient()
@@ -40,9 +40,9 @@ actor APIClient {
     private let decoder: JSONDecoder = {
         let d = JSONDecoder()
         d.keyDecodingStrategy = .convertFromSnakeCase
-        let iso = ISO8601DateFormatter()
+        nonisolated(unsafe) let iso = ISO8601DateFormatter()
         iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let isoBasic = ISO8601DateFormatter()
+        nonisolated(unsafe) let isoBasic = ISO8601DateFormatter()
         isoBasic.formatOptions = [.withInternetDateTime]
         d.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()

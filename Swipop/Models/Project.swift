@@ -5,7 +5,7 @@
 
 import Foundation
 
-struct Project: Identifiable, Equatable, Hashable {
+nonisolated struct Project: Identifiable, Equatable, Hashable, @unchecked Sendable {
     let id: String
     let userId: String
     var title: String
@@ -66,7 +66,7 @@ struct Project: Identifiable, Equatable, Hashable {
 
 // MARK: - Codable
 
-extension Project: Codable {
+nonisolated extension Project: Codable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)
@@ -146,7 +146,7 @@ extension Project: Codable {
 
 // MARK: - AnyCodable
 
-struct AnyCodable: Codable {
+nonisolated struct AnyCodable: Codable, @unchecked Sendable {
     let value: Any
 
     init(_ value: Any) { self.value = value }

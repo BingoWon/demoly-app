@@ -5,7 +5,7 @@
 
 import Foundation
 
-enum Config {
+nonisolated enum Config {
     static let hostURL: String = {
         if let env = ProcessInfo.processInfo.environment["API_BASE_URL"] { return env }
         guard let plist = Bundle.main.infoDictionary?["API_BASE_URL"] as? String else {

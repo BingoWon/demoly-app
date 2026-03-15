@@ -4,6 +4,7 @@
 //
 
 import ClerkKit
+import ClerkKitUI
 import SwiftUI
 
 struct SettingsView: View {
@@ -16,6 +17,42 @@ struct SettingsView: View {
 
         NavigationStack {
             List {
+                // Profile (Clerk native)
+                if let user = Clerk.shared.user {
+                    Section {
+                        HStack(spacing: 12) {
+                            UserButton()
+                                .frame(width: 40, height: 40)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(
+                                    [user.firstName, user.lastName]
+                                        .compactMap { $0 }
+                                        .joined(separator: " ")
+                                        .isEmpty
+                                        ? "User"
+                                        : [user.firstName, user.lastName]
+                                            .compactMap { $0 }
+                                            .joined(separator: " ")
+                                )
+                                .font(.headline)
+
+                                if let email = user.primaryEmailAddress?.emailAddress {
+                                    Text(email)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+
+                            Spacer()
+                        }
+                        .padding(.vertical, 4)
+                        .listRowBackground(Color.tertiaryBackground.opacity(0.8))
+                    } header: {
+                        Label("Profile", systemImage: "person.circle")
+                    }
+                }
+
                 // Appearance
                 Section {
                     Picker(selection: $appearance.mode) {
@@ -34,13 +71,6 @@ struct SettingsView: View {
                 // Account
                 Section {
                     NavigationLink {
-                        AccountSettingsView()
-                    } label: {
-                        Label("Account Settings", systemImage: "person.circle")
-                    }
-                    .listRowBackground(Color.tertiaryBackground.opacity(0.8))
-
-                    NavigationLink {
                         NotificationSettingsView()
                     } label: {
                         Label("Notifications", systemImage: "bell")
@@ -54,7 +84,7 @@ struct SettingsView: View {
                     }
                     .listRowBackground(Color.tertiaryBackground.opacity(0.8))
                 } header: {
-                    Label("Account", systemImage: "person")
+                    Label("Preferences", systemImage: "slider.horizontal.3")
                 }
 
                 // About
@@ -133,29 +163,6 @@ struct SettingsView: View {
         .presentationDragIndicator(.visible)
         .glassSheetBackground()
         .preferredColorScheme(appearance.colorScheme)
-    }
-}
-
-// MARK: - Account Settings
-
-struct AccountSettingsView: View {
-    var body: some View {
-        List {
-            Section {
-                HStack {
-                    Text("Email")
-                    Spacer()
-                    Text(Clerk.shared.user?.primaryEmailAddress?.emailAddress ?? "Not set")
-                        .foregroundStyle(.secondary)
-                }
-                .listRowBackground(Color.tertiaryBackground.opacity(0.8))
-            } header: {
-                Label("Email", systemImage: "envelope")
-            }
-        }
-        .scrollContentBackground(.hidden)
-        .background(Color.appBackground)
-        .navigationTitle("Account")
     }
 }
 

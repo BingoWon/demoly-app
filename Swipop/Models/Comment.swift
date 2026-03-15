@@ -5,7 +5,7 @@
 
 import Foundation
 
-struct Comment: Identifiable, Codable, Equatable {
+nonisolated struct Comment: Identifiable, Codable, Equatable, Sendable {
     let id: String
     let projectId: String
     let userId: String
@@ -17,7 +17,7 @@ struct Comment: Identifiable, Codable, Equatable {
     var replyCount: Int?
 }
 
-struct CommentUser: Codable, Equatable {
+nonisolated struct CommentUser: Codable, Equatable, Sendable {
     let id: String
     let username: String?
     let displayName: String?

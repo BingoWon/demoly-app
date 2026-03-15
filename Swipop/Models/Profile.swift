@@ -7,7 +7,7 @@ import Foundation
 
 // MARK: - Profile Link
 
-struct ProfileLink: Codable, Equatable, Identifiable {
+nonisolated struct ProfileLink: Codable, Equatable, Identifiable, Sendable {
     var id: UUID = .init()
     var title: String
     var url: String
@@ -30,7 +30,7 @@ struct ProfileLink: Codable, Equatable, Identifiable {
 
 // MARK: - Profile Stats
 
-struct ProfileStats: Codable, Equatable {
+nonisolated struct ProfileStats: Codable, Equatable, Sendable {
     var followersCount: Int
     var followingCount: Int
     var projectsCount: Int
@@ -44,7 +44,7 @@ struct ProfileStats: Codable, Equatable {
 
 // MARK: - Profile
 
-struct Profile: Identifiable, Codable, Equatable {
+nonisolated struct Profile: Identifiable, Codable, Equatable, Sendable {
     let id: String
     var username: String?
     var displayName: String?

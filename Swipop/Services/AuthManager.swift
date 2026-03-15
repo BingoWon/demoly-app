@@ -3,7 +3,7 @@
 //  Swipop
 //
 
-import ClerkKit
+import Observation
 
 @MainActor
 @Observable

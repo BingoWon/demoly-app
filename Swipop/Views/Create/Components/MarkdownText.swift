@@ -129,7 +129,7 @@ struct RichMessageContent: View {
 
     private func parseContentBlocks(_ content: String) -> [ContentBlock] {
         var blocks: [ContentBlock] = []
-        var remaining = content
+        let remaining = content
 
         // Regex to match code blocks: ```language\ncode\n```
         let codeBlockPattern = #"```(\w*)\n?([\s\S]*?)```"#
