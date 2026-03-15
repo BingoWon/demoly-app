@@ -162,18 +162,18 @@ struct EditProfileView: View {
     // MARK: - Save
 
     private func save() async {
-        guard var updated = profile else { return }
-
         isSaving = true
         defer { isSaving = false }
 
-        updated.username = username.isEmpty ? nil : username
-        updated.displayName = displayName.isEmpty ? nil : displayName
-        updated.bio = bio.isEmpty ? nil : bio
-        updated.links = links.filter { !$0.title.isEmpty && !$0.url.isEmpty }
+        let filteredLinks = links.filter { !$0.title.isEmpty && !$0.url.isEmpty }
 
         do {
-            _ = try await userService.updateProfile(updated)
+            _ = try await userService.updateProfile(ProfileUpdatePayload(
+                username: username.isEmpty ? nil : username,
+                displayName: displayName.isEmpty ? nil : displayName,
+                bio: bio.isEmpty ? nil : bio,
+                links: filteredLinks.isEmpty ? nil : filteredLinks
+            ))
             await CurrentUserProfile.shared.refresh()
             dismiss()
         } catch {

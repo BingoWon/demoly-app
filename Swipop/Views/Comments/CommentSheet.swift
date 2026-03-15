@@ -3,7 +3,7 @@
 //  Swipop
 //
 
-import Auth
+import ClerkKit
 import SwiftUI
 
 struct CommentSheet: View {
@@ -16,7 +16,6 @@ struct CommentSheet: View {
     @State private var isLoading = true
     @State private var isSending = false
 
-    private let auth = AuthService.shared
     private let service = CommentService.shared
 
     var body: some View {
@@ -99,7 +98,7 @@ struct CommentSheet: View {
                 .fill(Color.brand)
                 .frame(width: 32, height: 32)
                 .overlay(
-                    Text(auth.currentUser?.email?.prefix(1).uppercased() ?? "?")
+                    Text(CurrentUserProfile.shared.profile?.initial ?? "?")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(.white)
                 )
@@ -107,7 +106,7 @@ struct CommentSheet: View {
             TextField("Add a comment...", text: $newComment)
                 .textFieldStyle(.plain)
                 .foregroundStyle(.primary)
-                .disabled(!auth.isAuthenticated)
+                .disabled(Clerk.shared.user == nil)
 
             Button {
                 Task { await sendComment() }
@@ -124,7 +123,7 @@ struct CommentSheet: View {
         .padding(16)
         .background(Color.secondaryBackground.opacity(0.5))
         .onTapGesture {
-            if !auth.isAuthenticated {
+            if Clerk.shared.user == nil {
                 dismiss()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     showLogin = true
@@ -151,7 +150,7 @@ struct CommentSheet: View {
     }
 
     private func sendComment() async {
-        guard let userId = auth.currentUser?.id else {
+        guard Clerk.shared.user != nil else {
             showLogin = true
             return
         }
@@ -164,7 +163,6 @@ struct CommentSheet: View {
         do {
             let comment = try await service.createComment(
                 projectId: project.id,
-                userId: userId,
                 content: content
             )
             await MainActor.run {
@@ -182,7 +180,7 @@ struct CommentSheet: View {
 
     private func deleteComment(_ comment: Comment) async {
         do {
-            try await service.deleteComment(id: comment.id)
+            try await service.deleteComment(projectId: project.id, commentId: comment.id)
             await MainActor.run {
                 comments.removeAll { $0.id == comment.id }
             }
@@ -197,8 +195,6 @@ struct CommentSheet: View {
 private struct CommentRow: View {
     let comment: Comment
     let onDelete: () async -> Void
-
-    private let auth = AuthService.shared
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -223,8 +219,7 @@ private struct CommentRow: View {
 
                     Spacer()
 
-                    // Delete button (only for own comments)
-                    if comment.userId == auth.currentUser?.id {
+                    if comment.userId == Clerk.shared.user?.id {
                         Button {
                             Task { await onDelete() }
                         } label: {

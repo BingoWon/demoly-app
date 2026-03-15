@@ -7,6 +7,7 @@
 //  - iOS 18: Custom glass top bar + Material bottom accessory
 //
 
+import ClerkKit
 import SwiftUI
 
 struct ProjectViewerPage: View {
@@ -63,7 +64,7 @@ struct ProjectViewerPage: View {
     // MARK: - Actions
 
     private func handleLike() {
-        guard AuthService.shared.isAuthenticated else {
+        guard Clerk.shared.user != nil else {
             showLogin = true
             return
         }
@@ -71,7 +72,7 @@ struct ProjectViewerPage: View {
     }
 
     private func handleCollect() {
-        guard AuthService.shared.isAuthenticated else {
+        guard Clerk.shared.user != nil else {
             showLogin = true
             return
         }
@@ -83,7 +84,7 @@ struct ProjectViewerPage: View {
 
 private struct PlatformNavigationModifier: ViewModifier {
     let dismiss: DismissAction
-    let projectId: UUID
+    let projectId: String
     @Binding var showComments: Bool
     @Binding var showShare: Bool
     let onLike: () -> Void
@@ -110,7 +111,7 @@ private struct PlatformNavigationModifier: ViewModifier {
 
 @available(iOS 26.0, *)
 private struct iOS26ToolbarContent: ToolbarContent {
-    let projectId: UUID
+    let projectId: String
     @Binding var showComments: Bool
     @Binding var showShare: Bool
     let onLike: () -> Void
@@ -145,7 +146,7 @@ private struct iOS26ToolbarContent: ToolbarContent {
 
 private struct iOS18TopBar: View {
     let dismiss: DismissAction
-    let projectId: UUID
+    let projectId: String
     @Binding var showComments: Bool
     @Binding var showShare: Bool
     let onLike: () -> Void

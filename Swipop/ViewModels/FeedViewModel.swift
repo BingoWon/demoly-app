@@ -2,10 +2,8 @@
 //  FeedViewModel.swift
 //  Swipop
 //
-//  Feed management with interaction states preloaded in single query
-//
 
-import Auth
+import ClerkKit
 import Foundation
 
 @MainActor
@@ -29,13 +27,9 @@ final class FeedViewModel {
         return projects[currentIndex]
     }
 
-    var isEmpty: Bool {
-        !isLoading && projects.isEmpty
-    }
+    var isEmpty: Bool { !isLoading && projects.isEmpty }
 
-    private init() {
-        // Don't auto-load here - let view trigger it
-    }
+    private init() {}
 
     // MARK: - Navigation
 
@@ -48,11 +42,7 @@ final class FeedViewModel {
     func goToNext() {
         guard currentIndex < projects.count - 1 else { return }
         currentIndex += 1
-
-        // Load more when approaching end
-        if currentIndex >= projects.count - 3 {
-            loadMore()
-        }
+        if currentIndex >= projects.count - 3 { loadMore() }
     }
 
     func goToPrevious() {
@@ -62,29 +52,19 @@ final class FeedViewModel {
 
     // MARK: - Loading
 
-    /// Initial load - called once when view appears
     func loadInitial() {
         guard !hasInitialLoad else { return }
         hasInitialLoad = true
         performLoad()
     }
 
-    /// Manual refresh - user pulled to refresh
-    /// Returns when loading completes (for .refreshable)
     func refresh() async {
-        // Cancel any existing task
         currentTask?.cancel()
-
-        // Wait for the load to complete
         await doLoadFeed()
     }
 
-    /// Mark feed as needing refresh (called after login)
-    func markNeedsRefresh() {
-        needsRefresh = true
-    }
+    func markNeedsRefresh() { needsRefresh = true }
 
-    /// Check and refresh if needed (called when view appears)
     func refreshIfNeeded() {
         if needsRefresh {
             needsRefresh = false
@@ -92,12 +72,8 @@ final class FeedViewModel {
         }
     }
 
-    /// Perform the actual load, managing task lifecycle
     private func performLoad() {
-        // Cancel any existing task
         currentTask?.cancel()
-
-        // Create new detached task that won't be cancelled by SwiftUI
         currentTask = Task.detached { [weak self] in
             await self?.doLoadFeed()
         }
@@ -105,18 +81,14 @@ final class FeedViewModel {
 
     private func doLoadFeed() async {
         guard !isLoading else { return }
-
         isLoading = true
         error = nil
 
         do {
-            let userId = AuthService.shared.currentUser?.id
-            let fetchedProjects = try await ProjectService.shared.fetchFeed(limit: pageSize, offset: 0, userId: userId)
-
+            let response = try await ProjectService.shared.fetchFeed(limit: pageSize, offset: 0)
             guard !Task.isCancelled else { return }
-
-            projects = fetchedProjects
-            hasMorePages = projects.count >= pageSize
+            projects = response.items
+            hasMorePages = response.hasMore
             currentIndex = 0
             InteractionStore.shared.updateFromProjects(projects)
         } catch {
@@ -130,7 +102,6 @@ final class FeedViewModel {
 
     func loadMore() {
         guard !isLoading, hasMorePages else { return }
-
         Task.detached { [weak self] in
             await self?.doLoadMore()
         }
@@ -138,21 +109,17 @@ final class FeedViewModel {
 
     private func doLoadMore() async {
         guard !isLoading, hasMorePages else { return }
-
         isLoading = true
 
         do {
-            let userId = AuthService.shared.currentUser?.id
             let currentCount = projects.count
-            let newProjects = try await ProjectService.shared.fetchFeed(limit: pageSize, offset: currentCount, userId: userId)
-
+            let response = try await ProjectService.shared.fetchFeed(limit: pageSize, offset: currentCount)
             guard !Task.isCancelled else { return }
-
-            if newProjects.isEmpty {
+            if response.items.isEmpty {
                 hasMorePages = false
             } else {
-                projects.append(contentsOf: newProjects)
-                InteractionStore.shared.updateFromProjects(newProjects)
+                projects.append(contentsOf: response.items)
+                InteractionStore.shared.updateFromProjects(response.items)
             }
         } catch {
             print("Failed to load more: \(error)")

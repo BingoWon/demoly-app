@@ -2,20 +2,15 @@
 //  ThumbnailService.swift
 //  Swipop
 //
-//  Service for capturing, cropping, and uploading project thumbnails
-//
 
-import Supabase
 import UIKit
 import WebKit
 
-/// Result of thumbnail upload: URL and aspect ratio
 struct ThumbnailUploadResult {
     let url: String
-    let aspectRatio: CGFloat // width / height
+    let aspectRatio: CGFloat
 }
 
-/// Thumbnail aspect ratio presets
 enum ThumbnailAspectRatio: String, CaseIterable, Identifiable {
     case portrait = "3:4"
     case square = "1:1"
@@ -43,33 +38,44 @@ enum ThumbnailAspectRatio: String, CaseIterable, Identifiable {
 actor ThumbnailService {
     static let shared = ThumbnailService()
 
-    private let supabase = SupabaseService.shared.client
-    private let bucket = "thumbnails"
+    private let api = APIClient.shared
 
     private init() {}
 
     // MARK: - Public API
 
-    /// Capture screenshot from WKWebView with specified aspect ratio
     @MainActor
     func capture(from webView: WKWebView, aspectRatio: ThumbnailAspectRatio) async throws -> UIImage {
         let screenshot = try await captureScreenshot(from: webView)
         return Self.cropToRatio(screenshot, targetRatio: aspectRatio.ratio)
     }
 
-    /// Process and upload image to storage
-    func upload(image: UIImage, projectId: UUID) async throws -> ThumbnailUploadResult {
+    func upload(image: UIImage, projectId: String) async throws -> ThumbnailUploadResult {
         let cropped = Self.cropToValidRatio(image)
         let aspectRatio = cropped.size.width / cropped.size.height
-        let url = try await uploadToStorage(image: cropped, projectId: projectId)
-        return ThumbnailUploadResult(url: url, aspectRatio: aspectRatio)
-    }
 
-    /// Delete thumbnail from storage
-    func delete(projectId: UUID) async throws {
-        guard let userId = try? await supabase.auth.session.user.id else { return }
-        let path = "\(userId.uuidString)/\(projectId.uuidString).jpg"
-        try await supabase.storage.from(bucket).remove(paths: [path])
+        guard let data = cropped.jpegData(compressionQuality: 0.8) else {
+            throw ThumbnailError.compressionFailed
+        }
+
+        struct UploadResponse: Decodable {
+            let url: String
+            let aspectRatio: Double?
+        }
+
+        let responseData = try await api.upload(
+            "/upload/thumbnail/\(projectId)",
+            fileData: data,
+            fileName: "\(projectId).jpg",
+            mimeType: "image/jpeg",
+            extraFields: ["aspectRatio": "\(aspectRatio)"]
+        )
+
+        let response = try JSONDecoder().decode(UploadResponse.self, from: responseData)
+        return ThumbnailUploadResult(
+            url: response.url,
+            aspectRatio: CGFloat(response.aspectRatio ?? Double(aspectRatio))
+        )
     }
 
     // MARK: - Screenshot Capture
@@ -94,17 +100,11 @@ actor ThumbnailService {
 
     // MARK: - Aspect Ratio Cropping
 
-    /// Crop image to valid aspect ratio (3:4 to 4:3) - Static for synchronous access
     static func cropToValidRatio(_ image: UIImage) -> UIImage {
-        let minRatio: CGFloat = 3.0 / 4.0 // 0.75 (portrait)
-        let maxRatio: CGFloat = 4.0 / 3.0 // 1.33 (landscape)
+        let minRatio: CGFloat = 3.0 / 4.0
+        let maxRatio: CGFloat = 4.0 / 3.0
         let currentRatio = image.size.width / image.size.height
-
-        // Already within valid range
-        if currentRatio >= minRatio && currentRatio <= maxRatio {
-            return image
-        }
-
+        if currentRatio >= minRatio && currentRatio <= maxRatio { return image }
         let targetRatio = currentRatio < minRatio ? minRatio : maxRatio
         return cropToRatio(image, targetRatio: targetRatio)
     }
@@ -114,20 +114,16 @@ actor ThumbnailService {
         let originalRatio = originalSize.width / originalSize.height
 
         var cropRect: CGRect
-
         if originalRatio > targetRatio {
-            // Image is wider than target, crop horizontally (center crop)
             let newWidth = originalSize.height * targetRatio
             let xOffset = (originalSize.width - newWidth) / 2
             cropRect = CGRect(x: xOffset, y: 0, width: newWidth, height: originalSize.height)
         } else {
-            // Image is taller than target, crop vertically (center crop)
             let newHeight = originalSize.width / targetRatio
             let yOffset = (originalSize.height - newHeight) / 2
             cropRect = CGRect(x: 0, y: yOffset, width: originalSize.width, height: newHeight)
         }
 
-        // Handle scale
         cropRect = CGRect(
             x: cropRect.origin.x * image.scale,
             y: cropRect.origin.y * image.scale,
@@ -135,31 +131,8 @@ actor ThumbnailService {
             height: cropRect.height * image.scale
         )
 
-        guard let cgImage = image.cgImage?.cropping(to: cropRect) else {
-            return image
-        }
-
+        guard let cgImage = image.cgImage?.cropping(to: cropRect) else { return image }
         return UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
-    }
-
-    // MARK: - Storage Upload
-
-    private func uploadToStorage(image: UIImage, projectId: UUID) async throws -> String {
-        guard let data = image.jpegData(compressionQuality: 0.8) else {
-            throw ThumbnailError.compressionFailed
-        }
-
-        guard let userId = try? await supabase.auth.session.user.id else {
-            throw ThumbnailError.notAuthenticated
-        }
-
-        let path = "\(userId.uuidString)/\(projectId.uuidString).jpg"
-
-        try await supabase.storage
-            .from(bucket)
-            .upload(path, data: data, options: FileOptions(contentType: "image/jpeg", upsert: true))
-
-        return try supabase.storage.from(bucket).getPublicURL(path: path).absoluteString
     }
 
     // MARK: - Errors

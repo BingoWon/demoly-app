@@ -60,9 +60,6 @@ struct SearchSheet: View {
                     loadingState
                 } else {
                     trendingSection
-                    if !viewModel.suggestedCreators.isEmpty {
-                        suggestedCreatorsSection
-                    }
                 }
             }
             .padding(16)
@@ -103,47 +100,6 @@ struct SearchSheet: View {
                 }
             }
         }
-    }
-
-    // MARK: - Suggested Creators
-
-    private var suggestedCreatorsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("Creators", systemImage: "person.2.fill")
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(.primary)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
-                    ForEach(viewModel.suggestedCreators) { creator in
-                        NavigationLink {
-                            UserProfileView(userId: creator.id, showLogin: $showLogin)
-                        } label: {
-                            creatorCard(creator)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private func creatorCard(_ creator: Profile) -> some View {
-        VStack(spacing: 8) {
-            Circle()
-                .fill(Color.brand)
-                .frame(width: 60, height: 60)
-                .overlay(
-                    Text(creator.initial)
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundStyle(.white)
-                )
-
-            Text("@\(creator.handle)")
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-        }
-        .frame(width: 80)
     }
 
     // MARK: - Search Results
@@ -201,7 +157,7 @@ struct SearchSheet: View {
 
             ForEach(viewModel.users) { user in
                 NavigationLink {
-                    UserProfileView(userId: user.id, showLogin: $showLogin)
+                    UserProfileView(username: user.handle, showLogin: $showLogin)
                 } label: {
                     HStack(spacing: 12) {
                         Circle()
@@ -260,7 +216,7 @@ struct SearchSheet: View {
 
     private func projectRow(_ project: Project) -> some View {
         HStack(spacing: 12) {
-            CachedThumbnail(project: project, transform: .small, size: CGSize(width: 60, height: 60))
+            CachedThumbnail(project: project, size: CGSize(width: 60, height: 60))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
 
             VStack(alignment: .leading, spacing: 4) {

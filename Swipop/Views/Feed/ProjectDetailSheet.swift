@@ -5,7 +5,7 @@
 //  Project details with creator info, stats, and source code
 //
 
-import Auth
+import ClerkKit
 import SwiftUI
 
 struct ProjectDetailSheet: View {
@@ -22,7 +22,7 @@ struct ProjectDetailSheet: View {
 
     private let store = InteractionStore.shared
     private var creator: Profile? { project.creator }
-    private var isSelf: Bool { AuthService.shared.currentUser?.id == creator?.id }
+    private var isSelf: Bool { Clerk.shared.user?.id == creator?.id }
 
     var body: some View {
         NavigationStack {
@@ -51,8 +51,8 @@ struct ProjectDetailSheet: View {
                 }
             }
             .navigationDestination(isPresented: $showCreatorProfile) {
-                if let creatorId = creator?.id {
-                    UserProfileView(userId: creatorId, showLogin: $showLogin)
+                if let handle = creator?.handle {
+                    UserProfileView(username: handle, showLogin: $showLogin)
                 }
             }
         }
@@ -60,7 +60,9 @@ struct ProjectDetailSheet: View {
         .presentationDragIndicator(.visible)
         .glassSheetBackground()
         .task {
-            await loadFollowState()
+            if let profile = creator {
+                followState.isFollowing = profile.isFollowing ?? false
+            }
         }
         .sheet(isPresented: $showComments) {
             CommentSheet(project: project, showLogin: $showLogin)
@@ -103,7 +105,6 @@ struct ProjectDetailSheet: View {
 
             Spacer()
 
-            // Only show Follow button if not viewing own project
             if !isSelf {
                 Button {
                     requireLogin {
@@ -175,9 +176,7 @@ struct ProjectDetailSheet: View {
 
     private var sourceCodeSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Header with language picker and copy button
             HStack(spacing: 12) {
-                // Language picker (fills available space)
                 Picker("", selection: $selectedLanguage) {
                     ForEach(CodeLanguage.allCases, id: \.self) { lang in
                         Text(lang.rawValue).tag(lang)
@@ -185,7 +184,6 @@ struct ProjectDetailSheet: View {
                 }
                 .pickerStyle(.segmented)
 
-                // Copy button (fixed width)
                 Button {
                     copyCode()
                 } label: {
@@ -205,7 +203,6 @@ struct ProjectDetailSheet: View {
                 .animation(.easeInOut(duration: 0.2), value: codeCopied)
             }
 
-            // Code view (2/3 screen height, no horizontal padding)
             GeometryReader { _ in
                 RunestoneCodeView(language: selectedLanguage, code: currentCode)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -216,21 +213,15 @@ struct ProjectDetailSheet: View {
             }
             .frame(height: UIScreen.main.bounds.height * 2 / 3)
         }
-        .padding(.horizontal, -20) // Extend to edge (counter parent padding)
-        .padding(.horizontal, 8) // Add smaller edge padding
+        .padding(.horizontal, -20)
+        .padding(.horizontal, 8)
     }
 
     private func copyCode() {
         UIPasteboard.general.string = currentCode
-
-        // Haptic feedback
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
-
-        // Show "Copied" state
         codeCopied = true
-
-        // Reset after 2 seconds
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             codeCopied = false
         }
@@ -246,27 +237,9 @@ struct ProjectDetailSheet: View {
 
     // MARK: - Actions
 
-    private func loadFollowState() async {
-        guard let creatorId = creator?.id,
-              let currentUserId = AuthService.shared.currentUser?.id,
-              creatorId != currentUserId else { return }
-
-        followState.isLoading = true
-        defer { followState.isLoading = false }
-
-        do {
-            followState.isFollowing = try await UserService.shared.isFollowing(
-                followerId: currentUserId,
-                followingId: creatorId
-            )
-        } catch {
-            print("Failed to load follow state: \(error)")
-        }
-    }
-
     private func toggleFollow() async {
         guard let creatorId = creator?.id,
-              let currentUserId = AuthService.shared.currentUser?.id,
+              let currentUserId = Clerk.shared.user?.id,
               creatorId != currentUserId else { return }
 
         let wasFollowing = followState.isFollowing
@@ -274,9 +247,9 @@ struct ProjectDetailSheet: View {
 
         do {
             if followState.isFollowing {
-                try await UserService.shared.follow(followerId: currentUserId, followingId: creatorId)
+                try await UserService.shared.follow(userId: creatorId)
             } else {
-                try await UserService.shared.unfollow(followerId: currentUserId, followingId: creatorId)
+                try await UserService.shared.unfollow(userId: creatorId)
             }
         } catch {
             followState.isFollowing = wasFollowing
@@ -285,7 +258,7 @@ struct ProjectDetailSheet: View {
     }
 
     private func requireLogin(action: @escaping () -> Void) {
-        if AuthService.shared.isAuthenticated {
+        if Clerk.shared.user != nil {
             action()
         } else {
             dismiss()

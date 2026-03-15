@@ -2,11 +2,8 @@
 //  MainTabView.swift
 //  Swipop
 //
-//  Main tab navigation with iOS 26 and iOS 18 variants
-//  Create page presented as fullScreenCover for proper isolation
-//
 
-import Auth
+import ClerkKit
 import SwiftUI
 
 struct MainTabView: View {
@@ -77,7 +74,6 @@ struct MainTabView: View {
                 openCreate()
             }
             if newValue == 2 {
-                // Refresh unread count when entering inbox
                 Task { await loadUnreadCount() }
             }
         }
@@ -124,18 +120,13 @@ struct MainTabView: View {
         }
     }
 
-    // MARK: - Create Placeholder
-
     private var createPlaceholder: some View {
-        Color.appBackground
-            .ignoresSafeArea()
+        Color.appBackground.ignoresSafeArea()
     }
 
     // MARK: - Actions
 
-    private func openCreate() {
-        showingCreate = true
-    }
+    private func openCreate() { showingCreate = true }
 
     private func closeCreate() {
         Task {
@@ -149,18 +140,17 @@ struct MainTabView: View {
     private func editProject(_ project: Project) {
         projectEditor.load(project: project)
         chatViewModel.loadFromProjectEditor()
-        createSubTab = .preview // Show preview when editing existing project
+        createSubTab = .preview
         showingCreate = true
     }
 
     private func loadUnreadCount() async {
-        guard let userId = AuthService.shared.currentUser?.id else {
+        guard Clerk.shared.user != nil else {
             unreadCount = 0
             return
         }
-
         do {
-            unreadCount = try await ActivityService.shared.fetchUnreadCount(userId: userId)
+            unreadCount = try await ActivityService.shared.fetchUnreadCount()
         } catch {
             print("Failed to load unread count: \(error)")
         }

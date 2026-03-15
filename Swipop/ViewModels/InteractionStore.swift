@@ -2,11 +2,10 @@
 //  InteractionStore.swift
 //  Swipop
 //
-//  Centralized state management for project interactions (like, collect)
-//  Single source of truth - all views read/write from here
+//  Centralized state for project interactions (like, collect)
 //
 
-import Auth
+import ClerkKit
 import Foundation
 
 @MainActor
@@ -16,12 +15,11 @@ final class InteractionStore {
 
     // MARK: - State
 
-    private var states: [UUID: InteractionState] = [:]
+    private var states: [String: InteractionState] = [:]
 
     // MARK: - Services
 
     private let service = InteractionService.shared
-    private let auth = AuthService.shared
 
     // MARK: - Persistence Keys
 
@@ -34,19 +32,19 @@ final class InteractionStore {
 
     // MARK: - Read State
 
-    func isLiked(_ projectId: UUID) -> Bool {
+    func isLiked(_ projectId: String) -> Bool {
         states[projectId]?.isLiked ?? false
     }
 
-    func isCollected(_ projectId: UUID) -> Bool {
+    func isCollected(_ projectId: String) -> Bool {
         states[projectId]?.isCollected ?? false
     }
 
-    func likeCount(_ projectId: UUID) -> Int {
+    func likeCount(_ projectId: String) -> Int {
         states[projectId]?.likeCount ?? 0
     }
 
-    func collectCount(_ projectId: UUID) -> Int {
+    func collectCount(_ projectId: String) -> Int {
         states[projectId]?.collectCount ?? 0
     }
 
@@ -55,19 +53,10 @@ final class InteractionStore {
     func updateFromProjects(_ projects: [Project]) {
         for project in projects {
             var state = states[project.id] ?? InteractionState()
-
-            // Server state is authoritative
-            if let liked = project.isLikedByCurrentUser {
-                state.isLiked = liked
-            }
-            if let collected = project.isCollectedByCurrentUser {
-                state.isCollected = collected
-            }
-
-            // Always update counts from server
+            if let liked = project.isLikedByCurrentUser { state.isLiked = liked }
+            if let collected = project.isCollectedByCurrentUser { state.isCollected = collected }
             state.likeCount = project.likeCount
             state.collectCount = project.collectCount
-
             states[project.id] = state
         }
         saveToDisk()
@@ -75,14 +64,12 @@ final class InteractionStore {
 
     // MARK: - Toggle Like
 
-    func toggleLike(projectId: UUID) async {
-        guard let userId = auth.currentUser?.id else { return }
+    func toggleLike(projectId: String) async {
+        guard Clerk.shared.user != nil else { return }
 
-        // Get or create state
         var state = states[projectId] ?? InteractionState()
         let wasLiked = state.isLiked
 
-        // Optimistic update
         state.isLiked.toggle()
         state.likeCount += state.isLiked ? 1 : -1
         states[projectId] = state
@@ -90,12 +77,11 @@ final class InteractionStore {
 
         do {
             if state.isLiked {
-                try await service.like(projectId: projectId, userId: userId)
+                try await service.like(projectId: projectId)
             } else {
-                try await service.unlike(projectId: projectId, userId: userId)
+                try await service.unlike(projectId: projectId)
             }
         } catch {
-            // Revert on failure
             state.isLiked = wasLiked
             state.likeCount += wasLiked ? 1 : -1
             states[projectId] = state
@@ -106,13 +92,12 @@ final class InteractionStore {
 
     // MARK: - Toggle Collect
 
-    func toggleCollect(projectId: UUID) async {
-        guard let userId = auth.currentUser?.id else { return }
+    func toggleCollect(projectId: String) async {
+        guard Clerk.shared.user != nil else { return }
 
         var state = states[projectId] ?? InteractionState()
         let wasCollected = state.isCollected
 
-        // Optimistic update
         state.isCollected.toggle()
         state.collectCount += state.isCollected ? 1 : -1
         states[projectId] = state
@@ -120,38 +105,17 @@ final class InteractionStore {
 
         do {
             if state.isCollected {
-                try await service.collect(projectId: projectId, userId: userId)
+                try await service.collect(projectId: projectId)
             } else {
-                try await service.uncollect(projectId: projectId, userId: userId)
+                try await service.uncollect(projectId: projectId)
             }
         } catch {
-            // Revert on failure
             state.isCollected = wasCollected
             state.collectCount += wasCollected ? 1 : -1
             states[projectId] = state
             saveToDisk()
             print("Failed to toggle collect: \(error)")
         }
-    }
-
-    // MARK: - Update from Profile Data
-
-    func updateFromProfileData(liked: [Project], collected: [Project]) {
-        for project in liked {
-            var state = states[project.id] ?? InteractionState()
-            state.isLiked = true
-            state.likeCount = project.likeCount
-            state.collectCount = project.collectCount
-            states[project.id] = state
-        }
-        for project in collected {
-            var state = states[project.id] ?? InteractionState()
-            state.isCollected = true
-            state.likeCount = project.likeCount
-            state.collectCount = project.collectCount
-            states[project.id] = state
-        }
-        saveToDisk()
     }
 
     // MARK: - Reset (on logout)
@@ -165,35 +129,29 @@ final class InteractionStore {
     // MARK: - Persistence
 
     private func loadFromDisk() {
-        if let likedStrings = UserDefaults.standard.stringArray(forKey: likedKey) {
-            for idString in likedStrings {
-                if let id = UUID(uuidString: idString) {
-                    var state = states[id] ?? InteractionState()
-                    state.isLiked = true
-                    states[id] = state
-                }
+        if let likedIds = UserDefaults.standard.stringArray(forKey: likedKey) {
+            for id in likedIds {
+                var state = states[id] ?? InteractionState()
+                state.isLiked = true
+                states[id] = state
             }
         }
-        if let collectedStrings = UserDefaults.standard.stringArray(forKey: collectedKey) {
-            for idString in collectedStrings {
-                if let id = UUID(uuidString: idString) {
-                    var state = states[id] ?? InteractionState()
-                    state.isCollected = true
-                    states[id] = state
-                }
+        if let collectedIds = UserDefaults.standard.stringArray(forKey: collectedKey) {
+            for id in collectedIds {
+                var state = states[id] ?? InteractionState()
+                state.isCollected = true
+                states[id] = state
             }
         }
     }
 
     private func saveToDisk() {
-        let likedIds = states.filter { $0.value.isLiked }.map { $0.key.uuidString }
-        let collectedIds = states.filter { $0.value.isCollected }.map { $0.key.uuidString }
+        let likedIds = states.filter { $0.value.isLiked }.map(\.key)
+        let collectedIds = states.filter { $0.value.isCollected }.map(\.key)
         UserDefaults.standard.set(likedIds, forKey: likedKey)
         UserDefaults.standard.set(collectedIds, forKey: collectedKey)
     }
 }
-
-// MARK: - Interaction State
 
 private struct InteractionState {
     var isLiked: Bool = false

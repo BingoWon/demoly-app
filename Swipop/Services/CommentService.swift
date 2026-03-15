@@ -4,85 +4,42 @@
 //
 
 import Foundation
-import Supabase
 
 actor CommentService {
     static let shared = CommentService()
 
-    private let supabase = SupabaseService.shared.client
+    private let api = APIClient.shared
 
     private init() {}
 
     // MARK: - Fetch
 
-    func fetchComments(projectId: UUID, limit: Int = 20, offset: Int = 0) async throws -> [Comment] {
-        let comments: [Comment] = try await supabase
-            .from("comments")
-            .select("*, user:users!user_id(*)")
-            .eq("project_id", value: projectId)
-            .is("parent_id", value: nil)
-            .order("created_at", ascending: false)
-            .range(from: offset, to: offset + limit - 1)
-            .execute()
-            .value
-
-        return comments
+    struct CommentsResponse: Decodable {
+        let items: [Comment]
     }
 
-    func fetchReplies(parentId: UUID) async throws -> [Comment] {
-        let replies: [Comment] = try await supabase
-            .from("comments")
-            .select("*, user:users!user_id(*)")
-            .eq("parent_id", value: parentId)
-            .order("created_at", ascending: true)
-            .execute()
-            .value
-
-        return replies
-    }
-
-    func fetchCommentCount(projectId: UUID) async throws -> Int {
-        let count = try await supabase
-            .from("comments")
-            .select("id", head: true, count: .exact)
-            .eq("project_id", value: projectId)
-            .execute()
-            .count
-
-        return count ?? 0
+    func fetchComments(projectId: String, limit: Int = 20, offset: Int = 0) async throws -> [Comment] {
+        let response: CommentsResponse = try await api.get("/comments/\(projectId)", query: [
+            "limit": "\(limit)",
+            "offset": "\(offset)",
+        ])
+        return response.items
     }
 
     // MARK: - Create
 
-    func createComment(projectId: UUID, userId: UUID, content: String, parentId: UUID? = nil) async throws -> Comment {
-        var data: [String: String] = [
-            "project_id": projectId.uuidString,
-            "user_id": userId.uuidString,
-            "content": content,
-        ]
+    struct CreateCommentPayload: Encodable {
+        let content: String
+        let parentId: String?
+    }
 
-        if let parentId {
-            data["parent_id"] = parentId.uuidString
-        }
-
-        let comment: Comment = try await supabase
-            .from("comments")
-            .insert(data)
-            .select("*, user:users!user_id(*)")
-            .single()
-            .execute()
-            .value
-
-        return comment
+    func createComment(projectId: String, content: String, parentId: String? = nil) async throws -> Comment {
+        try await api.post("/comments/\(projectId)", body: CreateCommentPayload(content: content, parentId: parentId))
     }
 
     // MARK: - Delete
 
-    func deleteComment(id: UUID) async throws {
-        try await supabase
-            .from("comments")
-            .delete()
-            .eq("id", value: id)
-            .execute()
+    func deleteComment(projectId: String, commentId: String) async throws {
+        try await api.delete("/comments/\(projectId)/\(commentId)")
     }
 }

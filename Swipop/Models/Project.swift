@@ -2,21 +2,19 @@
 //  Project.swift
 //  Swipop
 //
-//  Project model representing a frontend creation
-//
 
 import Foundation
 
 struct Project: Identifiable, Equatable, Hashable {
-    let id: UUID
-    let userId: UUID
+    let id: String
+    let userId: String
     var title: String
     var description: String?
     var htmlContent: String?
     var cssContent: String?
     var jsContent: String?
     var thumbnailUrl: String?
-    var thumbnailAspectRatio: CGFloat? // width / height, range: 0.75 ~ 1.33
+    var thumbnailAspectRatio: CGFloat?
     var tags: [String]?
     var chatMessages: [[String: Any]]?
     var isPublished: Bool
@@ -28,14 +26,10 @@ struct Project: Identifiable, Equatable, Hashable {
     let createdAt: Date
     var updatedAt: Date
 
-    /// Associated creator profile (loaded via join)
     var creator: Profile?
 
-    /// Current user's interaction state (from RPC, nil if not fetched)
     var isLikedByCurrentUser: Bool?
     var isCollectedByCurrentUser: Bool?
-
-    // MARK: - Equatable (exclude chatMessages which contains Any)
 
     static func == (lhs: Project, rhs: Project) -> Bool {
         lhs.id == rhs.id &&
@@ -52,153 +46,31 @@ struct Project: Identifiable, Equatable, Hashable {
         hasher.combine(id)
     }
 
-    // MARK: - Coding Keys
-
     enum CodingKeys: String, CodingKey {
-        case id
-        case userId = "user_id"
-        case title
-        case description
-        case htmlContent = "html_content"
-        case cssContent = "css_content"
-        case jsContent = "js_content"
-        case thumbnailUrl = "thumbnail_url"
-        case thumbnailAspectRatio = "thumbnail_aspect_ratio"
-        case tags
-        case chatMessages = "chat_messages"
-        case isPublished = "is_published"
-        case viewCount = "view_count"
-        case likeCount = "like_count"
-        case collectCount = "collect_count"
-        case commentCount = "comment_count"
-        case shareCount = "share_count"
-        case createdAt = "created_at"
-        case updatedAt = "updated_at"
-        case creator = "users"
+        case id, userId, title, description, htmlContent, cssContent, jsContent
+        case thumbnailUrl, thumbnailAspectRatio, tags, chatMessages
+        case isPublished, viewCount, likeCount, collectCount, commentCount, shareCount
+        case createdAt, updatedAt, creator
         case isLikedByCurrentUser = "is_liked"
         case isCollectedByCurrentUser = "is_collected"
     }
-}
 
-// MARK: - Feed Project (RPC Response with flattened creator)
+    var displayTitle: String { title.isEmpty ? "Untitled" : title }
 
-/// Specialized struct for decoding get_feed_with_interactions RPC response
-struct FeedProjectRow: Decodable {
-    let id: UUID
-    let userId: UUID
-    let title: String
-    let description: String?
-    let htmlContent: String?
-    let cssContent: String?
-    let jsContent: String?
-    let thumbnailUrl: String?
-    let thumbnailAspectRatio: Double?
-    let tags: [String]?
-    let chatMessages: [[String: AnyCodable]]?
-    let isPublished: Bool
-    let viewCount: Int
-    let likeCount: Int
-    let collectCount: Int
-    let commentCount: Int
-    let shareCount: Int
-    let createdAt: Date
-    let updatedAt: Date
-    let isLiked: Bool
-    let isCollected: Bool
-    // Flattened creator fields
-    let creatorId: UUID?
-    let creatorUsername: String?
-    let creatorDisplayName: String?
-    let creatorAvatarUrl: String?
-    let creatorBio: String?
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case userId = "user_id"
-        case title
-        case description
-        case htmlContent = "html_content"
-        case cssContent = "css_content"
-        case jsContent = "js_content"
-        case thumbnailUrl = "thumbnail_url"
-        case thumbnailAspectRatio = "thumbnail_aspect_ratio"
-        case tags
-        case chatMessages = "chat_messages"
-        case isPublished = "is_published"
-        case viewCount = "view_count"
-        case likeCount = "like_count"
-        case collectCount = "collect_count"
-        case commentCount = "comment_count"
-        case shareCount = "share_count"
-        case createdAt = "created_at"
-        case updatedAt = "updated_at"
-        case isLiked = "is_liked"
-        case isCollected = "is_collected"
-        case creatorId = "creator_id"
-        case creatorUsername = "creator_username"
-        case creatorDisplayName = "creator_display_name"
-        case creatorAvatarUrl = "creator_avatar_url"
-        case creatorBio = "creator_bio"
-    }
-
-    /// Convert to Project model
-    func toProject() -> Project {
-        var creator: Profile? = nil
-        if let creatorId = creatorId {
-            creator = Profile(
-                id: creatorId,
-                username: creatorUsername,
-                displayName: creatorDisplayName,
-                avatarUrl: creatorAvatarUrl,
-                bio: creatorBio,
-                links: [],
-                createdAt: Date(),
-                updatedAt: Date()
-            )
-        }
-
-        // Parse chat messages
-        var parsedChatMessages: [[String: Any]]? = nil
-        if let messages = chatMessages {
-            parsedChatMessages = messages.map { dict in
-                dict.mapValues { $0.value }
-            }
-        }
-
-        return Project(
-            id: id,
-            userId: userId,
-            title: title,
-            description: description,
-            htmlContent: htmlContent,
-            cssContent: cssContent,
-            jsContent: jsContent,
-            thumbnailUrl: thumbnailUrl,
-            thumbnailAspectRatio: thumbnailAspectRatio.map { CGFloat($0) },
-            tags: tags,
-            chatMessages: parsedChatMessages,
-            isPublished: isPublished,
-            viewCount: viewCount,
-            likeCount: likeCount,
-            collectCount: collectCount,
-            commentCount: commentCount,
-            shareCount: shareCount,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            creator: creator,
-            isLikedByCurrentUser: isLiked,
-            isCollectedByCurrentUser: isCollected
-        )
+    func resolvedThumbnailURL() -> URL? {
+        guard let thumbnailUrl else { return nil }
+        if thumbnailUrl.hasPrefix("http") { return URL(string: thumbnailUrl) }
+        return URL(string: "\(Config.hostURL)\(thumbnailUrl)")
     }
 }
 
-// MARK: - Codable (custom for chatMessages)
+// MARK: - Codable
 
 extension Project: Codable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
-        userId = try container.decode(UUID.self, forKey: .userId)
+        id = try container.decode(String.self, forKey: .id)
+        userId = try container.decode(String.self, forKey: .userId)
         title = try container.decodeIfPresent(String.self, forKey: .title) ?? ""
         description = try container.decodeIfPresent(String.self, forKey: .description)
         htmlContent = try container.decodeIfPresent(String.self, forKey: .htmlContent)
@@ -220,23 +92,15 @@ extension Project: Codable {
         createdAt = try container.decode(Date.self, forKey: .createdAt)
         updatedAt = try container.decode(Date.self, forKey: .updatedAt)
         creator = try container.decodeIfPresent(Profile.self, forKey: .creator)
-
-        // Decode interaction states (optional, from RPC)
         isLikedByCurrentUser = try container.decodeIfPresent(Bool.self, forKey: .isLikedByCurrentUser)
         isCollectedByCurrentUser = try container.decodeIfPresent(Bool.self, forKey: .isCollectedByCurrentUser)
 
-        // Decode chatMessages - JSONB comes as native JSON array from Supabase
         if container.contains(.chatMessages) {
-            // Try decoding as raw JSON array first (JSONB native format)
             if let rawMessages = try? container.decode([[String: AnyCodable]].self, forKey: .chatMessages) {
-                chatMessages = rawMessages.map { dict in
-                    dict.mapValues { $0.value }
-                }
-            }
-            // Fallback: try as JSON string
-            else if let messagesString = try? container.decode(String.self, forKey: .chatMessages),
-                    let data = messagesString.data(using: .utf8),
-                    let messages = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]]
+                chatMessages = rawMessages.map { dict in dict.mapValues { $0.value } }
+            } else if let messagesString = try? container.decode(String.self, forKey: .chatMessages),
+                      let data = messagesString.data(using: .utf8),
+                      let messages = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]]
             {
                 chatMessages = messages
             } else {
@@ -273,117 +137,57 @@ extension Project: Codable {
         try container.encodeIfPresent(isLikedByCurrentUser, forKey: .isLikedByCurrentUser)
         try container.encodeIfPresent(isCollectedByCurrentUser, forKey: .isCollectedByCurrentUser)
 
-        // Encode chatMessages as JSON
-        if let messages = chatMessages,
-           let data = try? JSONSerialization.data(withJSONObject: messages)
-        {
-            try container.encode(data, forKey: .chatMessages)
+        if let messages = chatMessages {
+            let codable = messages.map { $0.mapValues { AnyCodable($0) } }
+            try container.encode(codable, forKey: .chatMessages)
         }
     }
 }
 
-// MARK: - Thumbnail Image Transformation
+// MARK: - AnyCodable
 
-/// Supabase Image Transformation helper
-/// Transforms: /storage/v1/object/public/... → /storage/v1/render/image/public/...?width=X&quality=Y
-enum ThumbnailTransform {
-    case small // Profile grid, Settings preview: 420px, 60%
-    case medium // Home feed: 640px, 70%
+struct AnyCodable: Codable {
+    let value: Any
 
-    var width: Int {
-        switch self {
-        case .small: return 420
-        case .medium: return 640
-        }
+    init(_ value: Any) { self.value = value }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if container.decodeNil() { value = NSNull() }
+        else if let bool = try? container.decode(Bool.self) { value = bool }
+        else if let int = try? container.decode(Int.self) { value = int }
+        else if let double = try? container.decode(Double.self) { value = double }
+        else if let string = try? container.decode(String.self) { value = string }
+        else if let array = try? container.decode([AnyCodable].self) { value = array.map(\.value) }
+        else if let dict = try? container.decode([String: AnyCodable].self) { value = dict.mapValues(\.value) }
+        else { throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unable to decode value") }
     }
 
-    var quality: Int {
-        switch self {
-        case .small: return 60
-        case .medium: return 70
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch value {
+        case is NSNull: try container.encodeNil()
+        case let bool as Bool: try container.encode(bool)
+        case let int as Int: try container.encode(int)
+        case let double as Double: try container.encode(double)
+        case let string as String: try container.encode(string)
+        case let array as [Any]: try container.encode(array.map { AnyCodable($0) })
+        case let dict as [String: Any]: try container.encode(dict.mapValues { AnyCodable($0) })
+        default: throw EncodingError.invalidValue(value, .init(codingPath: encoder.codingPath, debugDescription: "Unable to encode value"))
         }
     }
-
-    /// Transform original Supabase storage URL to render URL
-    static func url(from originalUrl: String?, size: ThumbnailTransform) -> URL? {
-        guard let urlString = originalUrl,
-              let url = URL(string: urlString),
-              var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-        else {
-            return nil
-        }
-
-        // Replace /object/ with /render/image/
-        components.path = components.path.replacingOccurrences(of: "/object/", with: "/render/image/")
-
-        // Add transformation parameters
-        // resize=contain: scale to fit within width while preserving aspect ratio (no cropping)
-        components.queryItems = [
-            URLQueryItem(name: "width", value: "\(size.width)"),
-            URLQueryItem(name: "quality", value: "\(size.quality)"),
-            URLQueryItem(name: "resize", value: "contain"),
-        ]
-
-        return components.url
-    }
-}
-
-extension Project {
-    /// Display title - returns "Untitled" if title is empty
-    var displayTitle: String { title.isEmpty ? "Untitled" : title }
-
-    /// Small thumbnail URL for profile grid (200px)
-    var smallThumbnailURL: URL? { ThumbnailTransform.url(from: thumbnailUrl, size: .small) }
-
-    /// Medium thumbnail URL for home feed (400px)
-    var mediumThumbnailURL: URL? { ThumbnailTransform.url(from: thumbnailUrl, size: .medium) }
 }
 
 // MARK: - Sample Data
 
 extension Project {
     static let sample = Project(
-        id: UUID(),
+        id: "sample-project-001",
         userId: Profile.sample.id,
         title: "Neon Pulse",
         description: "A mesmerizing neon animation",
-        htmlContent: """
-            <div class="container">
-                <div class="pulse"></div>
-                <h1>Swipop</h1>
-            </div>
-        """,
-        cssContent: """
-            .container {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                height: 100vh;
-                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            }
-            .pulse {
-                width: 120px;
-                height: 120px;
-                border-radius: 50%;
-                background: linear-gradient(45deg, #a855f7, #6366f1);
-                animation: pulse 2s ease-in-out infinite;
-                box-shadow: 0 0 60px #a855f7;
-            }
-            @keyframes pulse {
-                0%, 100% { transform: scale(1); opacity: 1; }
-                50% { transform: scale(1.2); opacity: 0.8; }
-            }
-            h1 {
-                margin-top: 40px;
-                font-size: 32px;
-                font-weight: 700;
-                background: linear-gradient(90deg, #fff, #a855f7);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                letter-spacing: 4px;
-            }
-        """,
+        htmlContent: "<div class=\"container\"><div class=\"pulse\"></div><h1>Swipop</h1></div>",
+        cssContent: ".container { display: flex; align-items: center; justify-content: center; height: 100vh; background: #1a1a2e; }",
         jsContent: nil,
         thumbnailUrl: nil,
         tags: ["animation", "neon", "css"],
@@ -398,154 +202,4 @@ extension Project {
         updatedAt: Date(),
         creator: Profile.sample
     )
-
-    static let samples: [Project] = [
-        sample,
-        Project(
-            id: UUID(),
-            userId: Profile.sample.id,
-            title: "Particle Storm",
-            description: "Interactive particle system",
-            htmlContent: "<canvas id='canvas'></canvas>",
-            cssContent: "canvas { width: 100%; height: 100%; }",
-            jsContent: """
-                const canvas = document.getElementById('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-                
-                const particles = [];
-                for (let i = 0; i < 100; i++) {
-                    particles.push({
-                        x: Math.random() * canvas.width,
-                        y: Math.random() * canvas.height,
-                        vx: (Math.random() - 0.5) * 2,
-                        vy: (Math.random() - 0.5) * 2,
-                        size: Math.random() * 3 + 1
-                    });
-                }
-                
-                function animate() {
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    
-                    particles.forEach(p => {
-                        p.x += p.vx;
-                        p.y += p.vy;
-                        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-                        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-                        
-                        ctx.beginPath();
-                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                        ctx.fillStyle = '#a855f7';
-                        ctx.fill();
-                    });
-                    
-                    requestAnimationFrame(animate);
-                }
-                animate();
-            """,
-            thumbnailUrl: nil,
-            tags: ["particle", "canvas", "javascript"],
-            chatMessages: nil,
-            isPublished: true,
-            viewCount: 2345,
-            likeCount: 890,
-            collectCount: 78,
-            commentCount: 123,
-            shareCount: 45,
-            createdAt: Date(),
-            updatedAt: Date(),
-            creator: Profile.sample
-        ),
-        Project(
-            id: UUID(),
-            userId: Profile.sample.id,
-            title: "Gradient Wave",
-            description: "Smooth gradient animation",
-            htmlContent: "<div class='wave'></div>",
-            cssContent: """
-                .wave {
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-                    background-size: 400% 400%;
-                    animation: gradient 8s ease infinite;
-                }
-                @keyframes gradient {
-                    0% { background-position: 0% 50%; }
-                    50% { background-position: 100% 50%; }
-                    100% { background-position: 0% 50%; }
-                }
-            """,
-            jsContent: nil,
-            thumbnailUrl: nil,
-            tags: ["gradient", "animation", "css"],
-            chatMessages: nil,
-            isPublished: true,
-            viewCount: 3456,
-            likeCount: 1234,
-            collectCount: 156,
-            commentCount: 234,
-            shareCount: 67,
-            createdAt: Date(),
-            updatedAt: Date(),
-            creator: Profile.sample
-        ),
-    ]
-}
-
-// MARK: - AnyCodable (for decoding arbitrary JSON)
-
-struct AnyCodable: Codable {
-    let value: Any
-
-    init(_ value: Any) {
-        self.value = value
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-
-        if container.decodeNil() {
-            value = NSNull()
-        } else if let bool = try? container.decode(Bool.self) {
-            value = bool
-        } else if let int = try? container.decode(Int.self) {
-            value = int
-        } else if let double = try? container.decode(Double.self) {
-            value = double
-        } else if let string = try? container.decode(String.self) {
-            value = string
-        } else if let array = try? container.decode([AnyCodable].self) {
-            value = array.map { $0.value }
-        } else if let dict = try? container.decode([String: AnyCodable].self) {
-            value = dict.mapValues { $0.value }
-        } else {
-            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unable to decode value")
-        }
-    }
-
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-
-        switch value {
-        case is NSNull:
-            try container.encodeNil()
-        case let bool as Bool:
-            try container.encode(bool)
-        case let int as Int:
-            try container.encode(int)
-        case let double as Double:
-            try container.encode(double)
-        case let string as String:
-            try container.encode(string)
-        case let array as [Any]:
-            try container.encode(array.map { AnyCodable($0) })
-        case let dict as [String: Any]:
-            try container.encode(dict.mapValues { AnyCodable($0) })
-        default:
-            throw EncodingError.invalidValue(value, .init(codingPath: encoder.codingPath, debugDescription: "Unable to encode value"))
-        }
-    }
 }

@@ -2,8 +2,6 @@
 //  Profile.swift
 //  Swipop
 //
-//  User profile model
-//
 
 import Foundation
 
@@ -30,10 +28,24 @@ struct ProfileLink: Codable, Equatable, Identifiable {
     }
 }
 
+// MARK: - Profile Stats
+
+struct ProfileStats: Codable, Equatable {
+    var followersCount: Int
+    var followingCount: Int
+    var projectsCount: Int
+
+    init(followersCount: Int = 0, followingCount: Int = 0, projectsCount: Int = 0) {
+        self.followersCount = followersCount
+        self.followingCount = followingCount
+        self.projectsCount = projectsCount
+    }
+}
+
 // MARK: - Profile
 
 struct Profile: Identifiable, Codable, Equatable {
-    let id: UUID
+    let id: String
     var username: String?
     var displayName: String?
     var avatarUrl: String?
@@ -42,49 +54,36 @@ struct Profile: Identifiable, Codable, Equatable {
     let createdAt: Date
     var updatedAt: Date
 
-    // MARK: - Computed Properties
+    var stats: ProfileStats?
+    var isFollowing: Bool?
 
-    /// Best available display name (displayName > username > "User")
     var name: String {
         displayName ?? username ?? "User"
     }
 
-    /// Username for @ mention (username > displayName sanitized > "user")
     var handle: String {
         username ?? displayName?.lowercased().replacingOccurrences(of: " ", with: "_") ?? "user"
     }
 
-    /// First character for avatar placeholder
     var initial: String {
         String((displayName ?? username ?? "U").prefix(1)).uppercased()
     }
 
-    // MARK: - Coding Keys
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case username
-        case displayName = "display_name"
-        case avatarUrl = "avatar_url"
-        case bio
-        case links
-        case createdAt = "created_at"
-        case updatedAt = "updated_at"
+    var resolvedAvatarURL: URL? {
+        guard let avatarUrl else { return nil }
+        if avatarUrl.hasPrefix("http") { return URL(string: avatarUrl) }
+        return URL(string: "\(Config.hostURL)\(avatarUrl)")
     }
 
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
-        username = try container.decodeIfPresent(String.self, forKey: .username)
-        displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
-        avatarUrl = try container.decodeIfPresent(String.self, forKey: .avatarUrl)
-        bio = try container.decodeIfPresent(String.self, forKey: .bio)
-        links = try container.decodeIfPresent([ProfileLink].self, forKey: .links) ?? []
-        createdAt = try container.decode(Date.self, forKey: .createdAt)
-        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+    private enum CodingKeys: String, CodingKey {
+        case id, username, displayName, avatarUrl, bio, links, createdAt, updatedAt, stats, isFollowing
     }
 
-    init(id: UUID, username: String?, displayName: String?, avatarUrl: String?, bio: String?, links: [ProfileLink] = [], createdAt: Date, updatedAt: Date) {
+    init(
+        id: String, username: String?, displayName: String?, avatarUrl: String?,
+        bio: String?, links: [ProfileLink] = [], createdAt: Date = Date(), updatedAt: Date = Date(),
+        stats: ProfileStats? = nil, isFollowing: Bool? = nil
+    ) {
         self.id = id
         self.username = username
         self.displayName = displayName
@@ -93,6 +92,22 @@ struct Profile: Identifiable, Codable, Equatable {
         self.links = links
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+        self.stats = stats
+        self.isFollowing = isFollowing
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        username = try container.decodeIfPresent(String.self, forKey: .username)
+        displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
+        avatarUrl = try container.decodeIfPresent(String.self, forKey: .avatarUrl)
+        bio = try container.decodeIfPresent(String.self, forKey: .bio)
+        links = try container.decodeIfPresent([ProfileLink].self, forKey: .links) ?? []
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        stats = try container.decodeIfPresent(ProfileStats.self, forKey: .stats)
+        isFollowing = try container.decodeIfPresent(Bool.self, forKey: .isFollowing)
     }
 }
 
@@ -100,16 +115,14 @@ struct Profile: Identifiable, Codable, Equatable {
 
 extension Profile {
     static let sample = Profile(
-        id: UUID(),
+        id: "user_sample123",
         username: "creator",
         displayName: "Creative Dev",
         avatarUrl: nil,
-        bio: "Building cool stuff with code ✨",
+        bio: "Building cool stuff with code",
         links: [
             ProfileLink(title: "GitHub", url: "https://github.com/creator"),
             ProfileLink(title: "Twitter", url: "https://twitter.com/creator"),
-        ],
-        createdAt: Date(),
-        updatedAt: Date()
+        ]
     )
 }

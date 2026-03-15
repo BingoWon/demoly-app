@@ -7,6 +7,7 @@
 //  - iOS 18: Custom glass-style top bar
 //
 
+import ClerkKit
 import SwiftUI
 
 struct CreateView: View {
@@ -19,11 +20,13 @@ struct CreateView: View {
     @State private var showOptions = false
     @FocusState private var isInputFocused: Bool
 
+    private var isSignedIn: Bool { Clerk.shared.user != nil }
+
     var body: some View {
         ZStack(alignment: .bottom) {
             Color.appBackground.ignoresSafeArea()
 
-            if AuthService.shared.isAuthenticated {
+            if isSignedIn {
                 content
                     .safeAreaInset(edge: .bottom) {
                         Spacer().frame(height: 60)
@@ -32,7 +35,7 @@ struct CreateView: View {
                 signInPrompt
             }
 
-            if AuthService.shared.isAuthenticated {
+            if isSignedIn {
                 FloatingCreateAccessory(selectedSubTab: $selectedSubTab)
             }
         }

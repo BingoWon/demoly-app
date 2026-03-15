@@ -2,8 +2,6 @@
 //  SearchViewModel.swift
 //  Swipop
 //
-//  Search state management
-//
 
 import Foundation
 
@@ -13,7 +11,6 @@ final class SearchViewModel {
     private(set) var projects: [Project] = []
     private(set) var users: [Profile] = []
     private(set) var trendingTags: [String] = []
-    private(set) var suggestedCreators: [Profile] = []
 
     private(set) var isSearching = false
     private(set) var isLoadingTrending = false
@@ -39,28 +36,15 @@ final class SearchViewModel {
 
     func loadTrending() async {
         guard trendingTags.isEmpty else { return }
-
         isLoadingTrending = true
         defer { isLoadingTrending = false }
-
-        do {
-            async let tags = service.fetchTrendingTags()
-            async let creators = service.fetchSuggestedCreators()
-
-            let (fetchedTags, fetchedCreators) = try await (tags, creators)
-            trendingTags = fetchedTags.isEmpty ? defaultTags : fetchedTags
-            suggestedCreators = fetchedCreators
-        } catch {
-            print("Failed to load trending: \(error)")
-            trendingTags = defaultTags
-        }
+        trendingTags = defaultTags
     }
 
     // MARK: - Search
 
     private func scheduleSearch() {
         searchTask = Task {
-            // Debounce 300ms
             try? await Task.sleep(for: .milliseconds(300))
             guard !Task.isCancelled else { return }
             await performSearch()
@@ -75,19 +59,11 @@ final class SearchViewModel {
         defer { isSearching = false }
 
         do {
-            // Search by tag if query starts with #
-            if query.hasPrefix("#") {
-                let tag = String(query.dropFirst())
-                projects = try await service.searchProjectsByTag(tag: tag)
-                users = []
-            } else {
-                async let projectsTask = service.searchProjects(query: query)
-                async let usersTask = service.searchUsers(query: query)
-
-                let (fetchedProjects, fetchedUsers) = try await (projectsTask, usersTask)
-                projects = fetchedProjects
-                users = fetchedUsers
-            }
+            let searchQuery = query.hasPrefix("#") ? String(query.dropFirst()) : query
+            let type = query.hasPrefix("#") ? "projects" : "all"
+            let response = try await service.search(query: searchQuery, type: type)
+            projects = response.projects
+            users = response.users
         } catch {
             print("Search failed: \(error)")
         }
@@ -96,8 +72,6 @@ final class SearchViewModel {
     func searchTag(_ tag: String) {
         searchQuery = "#\(tag)"
     }
-
-    // MARK: - Default Tags
 
     private var defaultTags: [String] {
         ["animation", "3d", "particles", "gradient", "interactive", "generative"]

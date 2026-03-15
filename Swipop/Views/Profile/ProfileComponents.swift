@@ -131,7 +131,6 @@ private struct LinkChip: View {
 
 struct ProfileStatsRow: View {
     let projectCount: Int
-    let likeCount: Int
     let followerCount: Int
     let followingCount: Int
     var isLoading = false
@@ -151,12 +150,6 @@ struct ProfileStatsRow: View {
                 .overlay(Color.border)
 
             statItem(value: followingCount, label: "Following")
-
-            Divider()
-                .frame(height: 24)
-                .overlay(Color.border)
-
-            statItem(value: likeCount, label: "Likes")
         }
         .padding(.vertical, 12)
         .background(Color.secondaryBackground)

@@ -2,30 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>GIDClientID</key>
-	<string>643990942728-t9e5b0gtbi7af9qj9ok6v65kvas4l4aj.apps.googleusercontent.com</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>Google Sign-In</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.googleusercontent.apps.643990942728-t9e5b0gtbi7af9qj9ok6v65kvas4l4aj</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>Supabase Auth</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>swipop</string>
-			</array>
-		</dict>
-	</array>
+	<key>API_BASE_URL</key>
+	<string>http://localhost:4399</string>
+	<key>CLERK_PUBLISHABLE_KEY</key>
+	<string>pk_test_ZmFzdC1kYW5lLTg2LmNsZXJrLmFjY291bnRzLmRldiQ</string>
 </dict>
 </plist>

@@ -2,28 +2,24 @@
 //  Activity.swift
 //  Swipop
 //
-//  Activity notification model
-//
 
 import SwiftUI
 
 struct Activity: Identifiable, Codable, Hashable {
-    let id: UUID
-    let userId: UUID
-    let actorId: UUID
+    let id: String
+    let userId: String
+    let actorId: String
     let type: ActivityType
-    let projectId: UUID?
-    let commentId: UUID?
-    let isRead: Bool
+    let projectId: String?
+    let commentId: String?
+    var isRead: Bool
     let createdAt: Date
 
-    // Joined data
     let actor: Profile?
     let project: Project?
 
     var timeAgo: String { createdAt.timeAgo }
 
-    // Hashable - only use id for equality/hashing
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
@@ -31,26 +27,10 @@ struct Activity: Identifiable, Codable, Hashable {
     static func == (lhs: Activity, rhs: Activity) -> Bool {
         lhs.id == rhs.id
     }
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case userId = "user_id"
-        case actorId = "actor_id"
-        case type
-        case projectId = "project_id"
-        case commentId = "comment_id"
-        case isRead = "is_read"
-        case createdAt = "created_at"
-        case actor
-        case project
-    }
 }
 
 enum ActivityType: String, Codable {
-    case like
-    case comment
-    case follow
-    case collect
+    case like, comment, follow, collect
 
     var icon: String {
         switch self {
@@ -95,7 +75,6 @@ enum ActivityType: String, Codable {
             }
         }
 
-        // Bold the actor name
         if let range = result.range(of: actorName) {
             result[range].font = .system(size: 14, weight: .semibold)
         }

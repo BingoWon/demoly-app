@@ -2,9 +2,8 @@
 //  ProjectEditorViewModel.swift
 //  Swipop
 //
-//  Shared state for project creation/editing
-//
 
+import ClerkKit
 import SwiftUI
 import WebKit
 
@@ -53,12 +52,11 @@ final class ProjectEditorViewModel {
 
     static let defaultJS = """
     // Add interactivity here
-    // Example: document.querySelector('h1').addEventListener('click', () => { ... })
     """
 
     // MARK: - Identity
 
-    var projectId: UUID?
+    var projectId: String?
 
     // MARK: - Content
 
@@ -102,8 +100,11 @@ final class ProjectEditorViewModel {
     var isNew: Bool { projectId == nil }
     var hasThumbnail: Bool { thumbnailUrl != nil || thumbnailImage != nil }
 
-    /// Small thumbnail URL for settings preview (200px)
-    var smallThumbnailURL: URL? { ThumbnailTransform.url(from: thumbnailUrl, size: .small) }
+    var smallThumbnailURL: URL? {
+        guard let thumbnailUrl else { return nil }
+        if thumbnailUrl.hasPrefix("http") { return URL(string: thumbnailUrl) }
+        return URL(string: "\(Config.hostURL)\(thumbnailUrl)")
+    }
 
     // MARK: - Thumbnail Actions
 
@@ -140,48 +141,41 @@ final class ProjectEditorViewModel {
     // MARK: - Save
 
     func save() async {
-        guard hasContent else { return }
+        guard hasContent, Clerk.shared.user != nil else { return }
 
         isSaving = true
         saveError = nil
         defer { isSaving = false }
 
         do {
-            // Create project if new
-            let effectiveProjectId: UUID
+            let payload = ProjectService.CreateProjectPayload(
+                title: title,
+                description: description.isEmpty ? nil : description,
+                tags: tags,
+                htmlContent: html,
+                cssContent: css,
+                jsContent: javascript,
+                isPublished: isPublished,
+                thumbnailUrl: thumbnailUrl,
+                thumbnailAspectRatio: thumbnailAspectRatio.map { Double($0) }
+            )
+
+            let effectiveProjectId: String
             if let existingId = projectId {
                 effectiveProjectId = existingId
+                _ = try await ProjectService.shared.updateProject(id: existingId, payload: payload)
             } else {
-                effectiveProjectId = try await ProjectService.shared.createProject(
-                    title: title, description: description, tags: tags,
-                    html: html, css: css, javascript: javascript,
-                    chatMessages: chatMessages, isPublished: isPublished,
-                    thumbnailUrl: nil, thumbnailAspectRatio: nil
-                )
+                let created = try await ProjectService.shared.createProject(payload: payload)
+                effectiveProjectId = created.id
                 projectId = effectiveProjectId
             }
 
-            // Upload thumbnail if needed
-            var finalThumbnailUrl = thumbnailUrl
-            var finalAspectRatio = thumbnailAspectRatio
-
             if let image = thumbnailImage {
                 let result = try await ThumbnailService.shared.upload(image: image, projectId: effectiveProjectId)
-                finalThumbnailUrl = result.url
-                finalAspectRatio = result.aspectRatio
                 thumbnailUrl = result.url
                 thumbnailAspectRatio = result.aspectRatio
                 thumbnailImage = nil
             }
-
-            // Update project
-            try await ProjectService.shared.updateProject(
-                id: effectiveProjectId,
-                title: title, description: description, tags: tags,
-                html: html, css: css, javascript: javascript,
-                chatMessages: chatMessages, isPublished: isPublished,
-                thumbnailUrl: finalThumbnailUrl, thumbnailAspectRatio: finalAspectRatio
-            )
 
             isDirty = false
             lastSaved = Date()
@@ -236,7 +230,7 @@ final class ProjectEditorViewModel {
     // MARK: - Auto-Save
 
     private var autoSaveTask: Task<Void, Never>?
-    private let autoSaveDelay: UInt64 = 2_000_000_000 // 2 seconds in nanoseconds
+    private let autoSaveDelay: UInt64 = 2_000_000_000
 
     func markDirty() {
         isDirty = true
@@ -249,9 +243,7 @@ final class ProjectEditorViewModel {
                 try await Task.sleep(nanoseconds: autoSaveDelay)
                 guard !Task.isCancelled, hasContent, isDirty, !isSaving else { return }
                 await save()
-            } catch {
-                // Task was cancelled, ignore
-            }
+            } catch {}
         }
     }
 }

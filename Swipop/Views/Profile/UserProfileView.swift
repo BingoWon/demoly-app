@@ -8,15 +8,15 @@
 import SwiftUI
 
 struct UserProfileView: View {
-    let userId: UUID
+    let username: String
     @Binding var showLogin: Bool
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: OtherUserProfileViewModel
 
-    init(userId: UUID, showLogin: Binding<Bool>) {
-        self.userId = userId
+    init(username: String, showLogin: Binding<Bool>) {
+        self.username = username
         _showLogin = showLogin
-        _viewModel = State(initialValue: OtherUserProfileViewModel(userId: userId))
+        _viewModel = State(initialValue: OtherUserProfileViewModel(username: username))
     }
 
     var body: some View {
@@ -29,7 +29,6 @@ struct UserProfileView: View {
 
                     ProfileStatsRow(
                         projectCount: viewModel.projectCount,
-                        likeCount: viewModel.likeCount,
                         followerCount: viewModel.followerCount,
                         followingCount: viewModel.followingCount,
                         isLoading: viewModel.isLoading
@@ -107,6 +106,6 @@ struct UserProfileView: View {
 
 #Preview {
     NavigationStack {
-        UserProfileView(userId: UUID(), showLogin: .constant(false))
+        UserProfileView(username: "creator", showLogin: .constant(false))
     }
 }

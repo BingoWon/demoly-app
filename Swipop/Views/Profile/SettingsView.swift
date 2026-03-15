@@ -3,15 +3,13 @@
 //  Swipop
 //
 
-import Auth
+import ClerkKit
 import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppearanceSettings.self) private var appearance
     @State private var showLogoutConfirm = false
-
-    private let auth = AuthService.shared
 
     var body: some View {
         @Bindable var appearance = appearance
@@ -120,7 +118,9 @@ struct SettingsView: View {
             .confirmationDialog("Sign Out", isPresented: $showLogoutConfirm) {
                 Button("Sign Out", role: .destructive) {
                     Task {
-                        try? await auth.signOut()
+                        try? await Clerk.shared.auth.signOut()
+                        CurrentUserProfile.shared.reset()
+                        InteractionStore.shared.reset()
                         dismiss()
                     }
                 }
@@ -145,7 +145,7 @@ struct AccountSettingsView: View {
                 HStack {
                     Text("Email")
                     Spacer()
-                    Text(AuthService.shared.currentUser?.email ?? "Not set")
+                    Text(Clerk.shared.user?.primaryEmailAddress?.emailAddress ?? "Not set")
                         .foregroundStyle(.secondary)
                 }
                 .listRowBackground(Color.tertiaryBackground.opacity(0.8))
@@ -233,7 +233,7 @@ struct AboutView: View {
             }
 
             Section {
-                Text("Swipop is a platform for discovering and sharing creative frontend projects. Built with SwiftUI and Supabase.")
+                Text("Swipop is a platform for discovering and sharing creative frontend projects. Built with SwiftUI and Cloudflare Workers.")
                     .foregroundStyle(.secondary)
                     .listRowBackground(Color.tertiaryBackground.opacity(0.8))
             }

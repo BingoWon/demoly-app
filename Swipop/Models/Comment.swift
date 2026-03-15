@@ -6,50 +6,35 @@
 import Foundation
 
 struct Comment: Identifiable, Codable, Equatable {
-    let id: UUID
-    let projectId: UUID
-    let userId: UUID
+    let id: String
+    let projectId: String
+    let userId: String
     var content: String
-    var parentId: UUID?
+    var parentId: String?
     let createdAt: Date
 
-    // Joined data (not persisted)
     var user: CommentUser?
     var replyCount: Int?
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case projectId = "project_id"
-        case userId = "user_id"
-        case content
-        case parentId = "parent_id"
-        case createdAt = "created_at"
-        case user
-        case replyCount = "reply_count"
-    }
 }
 
 struct CommentUser: Codable, Equatable {
-    let id: UUID
+    let id: String
     let username: String?
     let displayName: String?
     let avatarUrl: String?
 
-    /// Username for @ mention
     var handle: String {
         username ?? displayName?.lowercased().replacingOccurrences(of: " ", with: "_") ?? "user"
     }
 
-    /// First character for avatar placeholder
     var initial: String {
         String((displayName ?? username ?? "U").prefix(1)).uppercased()
     }
 
-    enum CodingKeys: String, CodingKey {
-        case id
-        case username
-        case displayName = "display_name"
-        case avatarUrl = "avatar_url"
+    var resolvedAvatarURL: URL? {
+        guard let avatarUrl else { return nil }
+        if avatarUrl.hasPrefix("http") { return URL(string: avatarUrl) }
+        return URL(string: "\(Config.hostURL)\(avatarUrl)")
     }
 }
 
@@ -57,42 +42,24 @@ struct CommentUser: Codable, Equatable {
 
 extension Comment {
     static let sample = Comment(
-        id: UUID(),
-        projectId: UUID(),
-        userId: UUID(),
-        content: "This is amazing! 🔥",
+        id: "comment-001",
+        projectId: "project-001",
+        userId: "user-001",
+        content: "This is amazing!",
         parentId: nil,
         createdAt: Date(),
-        user: CommentUser(
-            id: UUID(),
-            username: "creator",
-            displayName: "Creative Dev",
-            avatarUrl: nil
-        ),
+        user: CommentUser(id: "user-001", username: "creator", displayName: "Creative Dev", avatarUrl: nil),
         replyCount: 2
     )
 
     static let samples: [Comment] = [
         sample,
         Comment(
-            id: UUID(),
-            projectId: UUID(),
-            userId: UUID(),
+            id: "comment-002", projectId: "project-001", userId: "user-002",
             content: "Love the animation effect!",
-            parentId: nil,
-            createdAt: Date().addingTimeInterval(-3600),
-            user: CommentUser(id: UUID(), username: "user2", displayName: "Designer", avatarUrl: nil),
+            parentId: nil, createdAt: Date().addingTimeInterval(-3600),
+            user: CommentUser(id: "user-002", username: "user2", displayName: "Designer", avatarUrl: nil),
             replyCount: 0
-        ),
-        Comment(
-            id: UUID(),
-            projectId: UUID(),
-            userId: UUID(),
-            content: "How did you make this? Tutorial please!",
-            parentId: nil,
-            createdAt: Date().addingTimeInterval(-7200),
-            user: CommentUser(id: UUID(), username: "learner", displayName: "Learner", avatarUrl: nil),
-            replyCount: 5
         ),
     ]
 }

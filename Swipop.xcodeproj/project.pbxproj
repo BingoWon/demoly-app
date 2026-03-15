@@ -13,9 +13,6 @@
 		D73045822EDE7B030059DD01 /* TreeSitterJavaScriptRunestone in Frameworks */ = {isa = PBXBuildFile; productRef = D73045812EDE7B030059DD01 /* TreeSitterJavaScriptRunestone */; };
 		D73047E92EDE7D230059DD01 /* OpenAI in Frameworks */ = {isa = PBXBuildFile; productRef = D73047E82EDE7D230059DD01 /* OpenAI */; };
 		D73048A02EE04B4C0059DD01 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = D730489F2EE04B4C0059DD01 /* Kingfisher */; };
-		D7BF49FE2EDDB66700218489 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = D7BF49D32EDDAF9500218489 /* Supabase */; };
-		D7BF4AE12EDDC16000218489 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D7BF4AA52EDDC0B500218489 /* GoogleSignIn */; };
-		D7BF4AE22EDDC16000218489 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D7BF4AA62EDDC0B500218489 /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -69,10 +66,7 @@
 				D73047E92EDE7D230059DD01 /* OpenAI in Frameworks */,
 				D73048A02EE04B4C0059DD01 /* Kingfisher in Frameworks */,
 				D73045802EDE7B030059DD01 /* TreeSitterHTMLRunestone in Frameworks */,
-				D7BF4AE22EDDC16000218489 /* GoogleSignInSwift in Frameworks */,
 				D730457E2EDE7B030059DD01 /* TreeSitterCSSRunestone in Frameworks */,
-				D7BF4AE12EDDC16000218489 /* GoogleSignIn in Frameworks */,
-				D7BF49FE2EDDB66700218489 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -133,9 +127,6 @@
 			);
 			name = Swipop;
 			packageProductDependencies = (
-				D7BF49D32EDDAF9500218489 /* Supabase */,
-				D7BF4AA52EDDC0B500218489 /* GoogleSignIn */,
-				D7BF4AA62EDDC0B500218489 /* GoogleSignInSwift */,
 				D73043842EDE7C000059DD01 /* Runestone */,
 				D730457D2EDE7B030059DD01 /* TreeSitterCSSRunestone */,
 				D730457F2EDE7B030059DD01 /* TreeSitterHTMLRunestone */,
@@ -226,12 +217,11 @@
 			mainGroup = D7BF499F2EDDAA1200218489;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				D7BF49D22EDDAF9500218489 /* XCRemoteSwiftPackageReference "supabase-swift" */,
-				D7BF4AA42EDDC0B500218489 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				D73043672EDE77540059DD01 /* XCRemoteSwiftPackageReference "Runestone" */,
 				D730457C2EDE7B030059DD01 /* XCRemoteSwiftPackageReference "TreeSitterLanguages" */,
 				D73047E72EDE7D230059DD01 /* XCRemoteSwiftPackageReference "OpenAI" */,
 				D730489E2EE04B4C0059DD01 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				D7486DD12F66501400F13D19 /* XCRemoteSwiftPackageReference "clerk-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D7BF49A92EDDAA1200218489 /* Products */;
@@ -654,20 +644,12 @@
 				minimumVersion = 8.6.2;
 			};
 		};
-		D7BF49D22EDDAF9500218489 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+		D7486DD12F66501400F13D19 /* XCRemoteSwiftPackageReference "clerk-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/supabase/supabase-swift.git";
+			repositoryURL = "https://github.com/clerk/clerk-ios";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 2.5.1;
-			};
-		};
-		D7BF4AA42EDDC0B500218489 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 9.0.0;
+				minimumVersion = 1.0.5;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -702,21 +684,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D730489E2EE04B4C0059DD01 /* XCRemoteSwiftPackageReference "Kingfisher" */;
 			productName = Kingfisher;
-		};
-		D7BF49D32EDDAF9500218489 /* Supabase */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D7BF49D22EDDAF9500218489 /* XCRemoteSwiftPackageReference "supabase-swift" */;
-			productName = Supabase;
-		};
-		D7BF4AA52EDDC0B500218489 /* GoogleSignIn */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D7BF4AA42EDDC0B500218489 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignIn;
-		};
-		D7BF4AA62EDDC0B500218489 /* GoogleSignInSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D7BF4AA42EDDC0B500218489 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignInSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

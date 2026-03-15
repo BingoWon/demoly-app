@@ -5,7 +5,7 @@
 //  Activity notifications center with navigation to projects/profiles
 //
 
-import Auth
+import ClerkKit
 import SwiftUI
 
 struct InboxView: View {
@@ -112,15 +112,14 @@ struct InboxView: View {
     private func destinationView(for activity: Activity) -> some View {
         switch activity.type {
         case .follow:
-            // Navigate to the actor's profile (who followed you)
-            UserProfileView(userId: activity.actorId, showLogin: $showLogin)
+            if let handle = activity.actor?.handle {
+                UserProfileView(username: handle, showLogin: $showLogin)
+            }
         case .like, .comment, .collect:
-            // Navigate to the project
             if let project = activity.project {
                 ProjectViewerPage(project: project, showLogin: $showLogin)
-            } else {
-                // Fallback: show actor's profile
-                UserProfileView(userId: activity.actorId, showLogin: $showLogin)
+            } else if let handle = activity.actor?.handle {
+                UserProfileView(username: handle, showLogin: $showLogin)
             }
         }
     }
@@ -133,7 +132,6 @@ private struct ActivityRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Actor avatar with type indicator
             ZStack(alignment: .bottomTrailing) {
                 Circle()
                     .fill(Color.brand)
@@ -171,12 +169,10 @@ private struct ActivityRow: View {
 
             Spacer()
 
-            // Right chevron for navigation hint
             Image(systemName: "chevron.right")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(.tertiary)
 
-            // Unread indicator
             if !activity.isRead {
                 Circle()
                     .fill(Color.brand)
@@ -191,6 +187,7 @@ private struct ActivityRow: View {
 
 // MARK: - ViewModel
 
+@MainActor
 @Observable
 final class InboxViewModel {
     private(set) var activities: [Activity] = []
@@ -232,11 +229,9 @@ final class InboxViewModel {
     }
 
     private let service = ActivityService.shared
-    private let auth = AuthService.shared
 
-    @MainActor
     func loadActivities() async {
-        guard let userId = auth.currentUser?.id else {
+        guard Clerk.shared.user != nil else {
             activities = []
             return
         }
@@ -245,32 +240,17 @@ final class InboxViewModel {
         defer { isLoading = false }
 
         do {
-            activities = try await service.fetchActivities(userId: userId)
+            activities = try await service.fetchActivities()
         } catch {
             print("Failed to load activities: \(error)")
         }
     }
 
-    @MainActor
     func markAsRead(_ activity: Activity) async {
         guard !activity.isRead else { return }
 
-        // Optimistic update
         if let index = activities.firstIndex(where: { $0.id == activity.id }) {
-            var updated = activities[index]
-            updated = Activity(
-                id: updated.id,
-                userId: updated.userId,
-                actorId: updated.actorId,
-                type: updated.type,
-                projectId: updated.projectId,
-                commentId: updated.commentId,
-                isRead: true,
-                createdAt: updated.createdAt,
-                actor: updated.actor,
-                project: updated.project
-            )
-            activities[index] = updated
+            activities[index].isRead = true
         }
 
         do {
@@ -280,28 +260,15 @@ final class InboxViewModel {
         }
     }
 
-    @MainActor
     func markAllAsRead() async {
-        guard let userId = auth.currentUser?.id else { return }
+        guard Clerk.shared.user != nil else { return }
 
-        // Optimistic update
-        activities = activities.map { activity in
-            Activity(
-                id: activity.id,
-                userId: activity.userId,
-                actorId: activity.actorId,
-                type: activity.type,
-                projectId: activity.projectId,
-                commentId: activity.commentId,
-                isRead: true,
-                createdAt: activity.createdAt,
-                actor: activity.actor,
-                project: activity.project
-            )
+        for index in activities.indices {
+            activities[index].isRead = true
         }
 
         do {
-            try await service.markAllAsRead(userId: userId)
+            try await service.markAllAsRead()
         } catch {
             print("Failed to mark all as read: \(error)")
         }

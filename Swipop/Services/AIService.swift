@@ -1,9 +1,10 @@
 //
 //  AIService.swift
 //  Swipop
+//
 
+import ClerkKit
 import Foundation
-import Supabase
 
 @MainActor
 final class AIService {
@@ -11,11 +12,7 @@ final class AIService {
 
     var currentModel: AIModel = .reasoner
 
-    private let edgeFunctionURL: URL
-
-    private init() {
-        edgeFunctionURL = Secrets.supabaseURL.appendingPathComponent("functions/v1/ai-chat")
-    }
+    private init() {}
 
     // MARK: - Streaming Chat
 
@@ -23,14 +20,9 @@ final class AIService {
         AsyncThrowingStream { continuation in
             Task {
                 do {
-                    guard let session = try? await SupabaseService.shared.client.auth.session else {
+                    guard Clerk.shared.user != nil else {
                         throw AIError.unauthorized
                     }
-
-                    var request = URLRequest(url: edgeFunctionURL)
-                    request.httpMethod = "POST"
-                    request.setValue("Bearer \(session.accessToken)", forHTTPHeaderField: "Authorization")
-                    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
                     var body: [String: Any] = [
                         "model": currentModel.rawValue,
@@ -42,17 +34,7 @@ final class AIService {
                         body["thinking"] = ["type": "enabled"]
                     }
 
-                    request.httpBody = try JSONSerialization.data(withJSONObject: body)
-
-                    let (bytes, response) = try await URLSession.shared.bytes(for: request)
-
-                    guard let httpResponse = response as? HTTPURLResponse else {
-                        throw AIError.invalidResponse
-                    }
-
-                    if httpResponse.statusCode != 200 {
-                        throw AIError.serverError(httpResponse.statusCode)
-                    }
+                    let (bytes, _) = try await APIClient.shared.postRaw("/ai/chat", jsonObject: body)
 
                     var toolCallArguments: [Int: String] = [:]
                     var toolCallStarted: Set<Int> = []
@@ -64,7 +46,6 @@ final class AIService {
                         guard let data = jsonStr.data(using: .utf8),
                               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { continue }
 
-                        // Parse usage (appears in last chunk)
                         if let usage = json["usage"] as? [String: Any] {
                             let promptTokens = usage["prompt_tokens"] as? Int ?? 0
                             let completionTokens = usage["completion_tokens"] as? Int ?? 0
@@ -169,10 +150,9 @@ final class AIService {
         }
     }
 
-    // MARK: - Tools Definition (8 tools)
+    // MARK: - Tools Definition
 
     static let tools: [[String: Any]] = [
-        // Metadata
         tool("update_metadata",
              "Update project metadata. Only provide fields you want to change.",
              properties: [
@@ -180,22 +160,18 @@ final class AIService {
                  "description": prop("string", "Brief description"),
                  "tags": ["type": "array", "items": ["type": "string"], "description": "Tags for discovery"],
              ]),
-
-        // Write (full replacement)
         tool("write_html",
-             "Replace entire HTML content. Use for new projects or complete rewrites. Do NOT include <html>, <head>, or <body> tags.",
+             "Replace entire HTML content. Do NOT include <html>, <head>, or <body> tags.",
              properties: ["content": prop("string", "Complete HTML content")],
              required: ["content"]),
         tool("write_css",
-             "Replace entire CSS content. Use for new projects or complete rewrites.",
+             "Replace entire CSS content.",
              properties: ["content": prop("string", "Complete CSS content")],
              required: ["content"]),
         tool("write_javascript",
-             "Replace entire JavaScript content. Use for new projects or complete rewrites.",
+             "Replace entire JavaScript content.",
              properties: ["content": prop("string", "Complete JavaScript content")],
              required: ["content"]),
-
-        // Replace (targeted edits)
         tool("replace_in_html",
              "Make targeted edits to HTML. The search text must match exactly and be unique.",
              properties: [
@@ -217,21 +193,17 @@ final class AIService {
                  "replace": prop("string", "New text to substitute"),
              ],
              required: ["search", "replace"]),
-
-        // Context Management
         tool("summarize_conversation",
              "Create a summary when context window is nearly full. Only call when explicitly instructed.",
              properties: [
-                 "summary": prop("string", "Comprehensive summary including: user's goals, key decisions, completed tasks, current project progress, and user preferences"),
+                 "summary": prop("string", "Comprehensive summary"),
              ],
              required: ["summary"]),
     ]
 
-    // MARK: - Tool Builder Helpers
-
     private static func tool(_ name: String, _ description: String, properties: [String: Any], required: [String]? = nil) -> [String: Any] {
         var params: [String: Any] = ["type": "object", "properties": properties]
-        if let required = required { params["required"] = required }
+        if let required { params["required"] = required }
         return ["type": "function", "function": ["name": name, "description": description, "parameters": params]]
     }
 

@@ -5,7 +5,6 @@
 //  Xiaohongshu-style masonry grid discover page with native navigation
 //
 
-import Auth
 import SwiftUI
 
 struct FeedView: View {
@@ -13,7 +12,6 @@ struct FeedView: View {
 
     @State private var showSearch = false
     @State private var selectedProject: Project?
-    @State private var isInitializing = true
 
     private let feed = FeedViewModel.shared
 
@@ -33,10 +31,6 @@ struct FeedView: View {
             SearchSheet(showLogin: $showLogin)
         }
         .task {
-            // Wait for auth session to be restored before loading feed
-            // This ensures we have userId for correct isLiked states
-            await AuthService.shared.waitForSession()
-            isInitializing = false
             feed.loadInitial()
         }
     }
@@ -48,7 +42,7 @@ struct FeedView: View {
             let columnWidth = max((geometry.size.width - 12) / 2, 1)
 
             ScrollView {
-                if isInitializing || (feed.isLoading && feed.projects.isEmpty) {
+                if feed.isLoading && feed.projects.isEmpty {
                     loadingState
                 } else if feed.isEmpty {
                     emptyState
@@ -135,7 +129,7 @@ struct ProjectGridCell: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            CachedThumbnail(project: project, transform: .medium, size: CGSize(width: columnWidth, height: imageHeight))
+            CachedThumbnail(project: project, size: CGSize(width: columnWidth, height: imageHeight))
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(project.displayTitle)
@@ -176,7 +170,7 @@ struct ProjectGridCell: View {
 // MARK: - Reusable Like Button (Uses InteractionStore)
 
 struct LikeButton: View {
-    let projectId: UUID
+    let projectId: String
     var size: Size = .regular
 
     private let store = InteractionStore.shared

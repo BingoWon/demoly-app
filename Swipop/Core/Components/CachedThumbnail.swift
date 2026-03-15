@@ -60,14 +60,8 @@ struct CachedThumbnail: View {
 // MARK: - Convenience initializers
 
 extension CachedThumbnail {
-    /// Project thumbnail with gradient placeholder
-    init(project: Project, transform: ThumbnailTransform, size: CGSize) {
-        let url: URL? = switch transform {
-        case .small: project.smallThumbnailURL
-        case .medium: project.mediumThumbnailURL
-        }
-
-        self.init(url: url, size: size) {
+    init(project: Project, size: CGSize) {
+        self.init(url: project.resolvedThumbnailURL(), size: size) {
             ProjectThumbnailPlaceholder(title: project.title)
         }
     }

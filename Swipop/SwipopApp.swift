@@ -3,34 +3,48 @@
 //  Swipop
 //
 
-import GoogleSignIn
+import ClerkKit
 import SwiftUI
 
 @main
 struct SwipopApp: App {
+    @State private var clerk: Clerk
     @State private var appearance = AppearanceSettings.shared
 
     init() {
-        GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: Secrets.googleIOSClientID)
+        let clerk = Clerk.configure(publishableKey: Config.clerkPublishableKey)
+        _clerk = State(initialValue: clerk)
         ThumbnailCache.configure()
     }
 
     var body: some Scene {
         WindowGroup {
-            RootView()
-                .preferredColorScheme(appearance.colorScheme)
-                .environment(appearance)
-                .onOpenURL { url in
-                    // Handle Google Sign-In callback
-                    if GIDSignIn.sharedInstance.handle(url) { return }
-
-                    // Handle Supabase OAuth callback (GitHub)
-                    if url.scheme == "swipop" {
-                        Task {
-                            try? await AuthService.shared.handleOAuthCallback(url)
-                        }
+            Group {
+                if clerk.isLoaded {
+                    RootView()
+                        .environment(clerk)
+                        .preferredColorScheme(appearance.colorScheme)
+                        .environment(appearance)
+                } else {
+                    VStack(spacing: 16) {
+                        ProgressView()
+                            .controlSize(.large)
+                        Text("Loading...")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
+            }
+            .task(id: clerk.user?.id) {
+                guard clerk.isLoaded else { return }
+                if clerk.user != nil {
+                    await CurrentUserProfile.shared.preload()
+                } else {
+                    CurrentUserProfile.shared.reset()
+                    InteractionStore.shared.reset()
+                }
+            }
         }
     }
 }
