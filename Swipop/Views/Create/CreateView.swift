@@ -47,8 +47,7 @@ struct CreateView: View {
         ))
         .sheet(isPresented: $showOptions) {
             ProjectOptionsSheet(projectEditor: projectEditor, chatViewModel: chatViewModel) {
-                projectEditor.reset()
-                chatViewModel.clear()
+                deleteProject()
             }
         }
     }
@@ -71,6 +70,25 @@ struct CreateView: View {
         case .javascript:
             RunestoneCodeView(language: .javascript, code: $projectEditor.javascript, isEditable: true)
                 .ignoresSafeArea(edges: .bottom)
+        }
+    }
+
+    private func deleteProject() {
+        let projectId = projectEditor.projectId
+        projectEditor.reset()
+        chatViewModel.clear()
+        onBack()
+
+        if let projectId {
+            Task {
+                do {
+                    try await ProjectService.shared.deleteProject(id: projectId)
+                    await CurrentUserProfile.shared.refresh()
+                    FeedViewModel.shared.markNeedsRefresh()
+                } catch {
+                    print("Failed to delete project: \(error)")
+                }
+            }
         }
     }
 

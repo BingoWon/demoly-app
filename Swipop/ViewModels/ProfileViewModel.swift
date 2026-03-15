@@ -5,6 +5,7 @@
 
 import ClerkKit
 import Foundation
+import Kingfisher
 
 // MARK: - Current User Profile (Singleton)
 
@@ -45,6 +46,7 @@ final class CurrentUserProfile {
         }
         isRefreshing = true
         defer { isRefreshing = false }
+        ImageCache.default.clearMemoryCache()
         await fetchData()
     }
 

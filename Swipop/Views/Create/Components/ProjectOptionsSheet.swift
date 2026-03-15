@@ -52,10 +52,9 @@ struct ProjectOptionsSheet: View {
                         .disabled(isSaving)
                     }
                 }
-                .confirmationDialog(
+                .alert(
                     "Delete this project?",
-                    isPresented: $showDeleteConfirmation,
-                    titleVisibility: .visible
+                    isPresented: $showDeleteConfirmation
                 ) {
                     Button("Delete", role: .destructive) {
                         dismiss()
@@ -257,46 +256,33 @@ struct ProjectOptionsSheet: View {
 
     @ViewBuilder
     private var thumbnailPreview: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.secondaryBackground.opacity(0.5))
+        if projectEditor.hasThumbnail || projectEditor.isCapturingThumbnail {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.secondaryBackground.opacity(0.5))
 
-            if let image = projectEditor.thumbnailImage {
-                // Local image (not yet uploaded)
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
+                if let image = projectEditor.thumbnailImage {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                } else if let url = projectEditor.smallThumbnailURL {
+                    CachedThumbnail(url: url) {
+                        ProgressView().tint(.secondary)
+                    }
                     .clipShape(RoundedRectangle(cornerRadius: 12))
-            } else if let url = projectEditor.smallThumbnailURL {
-                // Remote cached image
-                CachedThumbnail(url: url) {
-                    thumbnailPlaceholder
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-            } else {
-                thumbnailPlaceholder
-            }
 
-            if projectEditor.isCapturingThumbnail {
-                Color.black.opacity(0.5)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                ProgressView()
-                    .tint(.white)
+                if projectEditor.isCapturingThumbnail {
+                    Color.black.opacity(0.5)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    ProgressView()
+                        .tint(.white)
+                }
             }
-        }
-        .aspectRatio(selectedAspectRatio.ratio, contentMode: .fit)
-        .frame(maxWidth: 180)
-        .frame(maxWidth: .infinity)
-    }
-
-    private var thumbnailPlaceholder: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "photo")
-                .font(.system(size: 32))
-                .foregroundStyle(.tertiary)
-            Text("No thumbnail")
-                .font(.system(size: 13))
-                .foregroundStyle(.tertiary)
+            .aspectRatio(selectedAspectRatio.ratio, contentMode: .fit)
+            .frame(maxWidth: 180)
+            .frame(maxWidth: .infinity)
         }
     }
 

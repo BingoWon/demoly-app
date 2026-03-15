@@ -5,6 +5,7 @@
 
 import ClerkKit
 import Foundation
+import Kingfisher
 
 @MainActor
 @Observable
@@ -60,6 +61,7 @@ final class FeedViewModel {
 
     func refresh() async {
         currentTask?.cancel()
+        ImageCache.default.clearMemoryCache()
         await doLoadFeed()
     }
 

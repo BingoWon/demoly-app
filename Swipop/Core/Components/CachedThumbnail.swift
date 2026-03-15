@@ -31,20 +31,14 @@ struct CachedThumbnail: View {
     var body: some View {
         if let url {
             if let size {
-                // Fixed size mode: fill and clip
-                KFImage(url)
+                kfImage(url)
                     .placeholder { placeholder.frame(width: size.width, height: size.height) }
-                    .fade(duration: 0.2)
-                    .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: size.width, height: size.height)
                     .clipped()
             } else {
-                // Flexible mode: just resizable, let parent control size
-                KFImage(url)
+                kfImage(url)
                     .placeholder { placeholder }
-                    .fade(duration: 0.2)
-                    .resizable()
                     .scaledToFill()
             }
         } else {
@@ -54,6 +48,16 @@ struct CachedThumbnail: View {
                 placeholder
             }
         }
+    }
+
+    private func kfImage(_ url: URL) -> KFImage {
+        KFImage(url)
+            .retry(maxCount: 2, interval: .seconds(1))
+            .onFailure { error in
+                print("Thumbnail load failed (\(url.lastPathComponent)): \(error.localizedDescription)")
+            }
+            .fade(duration: 0.2)
+            .resizable()
     }
 }
 
