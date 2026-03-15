@@ -9,6 +9,8 @@ import ClerkKit
 import SwiftUI
 
 struct InboxView: View {
+    var refreshTrigger: Int = 0
+
     @State private var viewModel = InboxViewModel()
     @State private var selectedActivity: Activity?
 
@@ -43,6 +45,10 @@ struct InboxView: View {
         }
         .task {
             await viewModel.loadActivities()
+        }
+        .onChange(of: refreshTrigger) { _, _ in
+            guard refreshTrigger > 0 else { return }
+            Task { await viewModel.loadActivities() }
         }
     }
 

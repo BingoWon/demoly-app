@@ -8,8 +8,12 @@
 import SwiftUI
 
 struct FeedView: View {
+    var refreshTrigger: Int = 0
+
     @State private var showSearch = false
     @State private var selectedProject: Project?
+    @State private var isAutoRefreshing = false
+    @State private var scrollToTopID = UUID()
 
     private let feed = FeedViewModel.shared
 
@@ -31,6 +35,17 @@ struct FeedView: View {
         .task {
             feed.loadInitial()
         }
+        .onChange(of: refreshTrigger) { _, _ in
+            guard refreshTrigger > 0 else { return }
+            Task { await visibleRefresh() }
+        }
+    }
+
+    private func visibleRefresh() async {
+        isAutoRefreshing = true
+        scrollToTopID = UUID()
+        await feed.refresh()
+        isAutoRefreshing = false
     }
 
     // MARK: - Grid View
@@ -39,22 +54,39 @@ struct FeedView: View {
         GeometryReader { geometry in
             let columnWidth = max((geometry.size.width - 12) / 2, 1)
 
-            ScrollView {
-                if feed.isLoading && feed.projects.isEmpty {
-                    loadingState
-                } else if feed.isEmpty {
-                    emptyState
-                } else {
-                    MasonryGrid(projects: feed.projects, columnWidth: columnWidth, spacing: 4) { project in
-                        ProjectGridCell(project: project, columnWidth: columnWidth)
-                            .onTapGesture {
-                                selectedProject = project
-                            }
+            ScrollViewReader { proxy in
+                ScrollView {
+                    Color.clear.frame(height: 0).id(scrollToTopID)
+
+                    if isAutoRefreshing {
+                        ProgressView()
+                            .tint(.primary)
+                            .padding(.vertical, 12)
+                            .frame(maxWidth: .infinity)
+                            .transition(.move(edge: .top).combined(with: .opacity))
                     }
-                    .padding(.top, 4)
+
+                    if feed.isLoading && feed.projects.isEmpty && !isAutoRefreshing {
+                        loadingState
+                    } else if feed.isEmpty && !isAutoRefreshing {
+                        emptyState
+                    } else {
+                        MasonryGrid(projects: feed.projects, columnWidth: columnWidth, spacing: 4) { project in
+                            ProjectGridCell(project: project, columnWidth: columnWidth)
+                                .onTapGesture {
+                                    selectedProject = project
+                                }
+                        }
+                        .padding(.top, 4)
+                    }
+                }
+                .refreshable { await feed.refresh() }
+                .onChange(of: scrollToTopID) { _, newID in
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        proxy.scrollTo(newID, anchor: .top)
+                    }
                 }
             }
-            .refreshable { await feed.refresh() }
         }
     }
 

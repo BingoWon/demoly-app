@@ -26,7 +26,6 @@ nonisolated enum Config {
     static let urlSession: URLSession = {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 15
-        config.timeoutIntervalForResource = 60
         return URLSession(configuration: config)
     }()
 }

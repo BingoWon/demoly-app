@@ -88,9 +88,9 @@ struct ChatEditorView: View {
             }
 
             VStack(spacing: 12) {
-                suggestionChip("✨ Create a glowing button animation")
-                suggestionChip("🎨 Make a gradient background effect")
-                suggestionChip("🌊 Build an animated wave loader")
+                suggestionChip("Create a glowing button animation", icon: "sparkles")
+                suggestionChip("Make a gradient background effect", icon: "paintpalette")
+                suggestionChip("Build an animated wave loader", icon: "waveform.path")
             }
             .padding(.top, 16)
 
@@ -118,12 +118,12 @@ struct ChatEditorView: View {
         }
     }
 
-    private func suggestionChip(_ text: String) -> some View {
+    private func suggestionChip(_ text: String, icon: String) -> some View {
         Button {
-            chatViewModel.inputText = String(text.dropFirst(2)).trimmingCharacters(in: .whitespaces)
+            chatViewModel.inputText = text
             chatViewModel.send()
         } label: {
-            Text(text)
+            Label(text, systemImage: icon)
                 .font(.system(size: 14))
                 .foregroundStyle(.primary.opacity(0.9))
                 .padding(.horizontal, 16)

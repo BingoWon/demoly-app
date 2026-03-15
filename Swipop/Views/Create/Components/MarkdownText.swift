@@ -16,41 +16,160 @@ struct MarkdownText: View {
             Text("...")
                 .foregroundStyle(.secondary)
         } else {
-            Text(attributedContent)
-                .textSelection(.enabled)
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(Array(parseBlocks(content).enumerated()), id: \.offset) { _, block in
+                    renderBlock(block)
+                }
+            }
         }
     }
 
-    private var attributedContent: AttributedString {
-        // Try to parse as Markdown, fallback to plain text
+    // MARK: - Block Rendering
+
+    @ViewBuilder
+    private func renderBlock(_ block: MarkdownBlock) -> some View {
+        switch block {
+        case let .heading(level, text):
+            Text(inlineMarkdown(text))
+                .font(.system(size: headingSize(level), weight: .bold))
+                .foregroundStyle(.primary)
+                .padding(.top, level == 1 ? 4 : 2)
+
+        case let .listItem(text, ordered, index):
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(ordered ? "\(index)." : "•")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 18, alignment: .trailing)
+                Text(inlineMarkdown(text))
+                    .font(.system(size: 15))
+                    .foregroundStyle(.primary)
+            }
+
+        case let .paragraph(text):
+            Text(inlineMarkdown(text))
+                .font(.system(size: 15))
+                .foregroundStyle(.primary)
+                .textSelection(.enabled)
+
+        case let .blockquote(text):
+            HStack(spacing: 8) {
+                RoundedRectangle(cornerRadius: 1)
+                    .fill(Color.brand.opacity(0.5))
+                    .frame(width: 3)
+                Text(inlineMarkdown(text))
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.vertical, 2)
+        }
+    }
+
+    private func headingSize(_ level: Int) -> CGFloat {
+        switch level {
+        case 1: 20
+        case 2: 18
+        case 3: 16
+        default: 15
+        }
+    }
+
+    // MARK: - Inline Markdown → AttributedString
+
+    private func inlineMarkdown(_ text: String) -> AttributedString {
         do {
-            var attributed = try AttributedString(markdown: content, options: .init(
+            var attributed = try AttributedString(markdown: text, options: .init(
                 allowsExtendedAttributes: true,
                 interpretedSyntax: .inlineOnlyPreservingWhitespace,
                 failurePolicy: .returnPartiallyParsedIfPossible
             ))
 
-            // Apply base styling
             attributed.foregroundColor = colorScheme == .dark ? .white : .black
-            attributed.font = .system(size: 15)
 
-            // Style inline code
             for run in attributed.runs {
                 if run.inlinePresentationIntent?.contains(.code) == true {
                     let range = run.range
                     attributed[range].font = .system(size: 14, design: .monospaced)
-                    attributed[range].backgroundColor = colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.1)
+                    attributed[range].backgroundColor = colorScheme == .dark
+                        ? Color.white.opacity(0.1)
+                        : Color.black.opacity(0.1)
                 }
             }
 
             return attributed
         } catch {
-            // Fallback to plain text
-            var plain = AttributedString(content)
+            var plain = AttributedString(text)
             plain.foregroundColor = colorScheme == .dark ? .white : .black
             plain.font = .system(size: 15)
             return plain
         }
+    }
+
+    // MARK: - Block-Level Parsing
+
+    private enum MarkdownBlock {
+        case heading(level: Int, text: String)
+        case listItem(text: String, ordered: Bool, index: Int)
+        case paragraph(String)
+        case blockquote(String)
+    }
+
+    private func parseBlocks(_ content: String) -> [MarkdownBlock] {
+        var blocks: [MarkdownBlock] = []
+        var orderedIndex = 0
+        var paragraph = ""
+
+        func flushParagraph() {
+            let trimmed = paragraph.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                blocks.append(.paragraph(trimmed))
+            }
+            paragraph = ""
+        }
+
+        for line in content.components(separatedBy: "\n") {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+            if trimmed.isEmpty {
+                flushParagraph()
+                orderedIndex = 0
+                continue
+            }
+
+            if let match = trimmed.wholeMatch(of: /^(#{1,4})\s+(.+)/) {
+                flushParagraph()
+                let level = match.1.count
+                blocks.append(.heading(level: level, text: String(match.2)))
+                orderedIndex = 0
+            } else if let match = trimmed.wholeMatch(of: /^[-*+]\s+(.+)/) {
+                flushParagraph()
+                blocks.append(.listItem(text: String(match.1), ordered: false, index: 0))
+                orderedIndex = 0
+            } else if let match = trimmed.wholeMatch(of: /^(\d+)[.)]\s+(.+)/) {
+                flushParagraph()
+                orderedIndex += 1
+                let displayIndex = Int(match.1) ?? orderedIndex
+                blocks.append(.listItem(text: String(match.2), ordered: true, index: displayIndex))
+            } else if let match = trimmed.wholeMatch(of: /^>\s*(.*)/) {
+                flushParagraph()
+                blocks.append(.blockquote(String(match.1)))
+                orderedIndex = 0
+            } else {
+                if paragraph.isEmpty {
+                    paragraph = trimmed
+                } else {
+                    paragraph += "\n" + trimmed
+                }
+            }
+        }
+
+        flushParagraph()
+
+        if blocks.isEmpty {
+            blocks.append(.paragraph(content))
+        }
+
+        return blocks
     }
 }
 
@@ -62,7 +181,6 @@ struct CodeBlockView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header with language label
             if let language, !language.isEmpty {
                 HStack {
                     Text(language.uppercased())
@@ -82,7 +200,6 @@ struct CodeBlockView: View {
                 .background(Color.secondaryBackground.opacity(0.5))
             }
 
-            // Code content
             ScrollView(.horizontal, showsIndicators: false) {
                 Text(code)
                     .font(.system(size: 13, design: .monospaced))
@@ -131,7 +248,6 @@ struct RichMessageContent: View {
         var blocks: [ContentBlock] = []
         let remaining = content
 
-        // Regex to match code blocks: ```language\ncode\n```
         let codeBlockPattern = #"```(\w*)\n?([\s\S]*?)```"#
 
         guard let regex = try? NSRegularExpression(pattern: codeBlockPattern) else {
@@ -144,7 +260,6 @@ struct RichMessageContent: View {
         regex.enumerateMatches(in: remaining, range: NSRange(location: 0, length: nsString.length)) { match, _, _ in
             guard let match else { return }
 
-            // Text before code block
             if match.range.location > lastEnd {
                 let textRange = NSRange(location: lastEnd, length: match.range.location - lastEnd)
                 let text = nsString.substring(with: textRange).trimmingCharacters(in: .whitespacesAndNewlines)
@@ -153,7 +268,6 @@ struct RichMessageContent: View {
                 }
             }
 
-            // Code block
             let language = match.range(at: 1).location != NSNotFound
                 ? nsString.substring(with: match.range(at: 1))
                 : nil
@@ -168,7 +282,6 @@ struct RichMessageContent: View {
             lastEnd = match.range.location + match.range.length
         }
 
-        // Remaining text after last code block
         if lastEnd < nsString.length {
             let text = nsString.substring(from: lastEnd).trimmingCharacters(in: .whitespacesAndNewlines)
             if !text.isEmpty {
@@ -176,7 +289,6 @@ struct RichMessageContent: View {
             }
         }
 
-        // If no blocks found, return the whole content as text
         if blocks.isEmpty {
             blocks.append(.text(content))
         }

@@ -14,6 +14,9 @@ struct MainTabView: View {
     @State private var createSubTab: CreateSubTab = .chat
     @State private var showingCreate = false
     @State private var unreadCount = 0
+    @State private var feedRefreshTrigger = 0
+    @State private var inboxRefreshTrigger = 0
+    @State private var profileRefreshTrigger = 0
 
     init() {
         let editor = ProjectEditorViewModel()
@@ -52,27 +55,21 @@ struct MainTabView: View {
     private var iOS26Content: some View {
         TabView(selection: $selectedTab) {
             Tab("Home", systemImage: "house.fill", value: 0) {
-                FeedView()
+                FeedView(refreshTrigger: feedRefreshTrigger)
             }
             Tab("Create", systemImage: "wand.and.stars", value: 1) {
                 createPlaceholder
             }
             Tab("Inbox", systemImage: "bell.fill", value: 2) {
-                InboxView()
+                InboxView(refreshTrigger: inboxRefreshTrigger)
             }
             .badge(unreadCount)
             Tab("Profile", systemImage: "person.fill", value: 3) {
-                ProfileView(editProject: editProject)
+                ProfileView(editProject: editProject, refreshTrigger: profileRefreshTrigger)
             }
         }
         .onChange(of: selectedTab) { oldValue, newValue in
-            if newValue == 1 {
-                previousTab = oldValue
-                openCreate()
-            }
-            if newValue == 2 {
-                Task { await loadUnreadCount() }
-            }
+            handleTabChange(from: oldValue, to: newValue)
         }
         .onChange(of: showingCreate) { _, isShowing in
             if !isShowing && selectedTab == 1 {
@@ -85,30 +82,24 @@ struct MainTabView: View {
 
     private var iOS18Content: some View {
         TabView(selection: $selectedTab) {
-            FeedView()
+            FeedView(refreshTrigger: feedRefreshTrigger)
                 .tabItem { Label("Home", systemImage: "house.fill") }
                 .tag(0)
             createPlaceholder
                 .tabItem { Label("Create", systemImage: "wand.and.stars") }
                 .tag(1)
-            InboxView()
+            InboxView(refreshTrigger: inboxRefreshTrigger)
                 .tabItem { Label("Inbox", systemImage: "bell.fill") }
                 .tag(2)
                 .badge(unreadCount)
-            ProfileView(editProject: editProject)
+            ProfileView(editProject: editProject, refreshTrigger: profileRefreshTrigger)
                 .tabItem { Label("Profile", systemImage: "person.fill") }
                 .tag(3)
         }
         .toolbarBackground(.visible, for: .tabBar)
         .toolbarBackground(.ultraThinMaterial, for: .tabBar)
         .onChange(of: selectedTab) { oldValue, newValue in
-            if newValue == 1 {
-                previousTab = oldValue
-                openCreate()
-            }
-            if newValue == 2 {
-                Task { await loadUnreadCount() }
-            }
+            handleTabChange(from: oldValue, to: newValue)
         }
         .onChange(of: showingCreate) { _, isShowing in
             if !isShowing && selectedTab == 1 {
@@ -122,6 +113,22 @@ struct MainTabView: View {
     }
 
     // MARK: - Actions
+
+    private func handleTabChange(from oldValue: Int, to newValue: Int) {
+        if newValue == 1 {
+            previousTab = oldValue
+            openCreate()
+        }
+
+        switch newValue {
+        case 0: feedRefreshTrigger += 1
+        case 2:
+            inboxRefreshTrigger += 1
+            Task { await loadUnreadCount() }
+        case 3: profileRefreshTrigger += 1
+        default: break
+        }
+    }
 
     private func openCreate() { showingCreate = true }
 

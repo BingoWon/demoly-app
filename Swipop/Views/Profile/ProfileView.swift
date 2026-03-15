@@ -9,6 +9,7 @@ import SwiftUI
 struct ProfileView: View {
     @Environment(AuthManager.self) private var authManager
     let editProject: (Project) -> Void
+    var refreshTrigger: Int = 0
 
     var body: some View {
         NavigationStack {
@@ -16,7 +17,7 @@ struct ProfileView: View {
                 Color.appBackground.ignoresSafeArea()
 
                 if Clerk.shared.user != nil {
-                    ProfileContentView(editProject: editProject)
+                    ProfileContentView(editProject: editProject, refreshTrigger: refreshTrigger)
                 } else {
                     signInPrompt
                 }
@@ -53,6 +54,7 @@ struct ProfileView: View {
 
 struct ProfileContentView: View {
     let editProject: (Project) -> Void
+    var refreshTrigger: Int = 0
 
     private var userProfile: CurrentUserProfile { CurrentUserProfile.shared }
     @State private var showSettings = false
@@ -85,6 +87,10 @@ struct ProfileContentView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { toolbarContent }
         .task { await userProfile.refresh() }
+        .onChange(of: refreshTrigger) { _, _ in
+            guard refreshTrigger > 0 else { return }
+            Task { await userProfile.refresh() }
+        }
         .sheet(isPresented: $showSettings) { SettingsView() }
         .sheet(isPresented: $showEditProfile) { EditProfileView(profile: userProfile.profile) }
     }
@@ -163,6 +169,6 @@ struct ProfileProjectCell: View {
 }
 
 #Preview {
-    ProfileView(editProject: { _ in })
+    ProfileView(editProject: { _ in }, refreshTrigger: 0)
         .environment(AuthManager())
 }
