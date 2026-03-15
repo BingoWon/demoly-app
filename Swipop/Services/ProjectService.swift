@@ -53,6 +53,7 @@ actor ProjectService {
         let htmlContent: String?
         let cssContent: String?
         let jsContent: String?
+        let chatMessages: [[String: AnyCodable]]?
         let isPublished: Bool
         let thumbnailUrl: String?
         let thumbnailAspectRatio: Double?

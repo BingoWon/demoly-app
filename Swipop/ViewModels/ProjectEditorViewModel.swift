@@ -155,6 +155,7 @@ final class ProjectEditorViewModel {
                 htmlContent: html,
                 cssContent: css,
                 jsContent: javascript,
+                chatMessages: chatMessages.isEmpty ? nil : chatMessages.map { $0.mapValues { AnyCodable($0) } },
                 isPublished: isPublished,
                 thumbnailUrl: thumbnailUrl,
                 thumbnailAspectRatio: thumbnailAspectRatio.map { Double($0) }

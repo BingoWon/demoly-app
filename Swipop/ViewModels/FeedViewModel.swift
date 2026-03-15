@@ -53,7 +53,7 @@ final class FeedViewModel {
     // MARK: - Loading
 
     func loadInitial() {
-        guard !hasInitialLoad else { return }
+        guard !hasInitialLoad || (projects.isEmpty && error != nil) else { return }
         hasInitialLoad = true
         performLoad()
     }
@@ -83,6 +83,7 @@ final class FeedViewModel {
         guard !isLoading else { return }
         isLoading = true
         error = nil
+        defer { isLoading = false }
 
         do {
             let response = try await ProjectService.shared.fetchFeed(limit: pageSize, offset: 0)
@@ -96,8 +97,6 @@ final class FeedViewModel {
             self.error = error.localizedDescription
             print("Failed to load feed: \(error)")
         }
-
-        isLoading = false
     }
 
     func loadMore() {
@@ -110,6 +109,7 @@ final class FeedViewModel {
     private func doLoadMore() async {
         guard !isLoading, hasMorePages else { return }
         isLoading = true
+        defer { isLoading = false }
 
         do {
             let currentCount = projects.count
@@ -124,7 +124,5 @@ final class FeedViewModel {
         } catch {
             print("Failed to load more: \(error)")
         }
-
-        isLoading = false
     }
 }
