@@ -30,7 +30,7 @@ nonisolated struct ProfileLink: Codable, Equatable, Identifiable, Sendable {
 
 // MARK: - Profile Stats
 
-nonisolated struct ProfileStats: Codable, Equatable, Sendable {
+nonisolated struct ProfileStats: Equatable, Sendable {
     var followersCount: Int
     var followingCount: Int
     var projectsCount: Int
@@ -39,6 +39,15 @@ nonisolated struct ProfileStats: Codable, Equatable, Sendable {
         self.followersCount = followersCount
         self.followingCount = followingCount
         self.projectsCount = projectsCount
+    }
+}
+
+extension ProfileStats: Codable {
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        followersCount = try container.decodeIfPresent(Int.self, forKey: .followersCount) ?? 0
+        followingCount = try container.decodeIfPresent(Int.self, forKey: .followingCount) ?? 0
+        projectsCount = try container.decodeIfPresent(Int.self, forKey: .projectsCount) ?? 0
     }
 }
 
