@@ -41,8 +41,8 @@ struct CommentSheet: View {
             .navigationTitle("\(project.commentCount) Comments")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    SheetCloseButton { dismiss() }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
                 }
             }
         }

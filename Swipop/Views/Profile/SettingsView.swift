@@ -30,7 +30,7 @@ struct SettingsView: View {
                                         .joined(separator: " ")
                                     return name.isEmpty ? "User" : name
                                 }())
-                                    .font(.headline)
+                                .font(.headline)
 
                                 if let email = user.primaryEmailAddress?.emailAddress {
                                     Text(email)
@@ -91,6 +91,7 @@ struct SettingsView: View {
                     Link(destination: URL(string: "https://swipop.app/terms")!) {
                         HStack {
                             Label("Terms of Service", systemImage: "doc.text")
+                                .foregroundStyle(.primary)
                             Spacer()
                             Image(systemName: "arrow.up.right")
                                 .font(.system(size: 12))
@@ -102,6 +103,7 @@ struct SettingsView: View {
                     Link(destination: URL(string: "https://swipop.app/privacy")!) {
                         HStack {
                             Label("Privacy Policy", systemImage: "hand.raised")
+                                .foregroundStyle(.primary)
                             Spacer()
                             Image(systemName: "arrow.up.right")
                                 .font(.system(size: 12))
@@ -114,14 +116,10 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    Button {
+                    Button(role: .destructive) {
                         showLogoutConfirm = true
                     } label: {
-                        HStack {
-                            Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
-                                .foregroundStyle(.primary)
-                            Spacer()
-                        }
+                        Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
                     }
                     .listRowBackground(Color.tertiaryBackground.opacity(0.8))
                 }
@@ -132,8 +130,8 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    SheetCloseButton { dismiss() }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
                 }
             }
             .confirmationDialog("Sign Out", isPresented: $showLogoutConfirm) {
@@ -153,6 +151,7 @@ struct SettingsView: View {
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .glassSheetBackground()
+        .preferredColorScheme(appearance.colorScheme)
     }
 }
 

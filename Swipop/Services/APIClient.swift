@@ -15,6 +15,7 @@ enum APIError: LocalizedError {
     case forbidden
     case serverError(Int, String?)
     case decodingFailed(Error)
+    case encodingFailed
     case networkError(Error)
 
     var errorDescription: String? {
@@ -25,6 +26,7 @@ enum APIError: LocalizedError {
         case .forbidden: "Access denied"
         case let .serverError(code, msg): msg ?? "Server error (\(code))"
         case let .decodingFailed(err): "Decoding error: \(err.localizedDescription)"
+        case .encodingFailed: "Failed to encode data"
         case let .networkError(err): err.localizedDescription
         }
     }

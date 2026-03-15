@@ -32,6 +32,18 @@ struct EditProfileView: View {
         _links = State(initialValue: profile?.links ?? [])
     }
 
+    private var displayNameError: String? {
+        displayName.trimmingCharacters(in: .whitespaces).isEmpty ? "Display name is required" : nil
+    }
+
+    private var usernameError: String? {
+        username.trimmingCharacters(in: .whitespaces).isEmpty ? "Username is required" : nil
+    }
+
+    private var canSave: Bool {
+        !isSaving && displayNameError == nil && usernameError == nil
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -42,16 +54,30 @@ struct EditProfileView: View {
                 }
 
                 Section("Profile") {
-                    fieldRow(label: "Display Name") {
-                        TextField("Your name", text: $displayName)
-                            .focused($focusedField, equals: .displayName)
+                    VStack(alignment: .leading, spacing: 4) {
+                        fieldRow(label: "Display Name") {
+                            TextField("Your name", text: $displayName)
+                                .focused($focusedField, equals: .displayName)
+                        }
+                        if let error = displayNameError {
+                            Text(error)
+                                .font(.system(size: 12))
+                                .foregroundStyle(.red)
+                        }
                     }
 
-                    fieldRow(label: "Username") {
-                        TextField("username", text: $username)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                            .focused($focusedField, equals: .username)
+                    VStack(alignment: .leading, spacing: 4) {
+                        fieldRow(label: "Username") {
+                            TextField("username", text: $username)
+                                .textInputAutocapitalization(.never)
+                                .autocorrectionDisabled()
+                                .focused($focusedField, equals: .username)
+                        }
+                        if let error = usernameError {
+                            Text(error)
+                                .font(.system(size: 12))
+                                .foregroundStyle(.red)
+                        }
                     }
                 }
 
@@ -92,16 +118,16 @@ struct EditProfileView: View {
             .navigationTitle("Edit Profile")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
 
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         Task { await save() }
                     }
                     .fontWeight(.semibold)
-                    .disabled(isSaving)
+                    .disabled(!canSave)
                 }
 
                 ToolbarItem(placement: .keyboard) {
@@ -191,15 +217,20 @@ struct EditProfileView: View {
     // MARK: - Save
 
     private func save() async {
+        guard canSave else { return }
         isSaving = true
         defer { isSaving = false }
 
         let filteredLinks = links.filter { !$0.title.isEmpty && !$0.url.isEmpty }
 
         do {
+            if let image = avatarImage {
+                _ = try await userService.uploadAvatar(image: image)
+            }
+
             _ = try await userService.updateProfile(ProfileUpdatePayload(
-                username: username.isEmpty ? nil : username,
-                displayName: displayName.isEmpty ? nil : displayName,
+                username: username.trimmingCharacters(in: .whitespaces),
+                displayName: displayName.trimmingCharacters(in: .whitespaces),
                 bio: bio.isEmpty ? nil : bio,
                 links: filteredLinks.isEmpty ? nil : filteredLinks
             ))

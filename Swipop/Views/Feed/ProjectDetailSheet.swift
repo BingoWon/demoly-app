@@ -42,8 +42,8 @@ struct ProjectDetailSheet: View {
             .navigationTitle(project.displayTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    SheetCloseButton { dismiss() }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
                 }
             }
             .navigationDestination(isPresented: $showCreatorProfile) {

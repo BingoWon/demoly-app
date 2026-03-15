@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import UIKit
 
 actor UserService {
     static let shared = UserService()
@@ -24,6 +25,24 @@ actor UserService {
 
     func updateProfile(_ payload: ProfileUpdatePayload) async throws -> Profile {
         try await api.patch("/me", body: payload)
+    }
+
+    struct AvatarUploadResult: Decodable {
+        let url: String
+    }
+
+    func uploadAvatar(image: UIImage) async throws -> String {
+        guard let data = image.jpegData(compressionQuality: 0.85) else {
+            throw APIError.encodingFailed
+        }
+        let responseData = try await api.upload(
+            "/upload/avatar",
+            fileData: data,
+            fileName: "avatar.jpg",
+            mimeType: "image/jpeg"
+        )
+        let result = try JSONDecoder().decode(AvatarUploadResult.self, from: responseData)
+        return result.url
     }
 
     // MARK: - Follow

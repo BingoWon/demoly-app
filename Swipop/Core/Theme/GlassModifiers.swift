@@ -80,22 +80,6 @@ struct GlassSheetModifier: ViewModifier {
     }
 }
 
-// MARK: - Sheet Close Button
-
-struct SheetCloseButton: View {
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: "xmark.circle.fill")
-                .font(.system(size: 22))
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(.secondary)
-        }
-        .buttonStyle(.plain)
-    }
-}
-
 // MARK: - View Extensions
 
 extension View {

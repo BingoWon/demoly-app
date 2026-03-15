@@ -28,8 +28,8 @@ struct SearchSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $viewModel.searchQuery, prompt: "Projects, creators, #tags...")
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    SheetCloseButton { dismiss() }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
                 }
             }
             .navigationDestination(item: $selectedProject) { project in
