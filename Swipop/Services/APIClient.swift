@@ -145,6 +145,7 @@ actor APIClient {
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
+        request.timeoutInterval = 120
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         if let token = await authToken() {
