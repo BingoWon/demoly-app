@@ -156,10 +156,12 @@ private struct ActivityRow: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(activity.type.message(
-                    actorName: activity.actor?.handle ?? "Someone",
-                    projectTitle: activity.project?.title
-                ))
+                Text(
+                    activity.type.message(
+                        actorName: activity.actor?.handle ?? "Someone",
+                        projectTitle: activity.project?.title
+                    )
+                )
                 .font(.system(size: 14))
                 .foregroundStyle(.primary)
                 .lineLimit(2)

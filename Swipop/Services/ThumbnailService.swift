@@ -147,7 +147,7 @@ actor ThumbnailService {
 
         var errorDescription: String? {
             switch self {
-            case let .captureFailed(error): "Failed to capture: \(error.localizedDescription)"
+            case .captureFailed(let error): "Failed to capture: \(error.localizedDescription)"
             case .noImage: "No image captured"
             case .compressionFailed: "Failed to compress image"
             case .notAuthenticated: "Please sign in"

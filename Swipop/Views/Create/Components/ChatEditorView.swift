@@ -141,7 +141,7 @@ struct ChatEditorView: View {
             TextField("Message...", text: $chatViewModel.inputText, axis: .vertical)
                 .font(.system(size: 16))
                 .foregroundStyle(.primary)
-                .lineLimit(1 ... 5)
+                .lineLimit(1...5)
                 .focused($isInputFocused)
                 .tint(Color.brand)
                 .padding(.horizontal, 16)
@@ -167,9 +167,11 @@ struct ChatEditorView: View {
             }
         } label: {
             Circle()
-                .fill(chatViewModel.isLoading || !chatViewModel.inputText.isEmpty
-                    ? .brandGradient
-                    : LinearGradient(colors: [Color.secondaryBackground], startPoint: .top, endPoint: .bottom))
+                .fill(
+                    chatViewModel.isLoading || !chatViewModel.inputText.isEmpty
+                        ? .brandGradient
+                        : LinearGradient(colors: [Color.secondaryBackground], startPoint: .top, endPoint: .bottom)
+                )
                 .frame(width: 44, height: 44)
                 .overlay {
                     Image(systemName: chatViewModel.isLoading ? "stop.fill" : "arrow.up")

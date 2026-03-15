@@ -55,9 +55,12 @@ extension Comment {
     static let samples: [Comment] = [
         sample,
         Comment(
-            id: "comment-002", projectId: "project-001", userId: "user-002",
+            id: "comment-002",
+            projectId: "project-001",
+            userId: "user-002",
             content: "Love the animation effect!",
-            parentId: nil, createdAt: Date().addingTimeInterval(-3600),
+            parentId: nil,
+            createdAt: Date().addingTimeInterval(-3600),
             user: CommentUser(id: "user-002", username: "user2", displayName: "Designer", avatarUrl: nil),
             replyCount: 0
         ),

@@ -38,14 +38,16 @@ struct ProjectViewerPage: View {
             FloatingProjectAccessory(showDetail: $showDetail)
         }
         .toolbar(.hidden, for: .tabBar)
-        .modifier(PlatformNavigationModifier(
-            dismiss: dismiss,
-            projectId: currentProject.id,
-            showComments: $showComments,
-            showShare: $showShare,
-            onLike: handleLike,
-            onCollect: handleCollect
-        ))
+        .modifier(
+            PlatformNavigationModifier(
+                dismiss: dismiss,
+                projectId: currentProject.id,
+                showComments: $showComments,
+                showShare: $showShare,
+                onLike: handleLike,
+                onCollect: handleCollect
+            )
+        )
         .sheet(isPresented: $showComments) {
             CommentSheet(project: currentProject)
         }
@@ -92,13 +94,15 @@ private struct PlatformNavigationModifier: ViewModifier {
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
             content
-                .toolbar { iOS26ToolbarContent(
-                    projectId: projectId,
-                    showComments: $showComments,
-                    showShare: $showShare,
-                    onLike: onLike,
-                    onCollect: onCollect
-                ) }
+                .toolbar {
+                    ViewerToolbarContent(
+                        projectId: projectId,
+                        showComments: $showComments,
+                        showShare: $showShare,
+                        onLike: onLike,
+                        onCollect: onCollect
+                    )
+                }
                 .toolbarBackground(.hidden, for: .navigationBar)
         } else {
             content
@@ -106,7 +110,7 @@ private struct PlatformNavigationModifier: ViewModifier {
                 .navigationBarBackButtonHidden(true)
                 .background(SwipeBackEnabler())
                 .safeAreaInset(edge: .top) {
-                    iOS18TopBar(
+                    ViewerClassicTopBar(
                         dismiss: dismiss,
                         projectId: projectId,
                         showComments: $showComments,
@@ -122,7 +126,7 @@ private struct PlatformNavigationModifier: ViewModifier {
 // MARK: - iOS 26 Toolbar Content
 
 @available(iOS 26.0, *)
-private struct iOS26ToolbarContent: ToolbarContent {
+private struct ViewerToolbarContent: ToolbarContent {
     let projectId: String
     @Binding var showComments: Bool
     @Binding var showShare: Bool
@@ -138,7 +142,9 @@ private struct iOS26ToolbarContent: ToolbarContent {
             }
             .tint(store.isLiked(projectId) ? .red : .primary)
 
-            Button { showComments = true } label: {
+            Button {
+                showComments = true
+            } label: {
                 Image(systemName: "bubble.right")
             }
 
@@ -147,7 +153,9 @@ private struct iOS26ToolbarContent: ToolbarContent {
             }
             .tint(store.isCollected(projectId) ? .yellow : .primary)
 
-            Button { showShare = true } label: {
+            Button {
+                showShare = true
+            } label: {
                 Image(systemName: "square.and.arrow.up")
             }
         }
@@ -156,7 +164,7 @@ private struct iOS26ToolbarContent: ToolbarContent {
 
 // MARK: - iOS 18 Custom Top Bar
 
-private struct iOS18TopBar: View {
+private struct ViewerClassicTopBar: View {
     let dismiss: DismissAction
     let projectId: String
     @Binding var showComments: Bool
@@ -171,7 +179,9 @@ private struct iOS18TopBar: View {
 
     var body: some View {
         HStack {
-            Button { dismiss() } label: {
+            Button {
+                dismiss()
+            } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: iconSize, weight: .semibold))
                     .foregroundStyle(.white)

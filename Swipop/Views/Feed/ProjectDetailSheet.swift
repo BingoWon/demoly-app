@@ -77,7 +77,9 @@ struct ProjectDetailSheet: View {
 
     private var creatorSection: some View {
         HStack(spacing: 12) {
-            Button { showCreatorProfile = true } label: {
+            Button {
+                showCreatorProfile = true
+            } label: {
                 HStack(spacing: 12) {
                     Circle()
                         .fill(Color.brand)
@@ -240,8 +242,9 @@ struct ProjectDetailSheet: View {
 
     private func toggleFollow() async {
         guard let creatorId = creator?.id,
-              let currentUserId = Clerk.shared.user?.id,
-              creatorId != currentUserId else { return }
+            let currentUserId = Clerk.shared.user?.id,
+            creatorId != currentUserId
+        else { return }
 
         let wasFollowing = followState.isFollowing
         followState.isFollowing.toggle()

@@ -19,10 +19,13 @@ actor ActivityService {
     }
 
     func fetchActivities(limit: Int = 50, offset: Int = 0) async throws -> [Activity] {
-        let response: ActivitiesResponse = try await api.get("/activities", query: [
-            "limit": "\(limit)",
-            "offset": "\(offset)",
-        ])
+        let response: ActivitiesResponse = try await api.get(
+            "/activities",
+            query: [
+                "limit": "\(limit)",
+                "offset": "\(offset)",
+            ]
+        )
         return response.items
     }
 

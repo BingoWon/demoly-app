@@ -29,14 +29,14 @@ struct MarkdownText: View {
     @ViewBuilder
     private func renderBlock(_ block: MarkdownBlock) -> some View {
         switch block {
-        case let .heading(level, text):
+        case .heading(let level, let text):
             Text(inlineMarkdown(text))
                 .font(.system(size: headingSize(level), weight: .bold))
                 .foregroundStyle(.primary)
                 .textSelection(.enabled)
                 .padding(.top, level == 1 ? 4 : 2)
 
-        case let .listItem(text, ordered, index):
+        case .listItem(let text, let ordered, let index):
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(ordered ? "\(index)." : "•")
                     .font(.system(size: 14))
@@ -48,13 +48,13 @@ struct MarkdownText: View {
                     .textSelection(.enabled)
             }
 
-        case let .paragraph(text):
+        case .paragraph(let text):
             Text(inlineMarkdown(text))
                 .font(.system(size: 15))
                 .foregroundStyle(.primary)
                 .textSelection(.enabled)
 
-        case let .blockquote(text):
+        case .blockquote(let text):
             HStack(spacing: 8) {
                 RoundedRectangle(cornerRadius: 1)
                     .fill(Color.brand.opacity(0.5))
@@ -81,11 +81,14 @@ struct MarkdownText: View {
 
     private func inlineMarkdown(_ text: String) -> AttributedString {
         do {
-            var attributed = try AttributedString(markdown: text, options: .init(
-                allowsExtendedAttributes: true,
-                interpretedSyntax: .inlineOnlyPreservingWhitespace,
-                failurePolicy: .returnPartiallyParsedIfPossible
-            ))
+            var attributed = try AttributedString(
+                markdown: text,
+                options: .init(
+                    allowsExtendedAttributes: true,
+                    interpretedSyntax: .inlineOnlyPreservingWhitespace,
+                    failurePolicy: .returnPartiallyParsedIfPossible
+                )
+            )
 
             attributed.foregroundColor = colorScheme == .dark ? .white : .black
 
@@ -93,7 +96,8 @@ struct MarkdownText: View {
                 if run.inlinePresentationIntent?.contains(.code) == true {
                     let range = run.range
                     attributed[range].font = .system(size: 14, design: .monospaced)
-                    attributed[range].backgroundColor = colorScheme == .dark
+                    attributed[range].backgroundColor =
+                        colorScheme == .dark
                         ? Color.white.opacity(0.1)
                         : Color.black.opacity(0.1)
                 }
@@ -227,9 +231,9 @@ struct RichMessageContent: View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach(Array(blocks.enumerated()), id: \.offset) { _, block in
                 switch block {
-                case let .text(text):
+                case .text(let text):
                     MarkdownText(content: text)
-                case let .code(code, language):
+                case .code(let code, let language):
                     CodeBlockView(code: code, language: language)
                 }
             }
@@ -251,7 +255,7 @@ struct RichMessageContent: View {
             let matchRange = match.range
 
             if searchStart < matchRange.lowerBound {
-                let text = String(content[searchStart ..< matchRange.lowerBound])
+                let text = String(content[searchStart..<matchRange.lowerBound])
                     .trimmingCharacters(in: .whitespacesAndNewlines)
                 if !text.isEmpty { blocks.append(.text(text)) }
             }

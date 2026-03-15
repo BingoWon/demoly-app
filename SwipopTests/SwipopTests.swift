@@ -5,8 +5,9 @@
 //  Created by Bin Wang on 12/1/25.
 //
 
-@testable import Swipop
 import Testing
+
+@testable import Swipop
 
 struct SwipopTests {
     @Test func example() {

@@ -13,7 +13,8 @@ struct GlassBackgroundModifier: ViewModifier {
     var shape: GlassShape = .capsule
 
     enum GlassShape {
-        case capsule, roundedRect(cornerRadius: CGFloat)
+        case capsule
+        case roundedRect(cornerRadius: CGFloat)
     }
 
     func body(content: Content) -> some View {
@@ -33,7 +34,7 @@ private struct LiquidGlassBackground: ViewModifier {
         switch shape {
         case .capsule:
             content.background(Capsule().fill(.clear).glassEffect())
-        case let .roundedRect(radius):
+        case .roundedRect(let radius):
             content.background(RoundedRectangle(cornerRadius: radius).fill(.clear).glassEffect())
         }
     }
@@ -52,7 +53,7 @@ private struct MaterialGlassBackground: ViewModifier {
                         .overlay(Capsule().strokeBorder(Color.white.opacity(0.2), lineWidth: 0.5))
                 )
                 .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
-        case let .roundedRect(radius):
+        case .roundedRect(let radius):
             content
                 .background(
                     RoundedRectangle(cornerRadius: radius)

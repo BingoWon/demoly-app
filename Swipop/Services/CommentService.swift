@@ -19,10 +19,13 @@ actor CommentService {
     }
 
     func fetchComments(projectId: String, limit: Int = 20, offset: Int = 0) async throws -> [Comment] {
-        let response: CommentsResponse = try await api.get("/comments/\(projectId)", query: [
-            "limit": "\(limit)",
-            "offset": "\(offset)",
-        ])
+        let response: CommentsResponse = try await api.get(
+            "/comments/\(projectId)",
+            query: [
+                "limit": "\(limit)",
+                "offset": "\(offset)",
+            ]
+        )
         return response.items
     }
 

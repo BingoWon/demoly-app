@@ -1,20 +1,22 @@
 #!/bin/bash
 
 # Swipop iOS App - Code Formatter
-# Uses SwiftFormat to format all Swift files
+# Uses apple/swift-format (AST-based, official Swift formatter)
 
 set -e
 
 cd "$(dirname "$0")"
 
-echo "Formatting Swift code..."
-
-if ! command -v swiftformat &> /dev/null; then
-    echo "Error: swiftformat not found"
-    echo "Install with: brew install swiftformat"
+if ! command -v swift-format &> /dev/null; then
+    echo "Error: swift-format not found"
+    echo "Install with: brew install swift-format"
     exit 1
 fi
 
-swiftformat . --config .swiftformat
+echo "Formatting..."
+swift-format format --configuration .swift-format --recursive --in-place Swipop/ SwipopTests/ SwipopUITests/
+
+echo "Linting..."
+swift-format lint --configuration .swift-format --recursive Swipop/ SwipopTests/ SwipopUITests/ 2>&1 || true
 
 echo "Done."

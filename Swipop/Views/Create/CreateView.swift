@@ -42,21 +42,26 @@ struct CreateView: View {
                 FloatingCreateAccessory(selectedSubTab: $selectedSubTab)
             }
         }
-        .modifier(CreateNavigationModifier(
-            onBack: onBack,
-            projectEditor: projectEditor,
-            selectedSubTab: selectedSubTab,
-            showOptions: $showOptions
-        ))
+        .modifier(
+            CreateNavigationModifier(
+                onBack: onBack,
+                projectEditor: projectEditor,
+                selectedSubTab: selectedSubTab,
+                showOptions: $showOptions
+            )
+        )
         .sheet(isPresented: $showOptions) {
             ProjectOptionsSheet(projectEditor: projectEditor, chatViewModel: chatViewModel) {
                 deleteProject()
             }
         }
-        .alert("Delete Failed", isPresented: .init(
-            get: { deleteError != nil },
-            set: { if !$0 { deleteError = nil } }
-        )) {
+        .alert(
+            "Delete Failed",
+            isPresented: .init(
+                get: { deleteError != nil },
+                set: { if !$0 { deleteError = nil } }
+            )
+        ) {
             Button("OK", role: .cancel) {}
         } message: {
             Text(deleteError ?? "")
@@ -113,7 +118,9 @@ struct CreateView: View {
                 .font(.title2)
                 .foregroundStyle(.primary)
 
-            Button { authManager.showAuthSheet = true } label: {
+            Button {
+                authManager.showAuthSheet = true
+            } label: {
                 Text("Sign In")
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(.white)
@@ -137,18 +144,20 @@ private struct CreateNavigationModifier: ViewModifier {
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
             content
-                .toolbar { iOS26CreateToolbar(
-                    onBack: onBack,
-                    projectEditor: projectEditor,
-                    selectedSubTab: selectedSubTab,
-                    showOptions: $showOptions
-                ) }
+                .toolbar {
+                    CreateToolbarContent(
+                        onBack: onBack,
+                        projectEditor: projectEditor,
+                        selectedSubTab: selectedSubTab,
+                        showOptions: $showOptions
+                    )
+                }
                 .toolbarBackground(.hidden, for: .navigationBar)
         } else {
             content
                 .toolbar(.hidden, for: .navigationBar)
                 .safeAreaInset(edge: .top) {
-                    iOS18CreateTopBar(
+                    CreateClassicTopBar(
                         onBack: onBack,
                         projectEditor: projectEditor,
                         selectedSubTab: selectedSubTab,
@@ -179,7 +188,7 @@ private struct CreateToolbarActions {
 // MARK: - iOS 26 Create Toolbar
 
 @available(iOS 26.0, *)
-private struct iOS26CreateToolbar: ToolbarContent {
+private struct CreateToolbarContent: ToolbarContent {
     let onBack: () -> Void
     @Bindable var projectEditor: ProjectEditorViewModel
     let selectedSubTab: CreateSubTab
@@ -220,7 +229,9 @@ private struct iOS26CreateToolbar: ToolbarContent {
             }
             .tint(projectEditor.isPublished ? .green : .orange)
 
-            Button { showOptions = true } label: {
+            Button {
+                showOptions = true
+            } label: {
                 Image(systemName: "slider.horizontal.3")
             }
         }
@@ -229,7 +240,7 @@ private struct iOS26CreateToolbar: ToolbarContent {
 
 // MARK: - iOS 18 Create Top Bar
 
-private struct iOS18CreateTopBar: View {
+private struct CreateClassicTopBar: View {
     let onBack: () -> Void
     @Bindable var projectEditor: ProjectEditorViewModel
     let selectedSubTab: CreateSubTab

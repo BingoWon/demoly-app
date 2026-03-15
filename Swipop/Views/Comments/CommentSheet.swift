@@ -77,9 +77,12 @@ struct CommentSheet: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 16) {
                 ForEach(comments) { comment in
-                    CommentRow(comment: comment, onDelete: {
-                        await deleteComment(comment)
-                    })
+                    CommentRow(
+                        comment: comment,
+                        onDelete: {
+                            await deleteComment(comment)
+                        }
+                    )
                 }
             }
             .padding(16)

@@ -23,7 +23,9 @@ struct ProjectAccessoryContent: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            Button { showDetail = true } label: {
+            Button {
+                showDetail = true
+            } label: {
                 projectInfoLabel
             }
 

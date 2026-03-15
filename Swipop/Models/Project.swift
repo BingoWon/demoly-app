@@ -32,16 +32,9 @@ nonisolated struct Project: Identifiable, Equatable, Hashable, @unchecked Sendab
     var isCollectedByCurrentUser: Bool?
 
     static func == (lhs: Project, rhs: Project) -> Bool {
-        lhs.id == rhs.id &&
-            lhs.userId == rhs.userId &&
-            lhs.title == rhs.title &&
-            lhs.description == rhs.description &&
-            lhs.htmlContent == rhs.htmlContent &&
-            lhs.cssContent == rhs.cssContent &&
-            lhs.jsContent == rhs.jsContent &&
-            lhs.thumbnailUrl == rhs.thumbnailUrl &&
-            lhs.isPublished == rhs.isPublished &&
-            lhs.updatedAt == rhs.updatedAt
+        lhs.id == rhs.id && lhs.userId == rhs.userId && lhs.title == rhs.title && lhs.description == rhs.description
+            && lhs.htmlContent == rhs.htmlContent && lhs.cssContent == rhs.cssContent && lhs.jsContent == rhs.jsContent
+            && lhs.thumbnailUrl == rhs.thumbnailUrl && lhs.isPublished == rhs.isPublished && lhs.updatedAt == rhs.updatedAt
     }
 
     func hash(into hasher: inout Hasher) {
@@ -104,8 +97,8 @@ nonisolated extension Project: Codable {
             if let rawMessages = try? container.decode([[String: AnyCodable]].self, forKey: .chatMessages) {
                 chatMessages = rawMessages.map { dict in dict.mapValues { $0.value } }
             } else if let messagesString = try? container.decode(String.self, forKey: .chatMessages),
-                      let data = messagesString.data(using: .utf8),
-                      let messages = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]]
+                let data = messagesString.data(using: .utf8),
+                let messages = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]]
             {
                 chatMessages = messages
             } else {
@@ -160,14 +153,23 @@ nonisolated struct AnyCodable: Codable, @unchecked Sendable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        if container.decodeNil() { value = NSNull() }
-        else if let bool = try? container.decode(Bool.self) { value = bool }
-        else if let int = try? container.decode(Int.self) { value = int }
-        else if let double = try? container.decode(Double.self) { value = double }
-        else if let string = try? container.decode(String.self) { value = string }
-        else if let array = try? container.decode([AnyCodable].self) { value = array.map(\.value) }
-        else if let dict = try? container.decode([String: AnyCodable].self) { value = dict.mapValues(\.value) }
-        else { throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unable to decode value") }
+        if container.decodeNil() {
+            value = NSNull()
+        } else if let bool = try? container.decode(Bool.self) {
+            value = bool
+        } else if let int = try? container.decode(Int.self) {
+            value = int
+        } else if let double = try? container.decode(Double.self) {
+            value = double
+        } else if let string = try? container.decode(String.self) {
+            value = string
+        } else if let array = try? container.decode([AnyCodable].self) {
+            value = array.map(\.value)
+        } else if let dict = try? container.decode([String: AnyCodable].self) {
+            value = dict.mapValues(\.value)
+        } else {
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unable to decode value")
+        }
     }
 
     func encode(to encoder: Encoder) throws {

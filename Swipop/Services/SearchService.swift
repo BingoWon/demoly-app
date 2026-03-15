@@ -20,10 +20,13 @@ actor SearchService {
     }
 
     func search(query: String, type: String = "all", limit: Int = 20) async throws -> SearchResponse {
-        try await api.get("/search", query: [
-            "q": query,
-            "type": type,
-            "limit": "\(limit)",
-        ])
+        try await api.get(
+            "/search",
+            query: [
+                "q": query,
+                "type": type,
+                "limit": "\(limit)",
+            ]
+        )
     }
 }

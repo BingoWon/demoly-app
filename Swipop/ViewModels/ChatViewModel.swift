@@ -22,9 +22,9 @@ final class ChatViewModel {
 
     // MARK: - Context Window
 
-    static let contextLimit = 128_000 // DeepSeek context window
-    static let bufferSize = 30000 // Reserved for AI output
-    static let usableLimit = contextLimit - bufferSize // 98,000
+    static let contextLimit = 128_000  // DeepSeek context window
+    static let bufferSize = 30000  // Reserved for AI output
+    static let usableLimit = contextLimit - bufferSize  // 98,000
 
     private(set) var promptTokens = 0
     private(set) var completionTokens = 0
@@ -59,33 +59,33 @@ final class ChatViewModel {
     // MARK: - System Prompt
 
     private let systemPrompt = """
-    You are a creative AI assistant in Swipop, a social app for sharing HTML/CSS/JS creative projects.
-    Help users create interactive, visually appealing web components.
+        You are a creative AI assistant in Swipop, a social app for sharing HTML/CSS/JS creative projects.
+        Help users create interactive, visually appealing web components.
 
-    ## Current Project State
-    The current state of HTML, CSS, JavaScript, and metadata is provided with each message.
-    You always have access to the latest content - no need to read before editing.
+        ## Current Project State
+        The current state of HTML, CSS, JavaScript, and metadata is provided with each message.
+        You always have access to the latest content - no need to read before editing.
 
-    ## Available Tools
+        ## Available Tools
 
-    ### Writing (full replacement)
-    - write_html, write_css, write_javascript: Replace entire file content
-      - Use for new projects or major rewrites
+        ### Writing (full replacement)
+        - write_html, write_css, write_javascript: Replace entire file content
+          - Use for new projects or major rewrites
 
-    ### Replacing (targeted edits, preferred for existing code)
-    - replace_in_html, replace_in_css, replace_in_javascript: Find and replace
-      - The 'search' text must match exactly and be unique
-      - Use for small, localized changes
+        ### Replacing (targeted edits, preferred for existing code)
+        - replace_in_html, replace_in_css, replace_in_javascript: Find and replace
+          - The 'search' text must match exactly and be unique
+          - Use for small, localized changes
 
-    ### Metadata
-    - update_metadata: Update title, description, and/or tags (partial updates supported)
+        ### Metadata
+        - update_metadata: Update title, description, and/or tags (partial updates supported)
 
-    ## Guidelines
-    1. Prefer replace_in_* for small changes to existing code
-    2. Use write_* for new projects or major rewrites
-    3. Make it visually impressive with modern CSS
-    4. Add smooth animations and consider mobile responsiveness
-    """
+        ## Guidelines
+        1. Prefer replace_in_* for small changes to existing code
+        2. Use write_* for new projects or major rewrites
+        3. Make it visually impressive with modern CSS
+        4. Add smooth animations and consider mobile responsiveness
+        """
 
     // MARK: - Init
 
@@ -94,7 +94,7 @@ final class ChatViewModel {
 
         // Load saved model from UserDefaults
         if let savedRaw = UserDefaults.standard.string(forKey: "selectedAIModel"),
-           let savedModel = AIModel(rawValue: savedRaw)
+            let savedModel = AIModel(rawValue: savedRaw)
         {
             selectedModel = savedModel
         }
@@ -131,23 +131,23 @@ final class ChatViewModel {
     }
 
     private let summarizePrompt = """
-    <explicit_instructions type="summarize_conversation">
-    The conversation is running out of context window. You MUST create a summary now.
+        <explicit_instructions type="summarize_conversation">
+        The conversation is running out of context window. You MUST create a summary now.
 
-    You MUST ONLY respond by calling the summarize_conversation tool.
-    There is no other option.
+        You MUST ONLY respond by calling the summarize_conversation tool.
+        There is no other option.
 
-    Your summary should include:
-    1. Primary Request: User's main goals and intentions
-    2. Key Decisions: Important choices made during the conversation
-    3. Task Progress: What has been completed, what remains
-    4. Current Project: What was being worked on before this summary
-    5. User Preferences: Any preferences or constraints mentioned
+        Your summary should include:
+        1. Primary Request: User's main goals and intentions
+        2. Key Decisions: Important choices made during the conversation
+        3. Task Progress: What has been completed, what remains
+        4. Current Project: What was being worked on before this summary
+        5. User Preferences: Any preferences or constraints mentioned
 
-    IMPORTANT: The current code state (HTML, CSS, JavaScript) will be automatically 
-    preserved and re-injected after summarization. Focus on conversation context only.
-    </explicit_instructions>
-    """
+        IMPORTANT: The current code state (HTML, CSS, JavaScript) will be automatically 
+        preserved and re-injected after summarization. Focus on conversation context only.
+        </explicit_instructions>
+        """
 
     private func injectSummarizeInstruction() {
         history.append(["role": "user", "content": summarizePrompt])
@@ -172,7 +172,7 @@ final class ChatViewModel {
 
             for (_, info) in streamingToolCalls {
                 if info.segmentIndex < messages[currentMessageIndex].segments.count,
-                   case var .toolCall(segment) = messages[currentMessageIndex].segments[info.segmentIndex]
+                    case .toolCall(var segment) = messages[currentMessageIndex].segments[info.segmentIndex]
                 {
                     segment.isStreaming = false
                     messages[currentMessageIndex].segments[info.segmentIndex] = .toolCall(segment)
@@ -304,9 +304,9 @@ final class ChatViewModel {
                 if let toolCalls = msg["tool_calls"] as? [[String: Any]] {
                     for call in toolCalls {
                         if let function = call["function"] as? [String: Any],
-                           let callId = call["id"] as? String,
-                           let name = function["name"] as? String,
-                           let arguments = function["arguments"] as? String
+                            let callId = call["id"] as? String,
+                            let name = function["name"] as? String,
+                            let arguments = function["arguments"] as? String
                         {
                             var toolSegment = ChatMessage.ToolCallSegment(callId: callId, name: name, arguments: arguments)
                             toolSegment.result = findToolResult(for: callId, startingFrom: index)
@@ -338,13 +338,13 @@ final class ChatViewModel {
     }
 
     private func findToolResult(for callId: String, startingFrom index: Int) -> String? {
-        for i in index ..< history.count {
+        for i in index..<history.count {
             let msg = history[i]
             if let role = msg["role"] as? String,
-               role == "tool",
-               let toolCallId = msg["tool_call_id"] as? String,
-               toolCallId == callId,
-               let content = msg["content"] as? String
+                role == "tool",
+                let toolCallId = msg["tool_call_id"] as? String,
+                toolCallId == callId,
+                let content = msg["content"] as? String
             {
                 return content
             }
@@ -392,17 +392,17 @@ final class ChatViewModel {
                 try Task.checkCancellation()
 
                 switch event {
-                case let .reasoning(text):
+                case .reasoning(let text):
                     pendingReasoning += text
                     accumulatedReasoning += text
                     scheduleUIUpdate()
 
-                case let .content(text):
+                case .content(let text):
                     finalizeCurrentThinking()
                     pendingContent += text
                     scheduleUIUpdate()
 
-                case let .toolCallStart(index, id, name):
+                case .toolCallStart(let index, let id, let name):
                     flushPendingContent()
                     finalizeCurrentThinking()
 
@@ -414,19 +414,19 @@ final class ChatViewModel {
                     messages[currentMessageIndex].segments.append(.toolCall(segment))
                     streamingToolCalls[index] = (id: id, name: name, segmentIndex: segmentIndex)
 
-                case let .toolCallArguments(index, delta):
+                case .toolCallArguments(let index, let delta):
                     if let info = streamingToolCalls[index],
-                       info.segmentIndex < messages[currentMessageIndex].segments.count,
-                       case var .toolCall(segment) = messages[currentMessageIndex].segments[info.segmentIndex]
+                        info.segmentIndex < messages[currentMessageIndex].segments.count,
+                        case .toolCall(var segment) = messages[currentMessageIndex].segments[info.segmentIndex]
                     {
                         segment.arguments += delta
                         messages[currentMessageIndex].segments[info.segmentIndex] = .toolCall(segment)
                     }
 
-                case let .toolCallComplete(index, arguments):
+                case .toolCallComplete(let index, let arguments):
                     if let info = streamingToolCalls[index],
-                       info.segmentIndex < messages[currentMessageIndex].segments.count,
-                       case var .toolCall(segment) = messages[currentMessageIndex].segments[info.segmentIndex]
+                        info.segmentIndex < messages[currentMessageIndex].segments.count,
+                        case .toolCall(var segment) = messages[currentMessageIndex].segments[info.segmentIndex]
                     {
                         let elapsed = Date().timeIntervalSince(streamStart)
                         print("[ChatVM] Tool call complete: \(info.name) at +\(String(format: "%.1f", elapsed))s")
@@ -437,7 +437,7 @@ final class ChatViewModel {
                         messages[currentMessageIndex].segments[info.segmentIndex] = .toolCall(segment)
                     }
 
-                case let .usage(prompt, completion, reasoning):
+                case .usage(let prompt, let completion, let reasoning):
                     promptTokens = prompt
                     completionTokens = completion
                     reasoningTokens = reasoning
@@ -474,13 +474,13 @@ final class ChatViewModel {
         if currentMessageIndex < messages.count {
             messages[currentMessageIndex].isStreaming = false
             messages[currentMessageIndex].segments.removeAll { segment in
-                if case let .thinking(info) = segment { return info.text.isEmpty }
+                if case .thinking(let info) = segment { return info.text.isEmpty }
                 return false
             }
 
             for (_, info) in streamingToolCalls {
                 if info.segmentIndex < messages[currentMessageIndex].segments.count,
-                   case var .toolCall(segment) = messages[currentMessageIndex].segments[info.segmentIndex]
+                    case .toolCall(var segment) = messages[currentMessageIndex].segments[info.segmentIndex]
                 {
                     segment.isStreaming = false
                     messages[currentMessageIndex].segments[info.segmentIndex] = .toolCall(segment)
@@ -509,8 +509,8 @@ final class ChatViewModel {
         var toolCallsArray: [[String: Any]] = []
         for index in streamingToolCalls.keys.sorted() {
             if let info = streamingToolCalls[index],
-               info.segmentIndex < messages[currentMessageIndex].segments.count,
-               case let .toolCall(segment) = messages[currentMessageIndex].segments[info.segmentIndex]
+                info.segmentIndex < messages[currentMessageIndex].segments.count,
+                case .toolCall(let segment) = messages[currentMessageIndex].segments[info.segmentIndex]
             {
                 toolCallsArray.append([
                     "id": segment.callId,
@@ -526,9 +526,9 @@ final class ChatViewModel {
 
         for index in streamingToolCalls.keys.sorted() {
             if let info = streamingToolCalls[index],
-               info.segmentIndex < messages[currentMessageIndex].segments.count,
-               case let .toolCall(segment) = messages[currentMessageIndex].segments[info.segmentIndex],
-               let result = segment.result
+                info.segmentIndex < messages[currentMessageIndex].segments.count,
+                case .toolCall(let segment) = messages[currentMessageIndex].segments[info.segmentIndex],
+                let result = segment.result
             {
                 history.append(["role": "tool", "tool_call_id": segment.callId, "content": result])
             }
@@ -556,8 +556,8 @@ final class ChatViewModel {
 
         if !pendingReasoning.isEmpty {
             if let thinkingIdx = currentThinkingIndex,
-               thinkingIdx < messages[currentMessageIndex].segments.count,
-               case var .thinking(info) = messages[currentMessageIndex].segments[thinkingIdx]
+                thinkingIdx < messages[currentMessageIndex].segments.count,
+                case .thinking(var info) = messages[currentMessageIndex].segments[thinkingIdx]
             {
                 info.text += pendingReasoning
                 messages[currentMessageIndex].segments[thinkingIdx] = .thinking(info)
@@ -567,7 +567,7 @@ final class ChatViewModel {
 
         if !pendingContent.isEmpty {
             if let lastIdx = messages[currentMessageIndex].segments.indices.last,
-               case let .content(existing) = messages[currentMessageIndex].segments[lastIdx]
+                case .content(let existing) = messages[currentMessageIndex].segments[lastIdx]
             {
                 messages[currentMessageIndex].segments[lastIdx] = .content(existing + pendingContent)
             } else {
@@ -579,9 +579,10 @@ final class ChatViewModel {
 
     private func finalizeCurrentThinking() {
         guard let thinkingIdx = currentThinkingIndex,
-              currentMessageIndex < messages.count,
-              thinkingIdx < messages[currentMessageIndex].segments.count,
-              case var .thinking(info) = messages[currentMessageIndex].segments[thinkingIdx] else { return }
+            currentMessageIndex < messages.count,
+            thinkingIdx < messages[currentMessageIndex].segments.count,
+            case .thinking(var info) = messages[currentMessageIndex].segments[thinkingIdx]
+        else { return }
 
         if info.isActive {
             info.isActive = false
@@ -680,8 +681,8 @@ final class ChatViewModel {
         var toolCallsArray: [[String: Any]] = []
         for index in streamingToolCalls.keys.sorted() {
             if let info = streamingToolCalls[index],
-               info.segmentIndex < messages[currentMessageIndex].segments.count,
-               case let .toolCall(segment) = messages[currentMessageIndex].segments[info.segmentIndex]
+                info.segmentIndex < messages[currentMessageIndex].segments.count,
+                case .toolCall(let segment) = messages[currentMessageIndex].segments[info.segmentIndex]
             {
                 toolCallsArray.append([
                     "id": segment.callId,
@@ -695,9 +696,9 @@ final class ChatViewModel {
 
         for index in streamingToolCalls.keys.sorted() {
             if let info = streamingToolCalls[index],
-               info.segmentIndex < messages[currentMessageIndex].segments.count,
-               case let .toolCall(segment) = messages[currentMessageIndex].segments[info.segmentIndex],
-               let result = segment.result
+                info.segmentIndex < messages[currentMessageIndex].segments.count,
+                case .toolCall(let segment) = messages[currentMessageIndex].segments[info.segmentIndex],
+                let result = segment.result
             {
                 history.append(["role": "tool", "tool_call_id": segment.callId, "content": result])
             }
@@ -739,7 +740,7 @@ final class ChatViewModel {
             args = [:]
         } else {
             guard let data = arguments.data(using: .utf8),
-                  let parsed = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+                let parsed = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
             else {
                 return #"{"error": "Invalid arguments"}"#
             }
@@ -777,13 +778,13 @@ final class ChatViewModel {
 
         // Add continuation prompt with summary
         let continuationPrompt = """
-        This session is being continued from a previous conversation that ran out of context.
+            This session is being continued from a previous conversation that ran out of context.
 
-        Summary of previous conversation:
-        \(summary)
+            Summary of previous conversation:
+            \(summary)
 
-        Please continue from where we left off.
-        """
+            Please continue from where we left off.
+            """
         history.append(["role": "user", "content": continuationPrompt])
 
         // Reset token count (will be updated after next API call)
@@ -906,9 +907,9 @@ final class ChatViewModel {
 
         for segment in messages[currentMessageIndex].segments {
             switch segment {
-            case let .thinking(info):
+            case .thinking(let info):
                 if !info.text.isEmpty { allReasoning += info.text }
-            case let .content(text):
+            case .content(let text):
                 finalContent += text
             case .toolCall:
                 break

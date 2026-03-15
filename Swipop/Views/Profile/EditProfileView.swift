@@ -97,9 +97,12 @@ struct EditProfileView: View {
 
                 Section {
                     ForEach($links) { $link in
-                        LinkEditRow(link: $link, onDelete: {
-                            links.removeAll { $0.id == link.id }
-                        })
+                        LinkEditRow(
+                            link: $link,
+                            onDelete: {
+                                links.removeAll { $0.id == link.id }
+                            }
+                        )
                     }
 
                     Button {
@@ -137,10 +140,13 @@ struct EditProfileView: View {
                     }
                 }
             }
-            .alert("Error", isPresented: .init(
-                get: { saveError != nil },
-                set: { if !$0 { saveError = nil } }
-            )) {
+            .alert(
+                "Error",
+                isPresented: .init(
+                    get: { saveError != nil },
+                    set: { if !$0 { saveError = nil } }
+                )
+            ) {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(saveError ?? "")
@@ -149,7 +155,7 @@ struct EditProfileView: View {
                 guard let item else { return }
                 Task {
                     if let data = try? await item.loadTransferable(type: Data.self),
-                       let image = UIImage(data: data)
+                        let image = UIImage(data: data)
                     {
                         avatarImage = image
                     }
@@ -191,7 +197,7 @@ struct EditProfileView: View {
                     } else if let url = profile?.resolvedAvatarURL {
                         AsyncImage(url: url) { phase in
                             switch phase {
-                            case let .success(image):
+                            case .success(let image):
                                 image.resizable().scaledToFill()
                             default:
                                 avatarFallback
@@ -243,18 +249,18 @@ struct EditProfileView: View {
                 _ = try await userService.uploadAvatar(image: image)
             }
 
-            _ = try await userService.updateProfile(ProfileUpdatePayload(
-                username: username.trimmingCharacters(in: .whitespaces),
-                displayName: displayName.trimmingCharacters(in: .whitespaces),
-                bio: bio.isEmpty ? nil : bio,
-                links: filteredLinks.isEmpty ? nil : filteredLinks
-            ))
+            _ = try await userService.updateProfile(
+                ProfileUpdatePayload(
+                    username: username.trimmingCharacters(in: .whitespaces),
+                    displayName: displayName.trimmingCharacters(in: .whitespaces),
+                    bio: bio.isEmpty ? nil : bio,
+                    links: filteredLinks.isEmpty ? nil : filteredLinks
+                )
+            )
             await CurrentUserProfile.shared.refresh()
             dismiss()
         } catch {
-            if error.localizedDescription.lowercased().contains("unique") ||
-                error.localizedDescription.lowercased().contains("username")
-            {
+            if error.localizedDescription.lowercased().contains("unique") || error.localizedDescription.lowercased().contains("username") {
                 saveError = "This username is already taken."
             } else {
                 saveError = error.localizedDescription

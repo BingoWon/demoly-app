@@ -24,13 +24,15 @@ struct SettingsView: View {
                                 .frame(width: 40, height: 40)
 
                             VStack(alignment: .leading, spacing: 2) {
-                                Text({
-                                    let name = [user.firstName, user.lastName]
-                                        .compactMap { $0 }
-                                        .joined(separator: " ")
-                                    return name.isEmpty ? "User" : name
-                                }())
-                                    .font(.headline)
+                                Text(
+                                    {
+                                        let name = [user.firstName, user.lastName]
+                                            .compactMap { $0 }
+                                            .joined(separator: " ")
+                                        return name.isEmpty ? "User" : name
+                                    }()
+                                )
+                                .font(.headline)
 
                                 if let email = user.primaryEmailAddress?.emailAddress {
                                     Text(email)

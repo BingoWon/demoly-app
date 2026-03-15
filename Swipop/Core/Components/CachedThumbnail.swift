@@ -129,7 +129,7 @@ enum ThumbnailCache {
         await withCheckedContinuation { continuation in
             ImageCache.default.calculateDiskStorageSize { result in
                 switch result {
-                case let .success(size): continuation.resume(returning: size)
+                case .success(let size): continuation.resume(returning: size)
                 case .failure: continuation.resume(returning: 0)
                 }
             }

@@ -79,7 +79,7 @@ struct ProfileHeaderView: View {
         if let url = profile?.resolvedAvatarURL {
             AsyncImage(url: url) { phase in
                 switch phase {
-                case let .success(image):
+                case .success(let image):
                     image.resizable().scaledToFill()
                 default:
                     avatarFallback

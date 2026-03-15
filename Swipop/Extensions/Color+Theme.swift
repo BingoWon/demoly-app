@@ -57,9 +57,11 @@ extension Color {
 extension Color {
     /// Create a color that adapts to Light/Dark mode
     init(light: Color, dark: Color) {
-        self.init(uiColor: UIColor { traits in
-            traits.userInterfaceStyle == .dark ? UIColor(dark) : UIColor(light)
-        })
+        self.init(
+            uiColor: UIColor { traits in
+                traits.userInterfaceStyle == .dark ? UIColor(dark) : UIColor(light)
+            }
+        )
     }
 }
 

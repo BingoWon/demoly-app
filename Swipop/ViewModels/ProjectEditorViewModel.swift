@@ -13,46 +13,46 @@ final class ProjectEditorViewModel {
     // MARK: - Default Templates
 
     static let defaultHTML = """
-    <div class="container">
-      <h1>Hello, World!</h1>
-      <p>Start creating your masterpiece</p>
-    </div>
-    """
+        <div class="container">
+          <h1>Hello, World!</h1>
+          <p>Start creating your masterpiece</p>
+        </div>
+        """
 
     static let defaultCSS = """
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
 
-    body {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #1a1a2e, #16213e);
-      font-family: system-ui, -apple-system, sans-serif;
-    }
+        body {
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #1a1a2e, #16213e);
+          font-family: system-ui, -apple-system, sans-serif;
+        }
 
-    .container {
-      text-align: center;
-      color: white;
-    }
+        .container {
+          text-align: center;
+          color: white;
+        }
 
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
-    }
+        h1 {
+          font-size: 2.5rem;
+          margin-bottom: 0.5rem;
+        }
 
-    p {
-      opacity: 0.7;
-    }
-    """
+        p {
+          opacity: 0.7;
+        }
+        """
 
     static let defaultJS = """
-    // Add interactivity here
-    """
+        // Add interactivity here
+        """
 
     // MARK: - Identity
 

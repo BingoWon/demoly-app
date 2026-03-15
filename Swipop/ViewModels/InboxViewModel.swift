@@ -35,7 +35,7 @@ final class InboxViewModel {
             } else if calendar.isDateInYesterday(activity.createdAt) {
                 yesterday.append(activity)
             } else if let weekAgo = calendar.date(byAdding: .day, value: -7, to: now),
-                      activity.createdAt > weekAgo
+                activity.createdAt > weekAgo
             {
                 thisWeek.append(activity)
             } else {

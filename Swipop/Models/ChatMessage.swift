@@ -27,8 +27,8 @@ struct ChatMessage: Identifiable {
 
         var id: UUID {
             switch self {
-            case let .thinking(info): info.id
-            case let .toolCall(info): info.id
+            case .thinking(let info): info.id
+            case .toolCall(let info): info.id
             case .content: UUID()
             }
         }
@@ -88,7 +88,7 @@ struct ChatMessage: Identifiable {
     var userContent: String {
         guard role == .user else { return "" }
         for segment in segments {
-            if case let .content(text) = segment { return text }
+            if case .content(let text) = segment { return text }
         }
         return ""
     }
@@ -96,7 +96,7 @@ struct ChatMessage: Identifiable {
     var errorContent: String {
         guard role == .error else { return "" }
         for segment in segments {
-            if case let .content(text) = segment { return text }
+            if case .content(let text) = segment { return text }
         }
         return ""
     }

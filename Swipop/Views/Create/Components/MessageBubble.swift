@@ -27,7 +27,7 @@ struct MessageBubble: View {
         HStack(spacing: 6) {
             Image(systemName: "info.circle.fill")
                 .font(.system(size: 12))
-            Text(message.segments.first.flatMap { if case let .content(t) = $0 { t } else { nil } } ?? "")
+            Text(message.segments.first.flatMap { if case .content(let t) = $0 { t } else { nil } } ?? "")
                 .font(.system(size: 13))
         }
         .foregroundStyle(.secondary)
@@ -65,11 +65,11 @@ struct MessageBubble: View {
     @ViewBuilder
     private func segmentView(_ segment: ChatMessage.Segment, at index: Int) -> some View {
         switch segment {
-        case let .thinking(info):
+        case .thinking(let info):
             ThinkingSegmentView(info: info)
-        case let .toolCall(info):
+        case .toolCall(let info):
             ToolCallView(toolCall: info)
-        case let .content(text):
+        case .content(let text):
             if !text.isEmpty {
                 contentBubble(text)
             } else if message.isStreaming, index == message.segments.count - 1 {

@@ -105,7 +105,9 @@ struct FeedView: View {
         }
 
         ToolbarItem(placement: .topBarTrailing) {
-            Button { showSearch = true } label: {
+            Button {
+                showSearch = true
+            } label: {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.primary)
             }

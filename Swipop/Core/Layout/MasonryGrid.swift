@@ -30,7 +30,7 @@ struct MasonryGrid<Item: Identifiable, Content: View>: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: spacing) {
-            ForEach(0 ..< columns, id: \.self) { columnIndex in
+            ForEach(0..<columns, id: \.self) { columnIndex in
                 LazyVStack(spacing: spacing) {
                     ForEach(itemsForColumn(columnIndex)) { item in
                         content(item)
@@ -62,7 +62,7 @@ extension MasonryGrid where Item == Project {
     /// Default aspect ratio when thumbnail_aspect_ratio is not set
     private static var defaultAspectRatio: CGFloat {
         0.75
-    } // 3:4 portrait
+    }  // 3:4 portrait
 
     /// Discover page: 2 columns with title and creator info
     init(
@@ -80,7 +80,7 @@ extension MasonryGrid where Item == Project {
                 let ratio = max(project.thumbnailAspectRatio ?? Self.defaultAspectRatio, 0.1)
                 let safeColumnWidth = max(columnWidth, 1)
                 let imageHeight = safeColumnWidth / ratio
-                let infoHeight: CGFloat = 60 // Title + creator info
+                let infoHeight: CGFloat = 60  // Title + creator info
                 return imageHeight + infoHeight
             }
         )

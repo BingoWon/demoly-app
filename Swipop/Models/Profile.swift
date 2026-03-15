@@ -90,9 +90,16 @@ nonisolated struct Profile: Identifiable, Codable, Equatable {
     }
 
     init(
-        id: String, username: String?, displayName: String?, avatarUrl: String?,
-        bio: String?, links: [ProfileLink] = [], createdAt: Date = Date(), updatedAt: Date = Date(),
-        stats: ProfileStats? = nil, isFollowing: Bool? = nil
+        id: String,
+        username: String?,
+        displayName: String?,
+        avatarUrl: String?,
+        bio: String?,
+        links: [ProfileLink] = [],
+        createdAt: Date = Date(),
+        updatedAt: Date = Date(),
+        stats: ProfileStats? = nil,
+        isFollowing: Bool? = nil
     ) {
         self.id = id
         self.username = username

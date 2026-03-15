@@ -103,7 +103,9 @@ struct ProfileContentView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
-            Button { showSettings = true } label: {
+            Button {
+                showSettings = true
+            } label: {
                 Image(systemName: "gearshape")
                     .foregroundStyle(.primary)
             }

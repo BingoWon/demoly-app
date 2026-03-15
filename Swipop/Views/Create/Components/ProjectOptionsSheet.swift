@@ -113,7 +113,7 @@ struct ProjectOptionsSheet: View {
                     .foregroundStyle(.secondary)
                 TextField("Enter description", text: $projectEditor.description, axis: .vertical)
                     .font(.system(size: 16))
-                    .lineLimit(3 ... 6)
+                    .lineLimit(3...6)
             }
             .listRowBackground(Color.tertiaryBackground.opacity(0.8))
         } header: {
@@ -294,7 +294,7 @@ struct ProjectOptionsSheet: View {
 
         do {
             if let data = try await item.loadTransferable(type: Data.self),
-               let image = UIImage(data: data)
+                let image = UIImage(data: data)
             {
                 projectEditor.setThumbnail(image: image, aspectRatio: selectedAspectRatio)
             }

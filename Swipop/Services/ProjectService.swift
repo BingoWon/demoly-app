@@ -21,10 +21,13 @@ actor ProjectService {
     }
 
     func fetchFeed(limit: Int = 20, offset: Int = 0) async throws -> FeedResponse {
-        try await api.get("/feed", query: [
-            "limit": "\(limit)",
-            "offset": "\(offset)",
-        ])
+        try await api.get(
+            "/feed",
+            query: [
+                "limit": "\(limit)",
+                "offset": "\(offset)",
+            ]
+        )
     }
 
     // MARK: - Single Project

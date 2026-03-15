@@ -44,7 +44,8 @@ final class AIService {
 
                         let jsonStr = String(line.dropFirst(6))
                         guard let data = jsonStr.data(using: .utf8),
-                              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { continue }
+                            let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+                        else { continue }
 
                         if let usage = json["usage"] as? [String: Any] {
                             let promptTokens = usage["prompt_tokens"] as? Int ?? 0
@@ -53,16 +54,19 @@ final class AIService {
                             if let details = usage["completion_tokens_details"] as? [String: Any] {
                                 reasoningTokens = details["reasoning_tokens"] as? Int ?? 0
                             }
-                            continuation.yield(.usage(
-                                promptTokens: promptTokens,
-                                completionTokens: completionTokens,
-                                reasoningTokens: reasoningTokens
-                            ))
+                            continuation.yield(
+                                .usage(
+                                    promptTokens: promptTokens,
+                                    completionTokens: completionTokens,
+                                    reasoningTokens: reasoningTokens
+                                )
+                            )
                         }
 
                         guard let choices = json["choices"] as? [[String: Any]],
-                              let choice = choices.first,
-                              let delta = choice["delta"] as? [String: Any] else { continue }
+                            let choice = choices.first,
+                            let delta = choice["delta"] as? [String: Any]
+                        else { continue }
 
                         if let reasoning = delta["reasoning_content"] as? String, !reasoning.isEmpty {
                             continuation.yield(.reasoning(reasoning))
@@ -81,16 +85,16 @@ final class AIService {
                                 }
 
                                 if let id = tc["id"] as? String,
-                                   let function = tc["function"] as? [String: Any],
-                                   let name = function["name"] as? String,
-                                   !toolCallStarted.contains(index)
+                                    let function = tc["function"] as? [String: Any],
+                                    let name = function["name"] as? String,
+                                    !toolCallStarted.contains(index)
                                 {
                                     toolCallStarted.insert(index)
                                     continuation.yield(.toolCallStart(index: index, id: id, name: name))
                                 }
 
                                 if let function = tc["function"] as? [String: Any],
-                                   let args = function["arguments"] as? String
+                                    let args = function["arguments"] as? String
                                 {
                                     toolCallArguments[index]! += args
                                     continuation.yield(.toolCallArguments(index: index, delta: args))
@@ -149,7 +153,7 @@ final class AIService {
             switch self {
             case .unauthorized: "Please sign in to use AI"
             case .invalidResponse: "Invalid server response"
-            case let .serverError(code): "Server error: \(code)"
+            case .serverError(let code): "Server error: \(code)"
             }
         }
     }
@@ -215,7 +219,7 @@ final class AIService {
             "summarize_conversation",
             "Create a summary when context window is nearly full. Only call when explicitly instructed.",
             properties: [
-                "summary": prop("string", "Comprehensive summary"),
+                "summary": prop("string", "Comprehensive summary")
             ],
             required: ["summary"]
         ),
