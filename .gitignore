@@ -34,3 +34,6 @@ Docs/
 .env.local
 .env*.local
 
+# Local docs (not committed)
+docs/
+
