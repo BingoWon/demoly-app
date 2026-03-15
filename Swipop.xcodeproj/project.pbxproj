@@ -13,6 +13,7 @@
 		D73045822EDE7B030059DD01 /* TreeSitterJavaScriptRunestone in Frameworks */ = {isa = PBXBuildFile; productRef = D73045812EDE7B030059DD01 /* TreeSitterJavaScriptRunestone */; };
 		D73047E92EDE7D230059DD01 /* OpenAI in Frameworks */ = {isa = PBXBuildFile; productRef = D73047E82EDE7D230059DD01 /* OpenAI */; };
 		D73048A02EE04B4C0059DD01 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = D730489F2EE04B4C0059DD01 /* Kingfisher */; };
+		D7486DD32F66501400F13D19 /* ClerkKit in Frameworks */ = {isa = PBXBuildFile; productRef = D7486DD22F66501400F13D19 /* ClerkKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,6 +68,7 @@
 				D73048A02EE04B4C0059DD01 /* Kingfisher in Frameworks */,
 				D73045802EDE7B030059DD01 /* TreeSitterHTMLRunestone in Frameworks */,
 				D730457E2EDE7B030059DD01 /* TreeSitterCSSRunestone in Frameworks */,
+				D7486DD32F66501400F13D19 /* ClerkKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -133,6 +135,7 @@
 				D73045812EDE7B030059DD01 /* TreeSitterJavaScriptRunestone */,
 				D73047E82EDE7D230059DD01 /* OpenAI */,
 				D730489F2EE04B4C0059DD01 /* Kingfisher */,
+				D7486DD22F66501400F13D19 /* ClerkKit */,
 			);
 			productName = Swipop;
 			productReference = D7BF49A82EDDAA1200218489 /* Swipop.app */;
@@ -684,6 +687,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D730489E2EE04B4C0059DD01 /* XCRemoteSwiftPackageReference "Kingfisher" */;
 			productName = Kingfisher;
+		};
+		D7486DD22F66501400F13D19 /* ClerkKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D7486DD12F66501400F13D19 /* XCRemoteSwiftPackageReference "clerk-ios" */;
+			productName = ClerkKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
