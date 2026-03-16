@@ -3,8 +3,8 @@
 <plist version="1.0">
 <dict>
 	<key>API_BASE_URL</key>
-	<string>http://localhost:4399</string>
+	<string>$(API_BASE_URL)</string>
 	<key>CLERK_PUBLISHABLE_KEY</key>
-	<string>pk_test_ZmFzdC1kYW5lLTg2LmNsZXJrLmFjY291bnRzLmRldiQ</string>
+	<string>$(CLERK_PUBLISHABLE_KEY)</string>
 </dict>
 </plist>

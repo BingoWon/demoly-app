@@ -1,0 +1,23 @@
+//
+// Release.xcconfig
+// Swipop Production Configuration
+//
+
+// API Configuration
+API_BASE_URL = https:$()/$()/appleragmcp.com
+
+// Clerk Authentication (update to pk_live_ when using production Clerk instance)
+CLERK_PUBLISHABLE_KEY = pk_test_ZmFzdC1kYW5lLTg2LmNsZXJrLmFjY291bnRzLmRldiQ
+
+// App Configuration
+PRODUCT_BUNDLE_IDENTIFIER = com.swipop.app
+PRODUCT_NAME = Swipop
+
+// Info.plist Configuration
+GENERATE_INFOPLIST_FILE = YES
+INFOPLIST_FILE = SupportingFiles/Info.plist
+
+// Code Signing
+CODE_SIGN_STYLE = Automatic
+DEVELOPMENT_TEAM = 5C4299VVGU
+CODE_SIGN_ENTITLEMENTS = Swipop/Swipop.entitlements
