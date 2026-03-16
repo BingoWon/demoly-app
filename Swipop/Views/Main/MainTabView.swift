@@ -70,6 +70,11 @@ struct MainTabView: View {
                 Tab("Profile", systemImage: "person.fill", value: 3) {
                     ProfileView(editProject: editProject, refreshTrigger: profileRefreshTrigger)
                 }
+                Tab("Search", systemImage: "magnifyingglass", value: 4, role: .search) {
+                    NavigationStack {
+                        SearchContentView()
+                    }
+                }
             }
             .tabBarMinimizeBehavior(.onScrollDown)
         } else {

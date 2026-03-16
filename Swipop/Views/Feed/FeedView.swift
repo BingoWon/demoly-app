@@ -102,14 +102,14 @@ struct FeedView: View {
 
         if #available(iOS 26.0, *) {
             ToolbarSpacer(.fixed, placement: .topBarTrailing)
-        }
-
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                showSearch = true
-            } label: {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.primary)
+        } else {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showSearch = true
+                } label: {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(.primary)
+                }
             }
         }
     }

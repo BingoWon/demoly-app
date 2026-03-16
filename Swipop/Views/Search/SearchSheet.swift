@@ -7,36 +7,28 @@
 
 import SwiftUI
 
-struct SearchSheet: View {
-    @Environment(\.dismiss) private var dismiss
+// MARK: - Shared Search Content (used by Tab and Sheet)
+
+struct SearchContentView: View {
     @State private var viewModel = SearchViewModel()
     @State private var selectedProject: Project?
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color.clear
+        ZStack {
+            Color.clear
 
-                if viewModel.searchQuery.isEmpty {
-                    trendingContent
-                } else {
-                    searchResults
-                }
-            }
-            .navigationTitle("Search")
-            .navigationBarTitleDisplayMode(.inline)
-            .searchable(text: $viewModel.searchQuery, prompt: "Projects, creators, #tags...")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    SheetCloseButton { dismiss() }
-                }
-            }
-            .navigationDestination(item: $selectedProject) { project in
-                ProjectViewerPage(project: project)
+            if viewModel.searchQuery.isEmpty {
+                trendingContent
+            } else {
+                searchResults
             }
         }
-        .presentationDetents([.large])
-        .presentationDragIndicator(.visible)
+        .navigationTitle("Search")
+        .navigationBarTitleDisplayMode(.inline)
+        .searchable(text: $viewModel.searchQuery, prompt: "Projects, creators, #tags...")
+        .navigationDestination(item: $selectedProject) { project in
+            ProjectViewerPage(project: project)
+        }
         .task {
             await viewModel.loadTrending()
         }
@@ -241,6 +233,25 @@ struct SearchSheet: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
+    }
+}
+
+// MARK: - Sheet Wrapper (iOS 18 / non-tab contexts)
+
+struct SearchSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            SearchContentView()
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        SheetCloseButton { dismiss() }
+                    }
+                }
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
     }
 }
 
