@@ -1,83 +1,72 @@
 # Demoly
 
-> **Swipe through live code.**
+> **Just Demo It.** — Create and share interactive web projects with AI.
 
-A platform where anyone can showcase interactive web-based projects without showing their face — TikTok for Frontend Creations.
+Demoly is a creative platform where anyone can build and share interactive web projects. Describe your idea, AI generates the code, and you share living, breathing web experiences with the world.
 
-## Overview
+<p align="center">
+  <img src="screenshots/discover.png" width="230" alt="Discover Feed" />
+  &nbsp;&nbsp;
+  <img src="screenshots/create.png" width="230" alt="AI Creation" />
+  &nbsp;&nbsp;
+  <img src="screenshots/profile.png" width="230" alt="Profile" />
+</p>
 
-Demoly reimagines short-form content by replacing videos with interactive frontend creations. Users can browse, create, and share web-based projects (HTML/CSS/JavaScript) in a familiar swipe-to-discover experience.
+## Features
 
-### Why Demoly?
-
-- **No Camera Required**: Express yourself through code, not video
-- **Interactive Content**: Projects are not just viewed—they can be experienced and interacted with
-- **AI-Assisted Creation**: Leverage vibe coding to bring ideas to life without deep technical expertise
-- **Responsive by Nature**: Frontend projects adapt beautifully to any screen size
+- **AI-Assisted Creation** — Describe what you want, AI builds it in real-time
+- **Interactive Content** — Every project is a live web page you can touch, click, and play with
+- **Discover Feed** — Browse a masonry feed of interactive creations from the community
+- **Social** — Like, collect, comment, and follow creators
+- **No Coding Required** — AI handles HTML, CSS, and JavaScript for you
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| Platform | iOS (iPhone) |
+| Platform | iOS / iPadOS |
 | UI Framework | SwiftUI |
-| Package Manager | Swift Package Manager |
-| Backend | Supabase |
-| Authentication | Google Sign-In, Apple Sign-In |
 | Content Rendering | WKWebView |
-
-## Project Structure
-
-```
-Demoly/
-├── Demoly/                 # Main app target
-│   ├── DemolyApp.swift     # App entry point
-│   ├── ContentView.swift   # Root view
-│   └── Assets.xcassets/    # Asset catalog
-├── DemolyTests/            # Unit tests
-└── DemolyUITests/          # UI tests
-```
-
-## Key Decisions
-
-- **No NPM, No Build Step**: Projects are pure HTML/CSS/JS—no compilation required
-- **CDN Libraries Only**: Third-party libraries (Three.js, D3.js, etc.) loaded via CDN
-- **Button Navigation**: Swipe conflicts avoided by using dedicated up/down buttons
-- **SPM Only**: CocoaPods is explicitly forbidden
+| Code Editor | Runestone + Tree-sitter |
+| Authentication | Clerk (Apple Sign-In, Google Sign-In) |
+| Backend | Cloudflare Workers + Hono |
+| Database | Cloudflare D1 |
+| Storage | Cloudflare R2 |
+| Package Manager | Swift Package Manager |
 
 ## Getting Started
 
 ### Prerequisites
 
-- Xcode 15.0+
-- iOS 17.0+ deployment target
-- Supabase project (for backend services)
+- Xcode 16.0+
+- iOS 18.0+ deployment target
 
 ### Setup
 
 1. Clone the repository
 2. Open `Demoly.xcodeproj` in Xcode
-3. Configure Supabase credentials
+3. Copy `Config/Debug.xcconfig.example` to `Config/Debug.xcconfig` and fill in your keys
 4. Build and run
 
-## Authentication
+## Project Structure
 
-Phase 1 supports only third-party authentication:
-
-- ✅ Apple Sign-In
-- ✅ Google Sign-In
-- ❌ Email/Password (planned)
-- ❌ Phone Number (planned)
-
-## Contributing
-
-This is currently a private project. Contribution guidelines will be added if/when the project goes public.
+```
+demoly-app/
+├── Demoly/                    # Main app target
+│   ├── DemolyApp.swift        # App entry point
+│   ├── Models/                # Data models
+│   ├── Services/              # API & AI services
+│   ├── ViewModels/            # View models
+│   └── Views/                 # SwiftUI views
+│       ├── Create/            # AI creation flow
+│       ├── Feed/              # Discover feed
+│       ├── Profile/           # User profile
+│       └── Share/             # Share sheet
+├── Config/                    # Build configurations
+├── SupportingFiles/           # Info.plist
+└── screenshots/               # App screenshots
+```
 
 ## License
 
-TBD
-
----
-
-*Built with SwiftUI and powered by Supabase*
-
+Copyright © 2026 Demoly. All rights reserved.
