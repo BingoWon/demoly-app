@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D7A1B2C42F7A8B0000AABB01 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = D7A1B2C32F7A8B0000AABB01 /* AppIcon.icon */; };
 		D73043832EDE7C000059DD01 /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = D73043842EDE7C000059DD01 /* Runestone */; };
 		D730457E2EDE7B030059DD01 /* TreeSitterCSSRunestone in Frameworks */ = {isa = PBXBuildFile; productRef = D730457D2EDE7B030059DD01 /* TreeSitterCSSRunestone */; };
 		D73045802EDE7B030059DD01 /* TreeSitterHTMLRunestone in Frameworks */ = {isa = PBXBuildFile; productRef = D730457F2EDE7B030059DD01 /* TreeSitterHTMLRunestone */; };
@@ -35,6 +36,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		D7A1B2C32F7A8B0000AABB01 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		D7C0F1A02F67000A0059DD01 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		D7C0F1A12F67000A0059DD01 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		D7BF49A82EDDAA1200218489 /* Swipop.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Swipop.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -105,6 +107,7 @@
 		D7BF499F2EDDAA1200218489 = {
 			isa = PBXGroup;
 			children = (
+				D7A1B2C32F7A8B0000AABB01 /* AppIcon.icon */,
 				D7C0F1A22F67000A0059DD01 /* Config */,
 				D7BF49AA2EDDAA1200218489 /* Swipop */,
 				D7BF49B82EDDAA1400218489 /* SwipopTests */,
@@ -258,6 +261,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D7A1B2C42F7A8B0000AABB01 /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
