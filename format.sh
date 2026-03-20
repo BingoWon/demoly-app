@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Swipop iOS App - Code Formatter
+# Demoly iOS App - Code Formatter
 # Uses apple/swift-format (AST-based, official Swift formatter)
 
 set -e
@@ -14,9 +14,9 @@ if ! command -v swift-format &> /dev/null; then
 fi
 
 echo "Formatting..."
-swift-format format --configuration .swift-format --recursive --in-place Swipop/ SwipopTests/ SwipopUITests/
+swift-format format --configuration .swift-format --recursive --in-place Demoly/ DemolyTests/ DemolyUITests/
 
 echo "Linting..."
-swift-format lint --configuration .swift-format --recursive Swipop/ SwipopTests/ SwipopUITests/ 2>&1 || true
+swift-format lint --configuration .swift-format --recursive Demoly/ DemolyTests/ DemolyUITests/ 2>&1 || true
 
 echo "Done."

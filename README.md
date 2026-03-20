@@ -1,4 +1,4 @@
-# Swipop
+# Demoly
 
 > **Swipe through live code.**
 
@@ -6,9 +6,9 @@ A platform where anyone can showcase interactive web-based projects without show
 
 ## Overview
 
-Swipop reimagines short-form content by replacing videos with interactive frontend creations. Users can browse, create, and share web-based projects (HTML/CSS/JavaScript) in a familiar swipe-to-discover experience.
+Demoly reimagines short-form content by replacing videos with interactive frontend creations. Users can browse, create, and share web-based projects (HTML/CSS/JavaScript) in a familiar swipe-to-discover experience.
 
-### Why Swipop?
+### Why Demoly?
 
 - **No Camera Required**: Express yourself through code, not video
 - **Interactive Content**: Projects are not just viewed—they can be experienced and interacted with
@@ -29,13 +29,13 @@ Swipop reimagines short-form content by replacing videos with interactive fronte
 ## Project Structure
 
 ```
-Swipop/
-├── Swipop/                 # Main app target
-│   ├── SwipopApp.swift     # App entry point
+Demoly/
+├── Demoly/                 # Main app target
+│   ├── DemolyApp.swift     # App entry point
 │   ├── ContentView.swift   # Root view
 │   └── Assets.xcassets/    # Asset catalog
-├── SwipopTests/            # Unit tests
-└── SwipopUITests/          # UI tests
+├── DemolyTests/            # Unit tests
+└── DemolyUITests/          # UI tests
 ```
 
 ## Key Decisions
@@ -56,7 +56,7 @@ Swipop/
 ### Setup
 
 1. Clone the repository
-2. Open `Swipop.xcodeproj` in Xcode
+2. Open `Demoly.xcodeproj` in Xcode
 3. Configure Supabase credentials
 4. Build and run
 
