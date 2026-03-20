@@ -85,7 +85,7 @@ struct SettingsView: View {
                         Label("About Demoly", systemImage: "info.circle")
                     }
 
-                    Link(destination: URL(string: "https://demoly.app/terms")!) {
+                    Link(destination: URL(string: "https://appleragmcp.com/terms")!) {
                         HStack {
                             Label("Terms of Service", systemImage: "doc.text")
                                 .foregroundStyle(.primary)
@@ -96,7 +96,7 @@ struct SettingsView: View {
                         }
                     }
 
-                    Link(destination: URL(string: "https://demoly.app/privacy")!) {
+                    Link(destination: URL(string: "https://appleragmcp.com/privacy")!) {
                         HStack {
                             Label("Privacy Policy", systemImage: "hand.raised")
                                 .foregroundStyle(.primary)

@@ -10,7 +10,7 @@ struct ProjectShareLink<Label: View>: View {
     @ViewBuilder let label: Label
 
     private var shareURL: URL {
-        URL(string: "https://demoly.app/project/\(project.id)")!
+        URL(string: "https://appleragmcp.com/project/\(project.id)")!
     }
 
     var body: some View {

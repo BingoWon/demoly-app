@@ -120,7 +120,7 @@ private struct LinkChip: View {
     let link: ProfileLink
 
     var body: some View {
-        Link(destination: URL(string: link.url) ?? URL(string: "https://demoly.app")!) {
+        Link(destination: URL(string: link.url) ?? URL(string: "https://appleragmcp.com")!) {
             HStack(spacing: 6) {
                 Image(systemName: "link")
                     .font(.system(size: 12))
