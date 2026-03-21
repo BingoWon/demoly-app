@@ -1,51 +1,64 @@
 <p align="center">
-  <img src="screenshots/discover.png" width="230" alt="Discover" />
-  &nbsp;&nbsp;
-  <img src="screenshots/create.png" width="230" alt="Create" />
-  &nbsp;&nbsp;
-  <img src="screenshots/profile.png" width="230" alt="Profile" />
+  <a href="https://github.com/BingoWon/demoly-app">
+    <img src=".github/assets/logo.png" width="80" alt="Demoly" />
+  </a>
 </p>
 
 <h1 align="center">Demoly</h1>
 
 <p align="center">
-  <strong>Just Demo It.</strong><br/>
-  Create and share interactive web projects with AI.
+  <strong>Just Demo It.</strong>
 </p>
 
 <p align="center">
-  <a href="README.zh-CN.md">中文</a>
+  Describe your idea. AI builds it. Share it with the world.
 </p>
 
----
+<p align="center">
+  <a href="https://apps.apple.com/app/demoly">
+    <img src="https://img.shields.io/badge/App_Store-0D96F6?style=flat&logo=app-store&logoColor=white" alt="App Store" />
+  </a>
+  &nbsp;
+  <a href="README.zh-CN.md">简体中文</a>
+</p>
 
-Demoly is a creative platform where anyone can build and share interactive web projects — no coding skills needed. Describe your idea in plain language, AI generates real HTML/CSS/JS, and you publish a living, interactive experience for the world to explore.
+<br />
 
-## Features
+<p align="center">
+  <img src="screenshots/discover.png" width="220" alt="Discover" />
+  &nbsp;
+  <img src="screenshots/create.png" width="220" alt="Create" />
+  &nbsp;
+  <img src="screenshots/profile.png" width="220" alt="Profile" />
+</p>
 
-- **AI-Powered Creation** — Chat with AI to build interactive web projects in real time
-- **Interactive Content** — Every project is a live web page people can touch, click, and play with
-- **Discover Feed** — Browse a masonry grid of creations from the community
-- **Social** — Like, collect, comment, and follow your favorite creators
-- **Zero Coding Barrier** — AI handles all the HTML, CSS, and JavaScript
+<br />
+
+## What is Demoly?
+
+Demoly is a creative platform for iOS where anyone can build and share interactive web projects — no coding needed. Just describe what you want in plain language, and AI turns it into a real, touchable web experience.
+
+## Highlights
+
+🤖 **AI Creation** — Describe your idea, watch AI build it live with HTML, CSS & JS
+
+🎨 **Interactive** — Every project is a real web page you can tap, drag, scroll and play with
+
+🌍 **Discover** — Browse a masonry feed of amazing creations from the community
+
+💬 **Social** — Like, save, comment, and follow your favorite creators
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Platform | iOS / iPadOS |
-| UI | SwiftUI |
-| Rendering | WKWebView |
-| Code Editor | Runestone + Tree-sitter |
-| Auth | Clerk (Apple, Google) |
-| Backend | Cloudflare Workers + Hono |
-| Database | Cloudflare D1 |
-| Storage | Cloudflare R2 |
-| Packages | Swift Package Manager |
+| | |
+|---|---|
+| **App** | SwiftUI · WKWebView · Runestone · Tree-sitter |
+| **Backend** | Cloudflare Workers · Hono · D1 · R2 |
+| **Auth** | Clerk — Apple & Google Sign-In |
 
 ## Getting Started
 
-**Prerequisites:** Xcode 16.0+, iOS 18.0+ target
+> Requires **Xcode 16.0+** and **iOS 18.0+**
 
 ```bash
 git clone https://github.com/BingoWon/demoly-app.git
@@ -53,30 +66,30 @@ cd demoly-app
 open Demoly.xcodeproj
 ```
 
-Fill in your API keys in `Config/Debug.xcconfig`, then build and run.
+Add your API keys to `Config/Debug.xcconfig`, then build and run.
 
 ## Project Structure
 
 ```
 Demoly/
-├── Models/            # Data models
-├── Services/          # API & AI services
-├── ViewModels/        # View models
+├── Models/         Data models
+├── Services/       API & AI services
+├── ViewModels/     View models
 └── Views/
-    ├── Create/        # AI creation flow
-    ├── Feed/          # Discover feed
-    ├── Profile/       # User profile & settings
-    └── Share/         # Share sheet
+    ├── Create/     AI creation flow
+    ├── Feed/       Discover feed
+    ├── Profile/    User profile & settings
+    └── Share/      Share sheet
 ```
 
 ## Contributing
 
-Contributions are welcome! Feel free to open an issue or submit a pull request.
+Contributions are welcome — feel free to open an issue or submit a pull request.
 
-1. Fork the repository
-2. Create your branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+1. Fork the repo
+2. Create your branch — `git checkout -b feature/my-feature`
+3. Commit — `git commit -m 'feat: add my feature'`
+4. Push — `git push origin feature/my-feature`
 5. Open a Pull Request
 
-Please follow [Conventional Commits](https://www.conventionalcommits.org/) for commit messages.
+We follow [Conventional Commits](https://www.conventionalcommits.org/).
