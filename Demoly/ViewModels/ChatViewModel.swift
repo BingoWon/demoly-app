@@ -58,41 +58,13 @@ final class ChatViewModel {
 
     // MARK: - System Prompt
 
-    private let systemPrompt = """
-        You are a creative AI assistant in Demoly, a social app for sharing HTML/CSS/JS creative projects.
-        Help users create interactive, visually appealing web components.
-
-        ## Current Project State
-        The current state of HTML, CSS, JavaScript, and metadata is provided with each message.
-        You always have access to the latest content - no need to read before editing.
-
-        ## Available Tools
-
-        ### Writing (full replacement)
-        - write_html, write_css, write_javascript: Replace entire file content
-          - Use for new projects or major rewrites
-
-        ### Replacing (targeted edits, preferred for existing code)
-        - replace_in_html, replace_in_css, replace_in_javascript: Find and replace
-          - The 'search' text must match exactly and be unique
-          - Use for small, localized changes
-
-        ### Metadata
-        - update_metadata: Update title, description, and/or tags (partial updates supported)
-
-        ## Guidelines
-        1. Prefer replace_in_* for small changes to existing code
-        2. Use write_* for new projects or major rewrites
-        3. Make it visually impressive with modern CSS
-        4. Add smooth animations and consider mobile responsiveness
-        """
+    private var systemPrompt: String { AIConfig.shared.systemPrompt }
 
     // MARK: - Init
 
     init(projectEditor: ProjectEditorViewModel? = nil) {
         self.projectEditor = projectEditor
 
-        // Load saved model from UserDefaults
         if let savedRaw = UserDefaults.standard.string(forKey: "selectedAIModel"),
             let savedModel = AIModel(rawValue: savedRaw)
         {

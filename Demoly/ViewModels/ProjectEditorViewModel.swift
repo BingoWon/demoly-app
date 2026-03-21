@@ -10,49 +10,11 @@ import WebKit
 @MainActor
 @Observable
 final class ProjectEditorViewModel {
-    // MARK: - Default Templates
+    // MARK: - Default Templates (fetched from backend via AIConfig)
 
-    static let defaultHTML = """
-        <div class="container">
-          <h1>Hello, World!</h1>
-          <p>Start creating your masterpiece</p>
-        </div>
-        """
-
-    static let defaultCSS = """
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-        }
-
-        body {
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, #1a1a2e, #16213e);
-          font-family: system-ui, -apple-system, sans-serif;
-        }
-
-        .container {
-          text-align: center;
-          color: white;
-        }
-
-        h1 {
-          font-size: 2.5rem;
-          margin-bottom: 0.5rem;
-        }
-
-        p {
-          opacity: 0.7;
-        }
-        """
-
-    static let defaultJS = """
-        // Add interactivity here
-        """
+    static var defaultHTML: String { AIConfig.shared.defaultHTML }
+    static var defaultCSS: String { AIConfig.shared.defaultCSS }
+    static var defaultJS: String { AIConfig.shared.defaultJS }
 
     // MARK: - Identity
 

@@ -38,6 +38,7 @@ struct DemolyApp: App {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
+            .task { await AIConfig.shared.load() }
             .task(id: clerk.user?.id) {
                 guard clerk.isLoaded else { return }
                 if clerk.user != nil {
