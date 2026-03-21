@@ -51,20 +51,20 @@ private struct AIConfigResponse: Decodable {
 
 // MARK: - Fallbacks
 
-private extension AIConfig {
-    static let fallbackSystemPrompt = """
+extension AIConfig {
+    fileprivate static let fallbackSystemPrompt = """
         You are a creative AI assistant in Demoly, a social app for sharing HTML/CSS/JS creative projects.
         Help users create interactive, visually appealing web components.
         """
 
-    static let fallbackHTML = """
+    fileprivate static let fallbackHTML = """
         <div class="container">
           <h1>Hello, World!</h1>
           <p>Start creating your masterpiece</p>
         </div>
         """
 
-    static let fallbackCSS = """
+    fileprivate static let fallbackCSS = """
         * {
           margin: 0;
           padding: 0;
@@ -95,5 +95,5 @@ private extension AIConfig {
         }
         """
 
-    static let fallbackJS = ""
+    fileprivate static let fallbackJS = ""
 }
