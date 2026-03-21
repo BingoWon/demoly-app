@@ -1,72 +1,82 @@
-# Demoly
-
-> **Just Demo It.** — Create and share interactive web projects with AI.
-
-Demoly is a creative platform where anyone can build and share interactive web projects. Describe your idea, AI generates the code, and you share living, breathing web experiences with the world.
-
 <p align="center">
-  <img src="screenshots/discover.png" width="230" alt="Discover Feed" />
+  <img src="screenshots/discover.png" width="230" alt="Discover" />
   &nbsp;&nbsp;
-  <img src="screenshots/create.png" width="230" alt="AI Creation" />
+  <img src="screenshots/create.png" width="230" alt="Create" />
   &nbsp;&nbsp;
   <img src="screenshots/profile.png" width="230" alt="Profile" />
 </p>
 
+<h1 align="center">Demoly</h1>
+
+<p align="center">
+  <strong>Just Demo It.</strong><br/>
+  Create and share interactive web projects with AI.
+</p>
+
+<p align="center">
+  <a href="README.zh-CN.md">中文</a>
+</p>
+
+---
+
+Demoly is a creative platform where anyone can build and share interactive web projects — no coding skills needed. Describe your idea in plain language, AI generates real HTML/CSS/JS, and you publish a living, interactive experience for the world to explore.
+
 ## Features
 
-- **AI-Assisted Creation** — Describe what you want, AI builds it in real-time
-- **Interactive Content** — Every project is a live web page you can touch, click, and play with
-- **Discover Feed** — Browse a masonry feed of interactive creations from the community
-- **Social** — Like, collect, comment, and follow creators
-- **No Coding Required** — AI handles HTML, CSS, and JavaScript for you
+- **AI-Powered Creation** — Chat with AI to build interactive web projects in real time
+- **Interactive Content** — Every project is a live web page people can touch, click, and play with
+- **Discover Feed** — Browse a masonry grid of creations from the community
+- **Social** — Like, collect, comment, and follow your favorite creators
+- **Zero Coding Barrier** — AI handles all the HTML, CSS, and JavaScript
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
 | Platform | iOS / iPadOS |
-| UI Framework | SwiftUI |
-| Content Rendering | WKWebView |
+| UI | SwiftUI |
+| Rendering | WKWebView |
 | Code Editor | Runestone + Tree-sitter |
-| Authentication | Clerk (Apple Sign-In, Google Sign-In) |
+| Auth | Clerk (Apple, Google) |
 | Backend | Cloudflare Workers + Hono |
 | Database | Cloudflare D1 |
 | Storage | Cloudflare R2 |
-| Package Manager | Swift Package Manager |
+| Packages | Swift Package Manager |
 
 ## Getting Started
 
-### Prerequisites
+**Prerequisites:** Xcode 16.0+, iOS 18.0+ target
 
-- Xcode 16.0+
-- iOS 18.0+ deployment target
+```bash
+git clone https://github.com/BingoWon/demoly-app.git
+cd demoly-app
+open Demoly.xcodeproj
+```
 
-### Setup
-
-1. Clone the repository
-2. Open `Demoly.xcodeproj` in Xcode
-3. Copy `Config/Debug.xcconfig.example` to `Config/Debug.xcconfig` and fill in your keys
-4. Build and run
+Fill in your API keys in `Config/Debug.xcconfig`, then build and run.
 
 ## Project Structure
 
 ```
-demoly-app/
-├── Demoly/                    # Main app target
-│   ├── DemolyApp.swift        # App entry point
-│   ├── Models/                # Data models
-│   ├── Services/              # API & AI services
-│   ├── ViewModels/            # View models
-│   └── Views/                 # SwiftUI views
-│       ├── Create/            # AI creation flow
-│       ├── Feed/              # Discover feed
-│       ├── Profile/           # User profile
-│       └── Share/             # Share sheet
-├── Config/                    # Build configurations
-├── SupportingFiles/           # Info.plist
-└── screenshots/               # App screenshots
+Demoly/
+├── Models/            # Data models
+├── Services/          # API & AI services
+├── ViewModels/        # View models
+└── Views/
+    ├── Create/        # AI creation flow
+    ├── Feed/          # Discover feed
+    ├── Profile/       # User profile & settings
+    └── Share/         # Share sheet
 ```
 
-## License
+## Contributing
 
-Copyright © 2026 Demoly. All rights reserved.
+Contributions are welcome! Feel free to open an issue or submit a pull request.
+
+1. Fork the repository
+2. Create your branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+Please follow [Conventional Commits](https://www.conventionalcommits.org/) for commit messages.
