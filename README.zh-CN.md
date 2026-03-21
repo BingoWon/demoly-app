@@ -15,11 +15,7 @@
 </p>
 
 <p align="center">
-  <a href="https://apps.apple.com/app/demoly">
-    <img src="https://img.shields.io/badge/App_Store-0D96F6?style=flat&logo=app-store&logoColor=white" alt="App Store" />
-  </a>
-  &nbsp;
-  <a href="README.md">English</a>
+  <a href="README.md">English</a> · <a href="README.zh-CN.md"><strong>中文</strong></a>
 </p>
 
 <br />
@@ -50,7 +46,7 @@ Demoly 是一个 iOS 创意平台，让每个人都能创作和分享可交互�
 
 ## 技术栈
 
-| | |
+| 层面 | 技术 |
 |---|---|
 | **客户端** | SwiftUI · WKWebView · Runestone · Tree-sitter |
 | **后端** | Cloudflare Workers · Hono · D1 · R2 |

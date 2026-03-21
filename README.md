@@ -15,11 +15,7 @@
 </p>
 
 <p align="center">
-  <a href="https://apps.apple.com/app/demoly">
-    <img src="https://img.shields.io/badge/App_Store-0D96F6?style=flat&logo=app-store&logoColor=white" alt="App Store" />
-  </a>
-  &nbsp;
-  <a href="README.zh-CN.md">简体中文</a>
+  <a href="README.md"><strong>English</strong></a> · <a href="README.zh-CN.md">中文</a>
 </p>
 
 <br />
@@ -50,7 +46,7 @@ Demoly is a creative platform for iOS where anyone can build and share interacti
 
 ## Tech Stack
 
-| | |
+| Layer | Technology |
 |---|---|
 | **App** | SwiftUI · WKWebView · Runestone · Tree-sitter |
 | **Backend** | Cloudflare Workers · Hono · D1 · R2 |
