@@ -145,14 +145,10 @@ final class AIService {
 
     enum AIError: LocalizedError {
         case unauthorized
-        case invalidResponse
-        case serverError(Int)
 
         var errorDescription: String? {
             switch self {
             case .unauthorized: "Please sign in to use AI"
-            case .invalidResponse: "Invalid server response"
-            case .serverError(let code): "Server error: \(code)"
             }
         }
     }
