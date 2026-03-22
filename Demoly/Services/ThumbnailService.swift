@@ -6,35 +6,12 @@
 import UIKit
 import WebKit
 
+/// Fixed aspect ratio matching the web frontend (iPhone portrait 9:19.5)
+let thumbnailAspectRatio: CGFloat = 9.0 / 19.5
+
 struct ThumbnailUploadResult {
     let url: String
     let aspectRatio: CGFloat
-}
-
-enum ThumbnailAspectRatio: String, CaseIterable, Identifiable {
-    case portrait = "3:4"
-    case square = "1:1"
-    case landscape = "4:3"
-
-    var id: String {
-        rawValue
-    }
-
-    var ratio: CGFloat {
-        switch self {
-        case .portrait: 3.0 / 4.0
-        case .square: 1.0
-        case .landscape: 4.0 / 3.0
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .portrait: "rectangle.portrait"
-        case .square: "square"
-        case .landscape: "rectangle"
-        }
-    }
 }
 
 actor ThumbnailService {
@@ -44,19 +21,21 @@ actor ThumbnailService {
 
     private init() {}
 
-    // MARK: - Public API
+    // MARK: - Auto-capture + upload (called from save)
 
     @MainActor
-    func capture(from webView: WKWebView, aspectRatio: ThumbnailAspectRatio) async throws -> UIImage {
+    func captureAndUpload(from webView: WKWebView, projectId: String) async throws -> ThumbnailUploadResult {
         let screenshot = try await captureScreenshot(from: webView)
-        return Self.cropToRatio(screenshot, targetRatio: aspectRatio.ratio)
+        let cropped = Self.cropToRatio(screenshot, targetRatio: thumbnailAspectRatio)
+        return try await upload(image: cropped, projectId: projectId)
     }
 
-    func upload(image: UIImage, projectId: String) async throws -> ThumbnailUploadResult {
-        let cropped = Self.cropToValidRatio(image)
-        let aspectRatio = cropped.size.width / cropped.size.height
+    // MARK: - Upload
 
-        guard let data = cropped.jpegData(compressionQuality: 0.8) else {
+    func upload(image: UIImage, projectId: String) async throws -> ThumbnailUploadResult {
+        let ratio = image.size.width / image.size.height
+
+        guard let data = image.jpegData(compressionQuality: 0.8) else {
             throw ThumbnailError.compressionFailed
         }
 
@@ -70,13 +49,13 @@ actor ThumbnailService {
             fileData: data,
             fileName: "\(projectId).jpg",
             mimeType: "image/jpeg",
-            extraFields: ["aspectRatio": "\(aspectRatio)"]
+            extraFields: ["aspectRatio": "\(ratio)"]
         )
 
         let response = try JSONDecoder().decode(UploadResponse.self, from: responseData)
         return ThumbnailUploadResult(
             url: response.url,
-            aspectRatio: CGFloat(response.aspectRatio ?? Double(aspectRatio))
+            aspectRatio: CGFloat(response.aspectRatio ?? Double(ratio))
         )
     }
 
@@ -100,16 +79,7 @@ actor ThumbnailService {
         }
     }
 
-    // MARK: - Aspect Ratio Cropping
-
-    static func cropToValidRatio(_ image: UIImage) -> UIImage {
-        let minRatio: CGFloat = 3.0 / 4.0
-        let maxRatio: CGFloat = 4.0 / 3.0
-        let currentRatio = image.size.width / image.size.height
-        if currentRatio >= minRatio && currentRatio <= maxRatio { return image }
-        let targetRatio = currentRatio < minRatio ? minRatio : maxRatio
-        return cropToRatio(image, targetRatio: targetRatio)
-    }
+    // MARK: - Cropping
 
     static func cropToRatio(_ image: UIImage, targetRatio: CGFloat) -> UIImage {
         let originalSize = image.size
@@ -143,14 +113,12 @@ actor ThumbnailService {
         case captureFailed(Error)
         case noImage
         case compressionFailed
-        case notAuthenticated
 
         var errorDescription: String? {
             switch self {
             case .captureFailed(let error): "Failed to capture: \(error.localizedDescription)"
             case .noImage: "No image captured"
             case .compressionFailed: "Failed to compress image"
-            case .notAuthenticated: "Please sign in"
             }
         }
     }

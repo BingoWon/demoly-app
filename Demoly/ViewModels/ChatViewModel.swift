@@ -55,6 +55,8 @@ final class ChatViewModel {
     private var pendingReasoning = ""
     private var debounceTask: Task<Void, Never>?
     private let debounceInterval: UInt64 = 50_000_000
+    private var toolCallDepth = 0
+    private let maxToolCallDepth = 10
 
     // MARK: - System Prompt
 
@@ -338,6 +340,7 @@ final class ChatViewModel {
         accumulatedReasoning = ""
         streamingToolCalls = [:]
         currentThinkingIndex = nil
+        toolCallDepth = 0
 
         currentMessageIndex = messages.count
         var newMessage = ChatMessage(role: .assistant)
@@ -682,6 +685,13 @@ final class ChatViewModel {
     }
 
     private func continueAfterToolCalls() async {
+        toolCallDepth += 1
+        if toolCallDepth >= maxToolCallDepth {
+            print("[ChatVM] Tool call recursion limit reached (\(maxToolCallDepth))")
+            finalizeCurrentMessage()
+            return
+        }
+
         pendingContent = ""
         pendingReasoning = ""
         accumulatedReasoning = ""

@@ -56,12 +56,10 @@ final class ProjectEditorViewModel {
         didSet { if isPublished != oldValue { markDirty() } }
     }
 
-    // MARK: - Thumbnail
+    // MARK: - Thumbnail (auto-managed)
 
     var thumbnailUrl: String?
     var thumbnailAspectRatio: CGFloat?
-    var thumbnailImage: UIImage?
-    var isCapturingThumbnail = false
 
     weak var previewWebView: WKWebView?
 
@@ -100,48 +98,6 @@ final class ProjectEditorViewModel {
         projectId == nil
     }
 
-    var hasThumbnail: Bool {
-        thumbnailUrl != nil || thumbnailImage != nil
-    }
-
-    var smallThumbnailURL: URL? {
-        guard let thumbnailUrl else { return nil }
-        if thumbnailUrl.hasPrefix("http") { return URL(string: thumbnailUrl) }
-        return URL(string: "\(Config.hostURL)\(thumbnailUrl)")
-    }
-
-    // MARK: - Thumbnail Actions
-
-    func captureThumbnail(aspectRatio: ThumbnailAspectRatio) async {
-        guard let webView = previewWebView else { return }
-
-        isCapturingThumbnail = true
-        defer { isCapturingThumbnail = false }
-
-        do {
-            let cropped = try await ThumbnailService.shared.capture(from: webView, aspectRatio: aspectRatio)
-            thumbnailImage = cropped
-            thumbnailAspectRatio = cropped.size.width / cropped.size.height
-            isDirty = true
-        } catch {
-            saveError = error
-        }
-    }
-
-    func setThumbnail(image: UIImage, aspectRatio: ThumbnailAspectRatio) {
-        let cropped = ThumbnailService.cropToRatio(image, targetRatio: aspectRatio.ratio)
-        thumbnailImage = cropped
-        thumbnailAspectRatio = cropped.size.width / cropped.size.height
-        isDirty = true
-    }
-
-    func removeThumbnail() {
-        thumbnailImage = nil
-        thumbnailUrl = nil
-        thumbnailAspectRatio = nil
-        isDirty = true
-    }
-
     // MARK: - Save
 
     func save() async {
@@ -175,11 +131,15 @@ final class ProjectEditorViewModel {
                 projectId = effectiveProjectId
             }
 
-            if let image = thumbnailImage {
-                let result = try await ThumbnailService.shared.upload(image: image, projectId: effectiveProjectId)
-                thumbnailUrl = result.url
-                thumbnailAspectRatio = result.aspectRatio
-                thumbnailImage = nil
+            // Auto-capture thumbnail from preview after save
+            if let webView = previewWebView {
+                do {
+                    let result = try await ThumbnailService.shared.captureAndUpload(from: webView, projectId: effectiveProjectId)
+                    thumbnailUrl = result.url
+                    thumbnailAspectRatio = result.aspectRatio
+                } catch {
+                    print("[ProjectEditor] Thumbnail auto-capture failed: \(error.localizedDescription)")
+                }
             }
 
             isDirty = false
@@ -210,7 +170,6 @@ final class ProjectEditorViewModel {
         isPublished = false
         thumbnailUrl = nil
         thumbnailAspectRatio = nil
-        thumbnailImage = nil
         isDirty = false
         lastSaved = nil
         saveError = nil
@@ -236,7 +195,6 @@ final class ProjectEditorViewModel {
         isPublished = project.isPublished
         thumbnailUrl = project.thumbnailUrl
         thumbnailAspectRatio = project.thumbnailAspectRatio
-        thumbnailImage = nil
         lastSaved = project.updatedAt
     }
 

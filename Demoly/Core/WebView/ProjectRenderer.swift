@@ -40,7 +40,7 @@ enum ProjectRenderer {
         </head>
         <body>
             \(html)
-            <script>\(javascript)</script>
+            <script>\(javascript.replacingOccurrences(of: "</script", with: "<\\/script", options: .caseInsensitive))</script>
         </body>
         </html>
         """

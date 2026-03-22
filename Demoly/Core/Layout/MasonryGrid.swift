@@ -59,11 +59,6 @@ struct MasonryGrid<Item: Identifiable, Content: View>: View {
 // MARK: - Project-specific convenience initializers
 
 extension MasonryGrid where Item == Project {
-    /// Default aspect ratio when thumbnail_aspect_ratio is not set
-    private static var defaultAspectRatio: CGFloat {
-        0.75
-    }  // 3:4 portrait
-
     /// Discover page: 2 columns with title and creator info
     init(
         projects: [Project],
@@ -76,11 +71,10 @@ extension MasonryGrid where Item == Project {
             columns: 2,
             spacing: spacing,
             content: content,
-            heightProvider: { project in
-                let ratio = max(project.thumbnailAspectRatio ?? Self.defaultAspectRatio, 0.1)
+            heightProvider: { _ in
                 let safeColumnWidth = max(columnWidth, 1)
-                let imageHeight = safeColumnWidth / ratio
-                let infoHeight: CGFloat = 60  // Title + creator info
+                let imageHeight = safeColumnWidth / thumbnailAspectRatio
+                let infoHeight: CGFloat = 60
                 return imageHeight + infoHeight
             }
         )
@@ -99,10 +93,9 @@ extension MasonryGrid where Item == Project {
             columns: columns,
             spacing: spacing,
             content: content,
-            heightProvider: { project in
-                let ratio = max(project.thumbnailAspectRatio ?? Self.defaultAspectRatio, 0.1)
+            heightProvider: { _ in
                 let safeColumnWidth = max(columnWidth, 1)
-                return safeColumnWidth / ratio
+                return safeColumnWidth / thumbnailAspectRatio
             }
         )
     }

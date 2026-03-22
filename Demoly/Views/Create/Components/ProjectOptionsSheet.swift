@@ -5,7 +5,6 @@
 //  Sheet for editing project metadata and visibility
 //
 
-import PhotosUI
 import SwiftUI
 
 struct ProjectOptionsSheet: View {
@@ -15,9 +14,7 @@ struct ProjectOptionsSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var tagInput = ""
     @State private var showDeleteConfirmation = false
-    @State private var selectedPhoto: PhotosPickerItem?
     @State private var isSaving = false
-    @State private var selectedAspectRatio: ThumbnailAspectRatio = .portrait
 
     var body: some View {
         NavigationStack {
@@ -61,11 +58,6 @@ struct ProjectOptionsSheet: View {
                 } message: {
                     Text("This will permanently delete your project, including all code and chat history. This action cannot be undone.")
                 }
-                .onChange(of: selectedPhoto) { _, newItem in
-                    Task {
-                        await loadSelectedPhoto(newItem)
-                    }
-                }
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
@@ -75,21 +67,12 @@ struct ProjectOptionsSheet: View {
 
     private var formContent: some View {
         Form {
-            thumbnailSection
             detailsSection
             tagsSection
             visibilitySection
             modelSection
             contextSection
             dangerSection
-        }
-    }
-
-    private var thumbnailSection: some View {
-        Section {
-            thumbnailEditor
-        } header: {
-            Label("Thumbnail", systemImage: "photo")
         }
     }
 
@@ -169,136 +152,6 @@ struct ProjectOptionsSheet: View {
         }
     }
 
-    // MARK: - Thumbnail Editor
-
-    private var captureDisabled: Bool {
-        projectEditor.previewWebView == nil || !projectEditor.hasCustomCode || projectEditor.isCapturingThumbnail
-    }
-
-    private var thumbnailEditor: some View {
-        VStack(spacing: 16) {
-            thumbnailPreview
-            aspectRatioSelector
-            captureButtons
-            captureHint
-            removeButton
-        }
-    }
-
-    private var aspectRatioSelector: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Aspect Ratio")
-                .font(.system(size: 13))
-                .foregroundStyle(.secondary)
-
-            HStack(spacing: 8) {
-                ForEach(ThumbnailAspectRatio.allCases) { ratio in
-                    AspectRatioButton(ratio: ratio, isSelected: selectedAspectRatio == ratio) {
-                        selectedAspectRatio = ratio
-                    }
-                }
-            }
-        }
-    }
-
-    private var captureButtons: some View {
-        VStack(spacing: 8) {
-            Button {
-                Task { await projectEditor.captureThumbnail(aspectRatio: selectedAspectRatio) }
-            } label: {
-                Label("Capture from Preview", systemImage: "camera.viewfinder")
-                    .font(.system(size: 14, weight: .medium))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(captureDisabled ? Color.secondaryBackground.opacity(0.5) : Color.brand.opacity(0.2))
-                    .foregroundStyle(captureDisabled ? Color.secondary : Color.brand)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-            }
-            .buttonStyle(.plain)
-            .disabled(captureDisabled)
-
-            PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                Label("Upload from Photos", systemImage: "photo.on.rectangle")
-                    .font(.system(size: 14, weight: .medium))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(Color.secondaryBackground)
-                    .foregroundStyle(.primary)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
-    @ViewBuilder
-    private var captureHint: some View {
-        if captureDisabled, !projectEditor.isCapturingThumbnail {
-            Text("Visit Preview tab first to enable capture")
-                .font(.system(size: 12))
-                .foregroundStyle(.tertiary)
-        }
-    }
-
-    @ViewBuilder
-    private var removeButton: some View {
-        if projectEditor.hasThumbnail {
-            Button(role: .destructive) {
-                projectEditor.removeThumbnail()
-            } label: {
-                Text("Remove Thumbnail")
-                    .font(.system(size: 13))
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var thumbnailPreview: some View {
-        if projectEditor.hasThumbnail || projectEditor.isCapturingThumbnail {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.secondaryBackground.opacity(0.5))
-
-                if let image = projectEditor.thumbnailImage {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFill()
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                } else if let url = projectEditor.smallThumbnailURL {
-                    CachedThumbnail(url: url) {
-                        ProgressView().tint(.secondary)
-                    }
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-
-                if projectEditor.isCapturingThumbnail {
-                    Color.black.opacity(0.5)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    ProgressView()
-                        .tint(.white)
-                }
-            }
-            .aspectRatio(selectedAspectRatio.ratio, contentMode: .fit)
-            .frame(maxWidth: 180)
-            .frame(maxWidth: .infinity)
-        }
-    }
-
-    private func loadSelectedPhoto(_ item: PhotosPickerItem?) async {
-        guard let item else { return }
-
-        do {
-            if let data = try await item.loadTransferable(type: Data.self),
-                let image = UIImage(data: data)
-            {
-                projectEditor.setThumbnail(image: image, aspectRatio: selectedAspectRatio)
-            }
-        } catch {
-            print("Failed to load photo: \(error)")
-        }
-
-        selectedPhoto = nil
-    }
-
     // MARK: - AI Model Picker
 
     private var modelPicker: some View {
@@ -314,23 +167,19 @@ struct ProjectOptionsSheet: View {
 
     private var contextWindowView: some View {
         VStack(spacing: 12) {
-            // Progress bar with segments
             GeometryReader { geo in
                 let usedWidth = geo.size.width * min(chatViewModel.usagePercentage, 1.0)
                 let bufferStart = geo.size.width * (Double(ChatViewModel.usableLimit) / Double(ChatViewModel.contextLimit))
 
                 ZStack(alignment: .leading) {
-                    // Background
                     RoundedRectangle(cornerRadius: 4)
                         .fill(Color.secondaryBackground)
 
-                    // Buffer zone indicator
                     RoundedRectangle(cornerRadius: 4)
                         .fill(Color.secondaryBackground.opacity(0.5))
                         .frame(width: geo.size.width - bufferStart)
                         .offset(x: bufferStart)
 
-                    // Used portion
                     RoundedRectangle(cornerRadius: 4)
                         .fill(contextColor(for: chatViewModel.usagePercentage))
                         .frame(width: max(usedWidth, 0))
@@ -338,7 +187,6 @@ struct ProjectOptionsSheet: View {
             }
             .frame(height: 8)
 
-            // Stats grid
             HStack(spacing: 0) {
                 statItem(
                     label: "Used",
@@ -454,35 +302,6 @@ struct ProjectOptionsSheet: View {
         guard !tag.isEmpty, !projectEditor.tags.contains(tag) else { return }
         projectEditor.tags.append(tag)
         tagInput = ""
-    }
-}
-
-// MARK: - Aspect Ratio Button
-
-private struct AspectRatioButton: View {
-    let ratio: ThumbnailAspectRatio
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                Image(systemName: ratio.icon)
-                    .font(.system(size: 18))
-                Text(ratio.rawValue)
-                    .font(.system(size: 11, weight: .medium))
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 10)
-            .background(isSelected ? Color.brand.opacity(0.2) : Color.secondaryBackground)
-            .foregroundStyle(isSelected ? Color.brand : .secondary)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(isSelected ? Color.brand : Color.clear, lineWidth: 1.5)
-            )
-        }
-        .buttonStyle(.plain)
     }
 }
 
