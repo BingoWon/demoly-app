@@ -142,7 +142,7 @@ struct ProjectGridCell: View {
     let columnWidth: CGFloat
 
     private var imageHeight: CGFloat {
-        max(columnWidth / thumbnailAspectRatio, 1)
+        max(columnWidth / Thumbnail.aspectRatio, 1)
     }
 
     var body: some View {

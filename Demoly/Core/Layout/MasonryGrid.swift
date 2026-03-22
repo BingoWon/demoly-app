@@ -2,7 +2,9 @@
 //  MasonryGrid.swift
 //  Demoly
 //
-//  Waterfall/Masonry grid layout (Xiaohongshu style)
+//  Column-based grid layout. Currently all items share a fixed 9:19.5
+//  aspect ratio, producing uniform-height columns. The greedy shortest-column
+//  algorithm is retained for future support of variable-height items.
 //
 
 import SwiftUI
@@ -73,7 +75,7 @@ extension MasonryGrid where Item == Project {
             content: content,
             heightProvider: { _ in
                 let safeColumnWidth = max(columnWidth, 1)
-                let imageHeight = safeColumnWidth / thumbnailAspectRatio
+                let imageHeight = safeColumnWidth / Thumbnail.aspectRatio
                 let infoHeight: CGFloat = 60
                 return imageHeight + infoHeight
             }
@@ -95,7 +97,7 @@ extension MasonryGrid where Item == Project {
             content: content,
             heightProvider: { _ in
                 let safeColumnWidth = max(columnWidth, 1)
-                return safeColumnWidth / thumbnailAspectRatio
+                return safeColumnWidth / Thumbnail.aspectRatio
             }
         )
     }

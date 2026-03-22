@@ -6,42 +6,38 @@
 import UIKit
 import WebKit
 
-/// Fixed aspect ratio matching the web frontend (iPhone portrait 9:19.5)
-let thumbnailAspectRatio: CGFloat = 9.0 / 19.5
+// MARK: - Constants
 
-struct ThumbnailUploadResult {
-    let url: String
-    let aspectRatio: CGFloat
+enum Thumbnail {
+    /// Fixed aspect ratio matching the web frontend (iPhone portrait 9:19.5)
+    static let aspectRatio: CGFloat = 9.0 / 19.5
 }
 
-actor ThumbnailService {
+// MARK: - Service
+
+@MainActor
+final class ThumbnailService {
     static let shared = ThumbnailService()
 
     private let api = APIClient.shared
 
     private init() {}
 
-    // MARK: - Auto-capture + upload (called from save)
+    // MARK: - Public API
 
-    @MainActor
-    func captureAndUpload(from webView: WKWebView, projectId: String) async throws -> ThumbnailUploadResult {
+    func captureAndUpload(from webView: WKWebView, projectId: String) async throws -> UploadResult {
         let screenshot = try await captureScreenshot(from: webView)
-        let cropped = Self.cropToRatio(screenshot, targetRatio: thumbnailAspectRatio)
+        let cropped = Self.cropToRatio(screenshot, targetRatio: Thumbnail.aspectRatio)
         return try await upload(image: cropped, projectId: projectId)
     }
 
-    // MARK: - Upload
+    // MARK: - Upload (internal)
 
-    func upload(image: UIImage, projectId: String) async throws -> ThumbnailUploadResult {
+    private func upload(image: UIImage, projectId: String) async throws -> UploadResult {
         let ratio = image.size.width / image.size.height
 
         guard let data = image.jpegData(compressionQuality: 0.8) else {
-            throw ThumbnailError.compressionFailed
-        }
-
-        struct UploadResponse: Decodable {
-            let url: String
-            let aspectRatio: Double?
+            throw Error.compressionFailed
         }
 
         let responseData = try await api.upload(
@@ -53,15 +49,14 @@ actor ThumbnailService {
         )
 
         let response = try JSONDecoder().decode(UploadResponse.self, from: responseData)
-        return ThumbnailUploadResult(
+        return UploadResult(
             url: response.url,
             aspectRatio: CGFloat(response.aspectRatio ?? Double(ratio))
         )
     }
 
-    // MARK: - Screenshot Capture
+    // MARK: - Screenshot
 
-    @MainActor
     private func captureScreenshot(from webView: WKWebView) async throws -> UIImage {
         try await withCheckedThrowingContinuation { continuation in
             let config = WKSnapshotConfiguration()
@@ -69,11 +64,11 @@ actor ThumbnailService {
 
             webView.takeSnapshot(with: config) { image, error in
                 if let error {
-                    continuation.resume(throwing: ThumbnailError.captureFailed(error))
+                    continuation.resume(throwing: Error.captureFailed(error))
                 } else if let image {
                     continuation.resume(returning: image)
                 } else {
-                    continuation.resume(throwing: ThumbnailError.noImage)
+                    continuation.resume(throwing: Error.noImage)
                 }
             }
         }
@@ -82,18 +77,16 @@ actor ThumbnailService {
     // MARK: - Cropping
 
     static func cropToRatio(_ image: UIImage, targetRatio: CGFloat) -> UIImage {
-        let originalSize = image.size
-        let originalRatio = originalSize.width / originalSize.height
+        let size = image.size
+        let ratio = size.width / size.height
 
         var cropRect: CGRect
-        if originalRatio > targetRatio {
-            let newWidth = originalSize.height * targetRatio
-            let xOffset = (originalSize.width - newWidth) / 2
-            cropRect = CGRect(x: xOffset, y: 0, width: newWidth, height: originalSize.height)
+        if ratio > targetRatio {
+            let w = size.height * targetRatio
+            cropRect = CGRect(x: (size.width - w) / 2, y: 0, width: w, height: size.height)
         } else {
-            let newHeight = originalSize.width / targetRatio
-            let yOffset = (originalSize.height - newHeight) / 2
-            cropRect = CGRect(x: 0, y: yOffset, width: originalSize.width, height: newHeight)
+            let h = size.width / targetRatio
+            cropRect = CGRect(x: 0, y: (size.height - h) / 2, width: size.width, height: h)
         }
 
         cropRect = CGRect(
@@ -107,10 +100,20 @@ actor ThumbnailService {
         return UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
     }
 
-    // MARK: - Errors
+    // MARK: - Types
 
-    enum ThumbnailError: LocalizedError {
-        case captureFailed(Error)
+    struct UploadResult {
+        let url: String
+        let aspectRatio: CGFloat
+    }
+
+    private struct UploadResponse: Decodable {
+        let url: String
+        let aspectRatio: Double?
+    }
+
+    enum Error: LocalizedError {
+        case captureFailed(Swift.Error)
         case noImage
         case compressionFailed
 

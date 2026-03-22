@@ -100,7 +100,10 @@ final class ProjectEditorViewModel {
 
     // MARK: - Save
 
-    func save() async {
+    /// - Parameter captureThumbnail: When `true`, captures and uploads a thumbnail
+    ///   from the preview WebView after saving. Skipped during auto-save to avoid
+    ///   excessive screenshot + upload cycles during rapid editing.
+    func save(captureThumbnail: Bool = true) async {
         guard hasContent, Clerk.shared.user != nil else { return }
 
         isSaving = true
@@ -131,14 +134,13 @@ final class ProjectEditorViewModel {
                 projectId = effectiveProjectId
             }
 
-            // Auto-capture thumbnail from preview after save
-            if let webView = previewWebView {
+            if captureThumbnail, let webView = previewWebView {
                 do {
                     let result = try await ThumbnailService.shared.captureAndUpload(from: webView, projectId: effectiveProjectId)
                     thumbnailUrl = result.url
                     thumbnailAspectRatio = result.aspectRatio
                 } catch {
-                    print("[ProjectEditor] Thumbnail auto-capture failed: \(error.localizedDescription)")
+                    print("[ProjectEditor] Thumbnail capture failed: \(error.localizedDescription)")
                 }
             }
 
@@ -213,7 +215,7 @@ final class ProjectEditorViewModel {
             do {
                 try await Task.sleep(nanoseconds: autoSaveDelay)
                 guard !Task.isCancelled, hasContent, isDirty, !isSaving else { return }
-                await save()
+                await save(captureThumbnail: false)
             } catch {}
         }
     }

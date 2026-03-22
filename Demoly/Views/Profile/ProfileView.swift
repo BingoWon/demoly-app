@@ -136,7 +136,7 @@ struct ProfileProjectCell: View {
     var showDraftBadge = false
 
     private var imageHeight: CGFloat {
-        max(columnWidth / thumbnailAspectRatio, 1)
+        max(columnWidth / Thumbnail.aspectRatio, 1)
     }
 
     var body: some View {

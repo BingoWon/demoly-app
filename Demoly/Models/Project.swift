@@ -14,6 +14,7 @@ nonisolated struct Project: Identifiable, Equatable, Hashable, @unchecked Sendab
     var cssContent: String?
     var jsContent: String?
     var thumbnailUrl: String?
+    /// Stored for backend compatibility; display uses `Thumbnail.aspectRatio`.
     var thumbnailAspectRatio: CGFloat?
     var tags: [String]?
     var chatMessages: [[String: Any]]?
