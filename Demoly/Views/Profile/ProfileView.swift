@@ -63,7 +63,11 @@ struct ProfileContentView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let columnWidth = max((geometry.size.width - 8) / 3, 1)
+            let (columns, columnWidth) = GridMetrics.compute(
+                width: geometry.size.width,
+                minColumnWidth: 120,
+                spacing: 2
+            )
 
             ScrollView {
                 VStack(spacing: 8) {
@@ -79,7 +83,7 @@ struct ProfileContentView: View {
                         followingCount: userProfile.followingCount
                     )
 
-                    projectGrid(columnWidth: columnWidth)
+                    projectGrid(columns: columns, columnWidth: columnWidth)
                 }
             }
             .refreshable { await userProfile.refresh() }
@@ -112,14 +116,19 @@ struct ProfileContentView: View {
     // MARK: - Project Grid
 
     @ViewBuilder
-    private func projectGrid(columnWidth: CGFloat) -> some View {
+    private func projectGrid(columns: Int, columnWidth: CGFloat) -> some View {
         if userProfile.projects.isEmpty {
             ContentUnavailableView {
                 Label("No projects created yet", systemImage: "square.grid.2x2")
             }
             .padding(.vertical, 40)
         } else {
-            MasonryGrid(projects: userProfile.projects, columnWidth: columnWidth, columns: 3, spacing: 2) { project in
+            MasonryGrid(
+                projects: userProfile.projects,
+                columns: columns,
+                columnWidth: columnWidth,
+                spacing: 2
+            ) { project in
                 ProfileProjectCell(project: project, columnWidth: columnWidth, showDraftBadge: !project.isPublished)
                     .onTapGesture { editProject(project) }
             }

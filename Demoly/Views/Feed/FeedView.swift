@@ -52,7 +52,11 @@ struct FeedView: View {
 
     private var gridView: some View {
         GeometryReader { geometry in
-            let columnWidth = max((geometry.size.width - 12) / 2, 1)
+            let (columns, columnWidth) = GridMetrics.compute(
+                width: geometry.size.width,
+                minColumnWidth: 170,
+                spacing: 4
+            )
 
             ScrollViewReader { proxy in
                 ScrollView {
@@ -71,11 +75,15 @@ struct FeedView: View {
                     } else if feed.isEmpty, !isAutoRefreshing {
                         emptyState
                     } else {
-                        MasonryGrid(projects: feed.projects, columnWidth: columnWidth, spacing: 4) { project in
+                        MasonryGrid(
+                            projects: feed.projects,
+                            columns: columns,
+                            columnWidth: columnWidth,
+                            infoHeight: 60,
+                            spacing: 4
+                        ) { project in
                             ProjectGridCell(project: project, columnWidth: columnWidth)
-                                .onTapGesture {
-                                    selectedProject = project
-                                }
+                                .onTapGesture { selectedProject = project }
                         }
                         .padding(.top, 4)
                     }

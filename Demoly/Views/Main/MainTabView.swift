@@ -76,6 +76,7 @@ struct MainTabView: View {
                     }
                 }
             }
+            .tabViewStyle(.sidebarAdaptable)
             .tabBarMinimizeBehavior(.onScrollDown)
         } else {
             TabView(selection: $selectedTab) {

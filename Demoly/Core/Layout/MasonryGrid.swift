@@ -2,12 +2,34 @@
 //  MasonryGrid.swift
 //  Demoly
 //
-//  Column-based grid layout. Currently all items share a fixed 9:19.5
-//  aspect ratio, producing uniform-height columns. The greedy shortest-column
-//  algorithm is retained for future support of variable-height items.
+//  Adaptive column-based grid layout. Column count auto-scales with available
+//  width, mirroring the web frontend's CSS `columns-[220px]` behavior. The
+//  greedy shortest-column algorithm is retained for variable-height support.
 //
 
 import SwiftUI
+
+// MARK: - Grid Metrics
+
+/// Computes adaptive column count and width from available space.
+enum GridMetrics {
+    /// Compute optimal column layout for given constraints.
+    ///
+    /// The formula accounts for `MasonryGrid`'s `padding(.horizontal, spacing)`
+    /// plus inter-column gaps: `width = columns × columnWidth + (columns+1) × spacing`.
+    static func compute(
+        width: CGFloat,
+        minColumnWidth: CGFloat,
+        spacing: CGFloat
+    ) -> (columns: Int, columnWidth: CGFloat) {
+        guard width > 0, minColumnWidth > 0 else { return (1, max(width, 1)) }
+        let n = max(Int((width - spacing) / (minColumnWidth + spacing)), 1)
+        let cw = max((width - CGFloat(n + 1) * spacing) / CGFloat(n), 1)
+        return (n, cw)
+    }
+}
+
+// MARK: - MasonryGrid
 
 struct MasonryGrid<Item: Identifiable, Content: View>: View {
     let items: [Item]
@@ -58,36 +80,20 @@ struct MasonryGrid<Item: Identifiable, Content: View>: View {
     }
 }
 
-// MARK: - Project-specific convenience initializers
+// MARK: - Project convenience initializer
 
 extension MasonryGrid where Item == Project {
-    /// Discover page: 2 columns with title and creator info
+    /// Adaptive project grid — pass pre-computed `columns` and `columnWidth`
+    /// from `GridMetrics.compute(width:minColumnWidth:spacing:)`.
+    ///
+    /// - Parameter infoHeight: Extra height below thumbnail (e.g. 60 for
+    ///   title + creator row, 0 for thumbnail-only grids).
     init(
         projects: [Project],
-        columnWidth: CGFloat,
-        spacing: CGFloat = 4,
-        @ViewBuilder content: @escaping (Project) -> Content
-    ) {
-        self.init(
-            items: projects,
-            columns: 2,
-            spacing: spacing,
-            content: content,
-            heightProvider: { _ in
-                let safeColumnWidth = max(columnWidth, 1)
-                let imageHeight = safeColumnWidth / Thumbnail.aspectRatio
-                let infoHeight: CGFloat = 60
-                return imageHeight + infoHeight
-            }
-        )
-    }
-
-    /// Profile page: custom columns, thumbnail only (no info)
-    init(
-        projects: [Project],
-        columnWidth: CGFloat,
         columns: Int,
-        spacing: CGFloat = 2,
+        columnWidth: CGFloat,
+        infoHeight: CGFloat = 0,
+        spacing: CGFloat = 4,
         @ViewBuilder content: @escaping (Project) -> Content
     ) {
         self.init(
@@ -96,8 +102,7 @@ extension MasonryGrid where Item == Project {
             spacing: spacing,
             content: content,
             heightProvider: { _ in
-                let safeColumnWidth = max(columnWidth, 1)
-                return safeColumnWidth / Thumbnail.aspectRatio
+                columnWidth / Thumbnail.aspectRatio + infoHeight
             }
         )
     }

@@ -18,7 +18,11 @@ struct UserProfileView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let columnWidth = max((geometry.size.width - 8) / 3, 1)
+            let (columns, columnWidth) = GridMetrics.compute(
+                width: geometry.size.width,
+                minColumnWidth: 120,
+                spacing: 2
+            )
 
             ScrollView {
                 VStack(spacing: 8) {
@@ -33,7 +37,7 @@ struct UserProfileView: View {
 
                     actionButtons
 
-                    projectMasonryGrid(columnWidth: columnWidth)
+                    projectMasonryGrid(columns: columns, columnWidth: columnWidth)
                 }
             }
         }
@@ -69,7 +73,7 @@ struct UserProfileView: View {
 
     // MARK: - Project Masonry Grid
 
-    private func projectMasonryGrid(columnWidth: CGFloat) -> some View {
+    private func projectMasonryGrid(columns: Int, columnWidth: CGFloat) -> some View {
         Group {
             if viewModel.projects.isEmpty, !viewModel.isLoading {
                 ContentUnavailableView {
@@ -77,7 +81,12 @@ struct UserProfileView: View {
                 }
                 .padding(.vertical, 40)
             } else {
-                MasonryGrid(projects: viewModel.projects, columnWidth: columnWidth, columns: 3, spacing: 2) { project in
+                MasonryGrid(
+                    projects: viewModel.projects,
+                    columns: columns,
+                    columnWidth: columnWidth,
+                    spacing: 2
+                ) { project in
                     ProfileProjectCell(project: project, columnWidth: columnWidth)
                 }
                 .padding(.top, 2)
