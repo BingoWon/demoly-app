@@ -25,18 +25,8 @@ enum ProjectRenderer {
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
             <title>\(escapeHTML(title))</title>
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                html, body { 
-                    width: 100%; 
-                    height: 100dvh;
-                    overflow: hidden;
-                    background: #000;
-                    color: #fff;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                }
-                \(css)
-            </style>
+            <style>* { margin: 0; padding: 0; box-sizing: border-box; } html, body { width: 100%; height: 100dvh; overflow: hidden; background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }</style>
+            <style>\(css)</style>
         </head>
         <body>
             \(html)
