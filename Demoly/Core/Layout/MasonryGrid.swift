@@ -13,6 +13,10 @@ import SwiftUI
 
 /// Computes adaptive column count and width from available space.
 enum GridMetrics {
+    /// Minimum column width for the feed (Discover) grid.
+    static let feedMinColumnWidth: CGFloat = 170
+    static let feedSpacing: CGFloat = 4
+
     /// Compute optimal column layout for given constraints.
     ///
     /// The formula accounts for `MasonryGrid`'s `padding(.horizontal, spacing)`
@@ -26,6 +30,20 @@ enum GridMetrics {
         let n = max(Int((width - spacing) / (minColumnWidth + spacing)), 1)
         let cw = max((width - CGFloat(n + 1) * spacing) / CGFloat(n), 1)
         return (n, cw)
+    }
+
+    /// Column width for a known column count.
+    static func columnWidth(width: CGFloat, columns: Int, spacing: CGFloat) -> CGFloat {
+        guard columns > 0 else { return max(width, 1) }
+        return max((width - CGFloat(columns + 1) * spacing) / CGFloat(columns), 1)
+    }
+
+    /// Profile grid: always one more column than the feed at the same width.
+    static func profileLayout(width: CGFloat, spacing: CGFloat = 2) -> (columns: Int, columnWidth: CGFloat) {
+        let (feedCols, _) = compute(width: width, minColumnWidth: feedMinColumnWidth, spacing: feedSpacing)
+        let cols = feedCols + 1
+        let cw = columnWidth(width: width, columns: cols, spacing: spacing)
+        return (cols, cw)
     }
 }
 

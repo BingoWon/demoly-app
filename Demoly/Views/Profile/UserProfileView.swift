@@ -18,10 +18,8 @@ struct UserProfileView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let (columns, columnWidth) = GridMetrics.compute(
-                width: geometry.size.width,
-                minColumnWidth: 120,
-                spacing: 2
+            let (columns, columnWidth) = GridMetrics.profileLayout(
+                width: geometry.size.width
             )
 
             ScrollView {
