@@ -77,25 +77,21 @@ struct ProjectOptionsSheet: View {
     }
 
     private var detailsSection: some View {
-        Section {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Title")
-                    .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
+        Group {
+            Section {
                 TextField("Enter title", text: $projectEditor.title)
                     .font(.system(size: 16))
+            } header: {
+                Label("Title", systemImage: "character.cursor.ibeam")
             }
 
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Description")
-                    .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
+            Section {
                 TextField("Enter description", text: $projectEditor.description, axis: .vertical)
                     .font(.system(size: 16))
                     .lineLimit(3...6)
+            } header: {
+                Label("Description", systemImage: "text.alignleft")
             }
-        } header: {
-            Label("Details", systemImage: "doc.text")
         }
     }
 
