@@ -3,8 +3,8 @@
 //  Demoly
 //
 //  Adaptive column-based grid layout. Column count auto-scales with available
-//  width, mirroring the web frontend's CSS `columns-[220px]` behavior. The
-//  greedy shortest-column algorithm is retained for variable-height support.
+//  width using the same algorithm as the web frontend's CSS Grid. The greedy
+//  shortest-column algorithm is retained for variable-height support.
 //
 
 import SwiftUI
