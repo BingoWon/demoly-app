@@ -57,5 +57,6 @@ jobs:
           git tag "v${VERSION}"
           git push origin main --tags
 
+          NOTES=$(echo "${NOTES}" | sed 's/@\([a-zA-Z]\)/`@\1`/g')
           echo "${NOTES}" > /tmp/notes.md
           gh release create "v${VERSION}" --title "v${VERSION}" --notes-file /tmp/notes.md
