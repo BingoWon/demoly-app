@@ -4,7 +4,6 @@
 //
 
 import ClerkKit
-import ClerkKitUI
 import SwiftUI
 
 struct MainTabView: View {
@@ -31,7 +30,6 @@ struct MainTabView: View {
         tabContent
             .tint(.primary)
             .fullScreenCover(isPresented: $showingCreate) {
-                @Bindable var auth = authManager
                 NavigationStack {
                     CreateView(
                         projectEditor: projectEditor,
@@ -42,9 +40,6 @@ struct MainTabView: View {
                 }
                 .environment(authManager)
                 .tint(.primary)
-                .sheet(isPresented: $auth.showAuthSheet) {
-                    AuthView()
-                }
             }
             .task {
                 await loadUnreadCount()

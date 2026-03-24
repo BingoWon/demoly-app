@@ -45,6 +45,12 @@ actor UserService {
         return result.url
     }
 
+    // MARK: - Account
+
+    func deleteAccount() async throws {
+        try await api.delete("/me")
+    }
+
     // MARK: - Follow
 
     func follow(userId: String) async throws {

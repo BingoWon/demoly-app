@@ -11,6 +11,9 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppearanceSettings.self) private var appearance
     @State private var showLogoutConfirm = false
+    @State private var showDeleteConfirm = false
+    @State private var isDeleting = false
+    @State private var deleteError: String?
 
     var body: some View {
         @Bindable var appearance = appearance
@@ -110,12 +113,25 @@ struct SettingsView: View {
                     Label("About", systemImage: "info.circle")
                 }
 
-                Section {
-                    Button {
-                        showLogoutConfirm = true
-                    } label: {
-                        Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
-                            .foregroundStyle(.red)
+                if Clerk.shared.user != nil {
+                    Section {
+                        Button {
+                            showLogoutConfirm = true
+                        } label: {
+                            Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                                .foregroundStyle(.red)
+                        }
+                    }
+
+                    Section {
+                        Button {
+                            showDeleteConfirm = true
+                        } label: {
+                            Label("Delete Account", systemImage: "person.crop.circle.badge.xmark")
+                                .foregroundStyle(.red)
+                        }
+                    } footer: {
+                        Text("Permanently deletes your account and all associated data. This cannot be undone.")
                     }
                 }
             }
@@ -140,9 +156,57 @@ struct SettingsView: View {
             } message: {
                 Text("Are you sure you want to sign out?")
             }
+            .confirmationDialog("Delete Account", isPresented: $showDeleteConfirm) {
+                Button("Delete Account", role: .destructive) {
+                    Task { await performDeleteAccount() }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This will permanently delete your account, all projects, and all associated data. This action cannot be undone.")
+            }
+            .alert(
+                "Deletion Failed",
+                isPresented: .init(
+                    get: { deleteError != nil },
+                    set: { if !$0 { deleteError = nil } }
+                )
+            ) {
+                Button("OK") { deleteError = nil }
+            } message: {
+                Text(deleteError ?? "")
+            }
+            .overlay {
+                if isDeleting {
+                    ZStack {
+                        Color.black.opacity(0.3).ignoresSafeArea()
+                        VStack(spacing: 12) {
+                            ProgressView()
+                                .controlSize(.large)
+                            Text("Deleting account…")
+                                .font(.headline)
+                        }
+                        .padding(24)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                    }
+                }
+            }
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
+    }
+
+    private func performDeleteAccount() async {
+        isDeleting = true
+        defer { isDeleting = false }
+        do {
+            try await UserService.shared.deleteAccount()
+            try? await Clerk.shared.auth.signOut()
+            CurrentUserProfile.shared.reset()
+            InteractionStore.shared.reset()
+            dismiss()
+        } catch {
+            deleteError = error.localizedDescription
+        }
     }
 }
 
