@@ -36,7 +36,11 @@ final class AuthManager {
         let topmostVC = topMost(of: rootVC)
         
         let container = AuthContainerView()
-        let hostingController = UIHostingController(rootView: container)
+        let hostingController = UIHostingController(rootView: container
+            .environment(Clerk.shared)
+            .environment(self)
+            .environment(AppearanceSettings.shared)
+        )
         hostingController.modalPresentationStyle = .pageSheet
         
         topmostVC.present(hostingController, animated: true)

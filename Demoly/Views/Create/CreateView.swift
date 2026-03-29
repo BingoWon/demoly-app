@@ -49,37 +49,39 @@ struct CreateView: View {
             }
 
             ToolbarItemGroup(placement: .topBarTrailing) {
-                if selectedSubTab.isCodeTab {
-                    Button(action: { Task { await projectEditor.save() } }) {
-                        HStack(spacing: 4) {
-                            if projectEditor.isSaving {
-                                ProgressView().scaleEffect(0.7)
-                            } else {
-                                Image(systemName: projectEditor.isDirty ? "circle.fill" : "checkmark")
-                                    .font(.system(size: 10))
+                if isSignedIn {
+                    if selectedSubTab.isCodeTab {
+                        Button(action: { Task { await projectEditor.save() } }) {
+                            HStack(spacing: 4) {
+                                if projectEditor.isSaving {
+                                    ProgressView().scaleEffect(0.7)
+                                } else {
+                                    Image(systemName: projectEditor.isDirty ? "circle.fill" : "checkmark")
+                                        .font(.system(size: 10))
+                                }
+                                Text(projectEditor.isSaving ? "Saving" : projectEditor.isDirty ? "Save" : "Saved")
+                                    .font(.system(size: 13, weight: .medium))
                             }
-                            Text(projectEditor.isSaving ? "Saving" : projectEditor.isDirty ? "Save" : "Saved")
-                                .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(projectEditor.isDirty ? .orange : .green)
                         }
-                        .foregroundStyle(projectEditor.isDirty ? .orange : .green)
+                        .disabled(projectEditor.isSaving || !projectEditor.isDirty)
                     }
-                    .disabled(projectEditor.isSaving || !projectEditor.isDirty)
-                }
 
-                Button {
-                    withAnimation(.interactive) {
-                        projectEditor.isPublished.toggle()
-                        projectEditor.isDirty = true
+                    Button {
+                        withAnimation(.interactive) {
+                            projectEditor.isPublished.toggle()
+                            projectEditor.isDirty = true
+                        }
+                    } label: {
+                        Image(systemName: projectEditor.isPublished ? "eye" : "eye.slash")
                     }
-                } label: {
-                    Image(systemName: projectEditor.isPublished ? "eye" : "eye.slash")
-                }
-                .tint(projectEditor.isPublished ? .green : .orange)
+                    .tint(projectEditor.isPublished ? .green : .orange)
 
-                Button {
-                    showOptions = true
-                } label: {
-                    Image(systemName: "slider.horizontal.3")
+                    Button {
+                        showOptions = true
+                    } label: {
+                        Image(systemName: "slider.horizontal.3")
+                    }
                 }
             }
         }
