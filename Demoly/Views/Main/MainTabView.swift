@@ -108,13 +108,8 @@ struct MainTabView: View {
             showingCreate = true
         }
 
-        switch newValue {
-        case 0: feedRefreshTrigger += 1
-        case 2:
-            inboxRefreshTrigger += 1
+        if newValue == 2 {
             Task { await loadUnreadCount() }
-        case 3: profileRefreshTrigger += 1
-        default: break
         }
     }
 

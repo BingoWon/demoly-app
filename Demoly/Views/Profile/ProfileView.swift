@@ -20,6 +20,8 @@ struct ProfileView: View {
                     signInPrompt
                 }
             }
+            .navigationTitle("Profile")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 

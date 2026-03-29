@@ -34,7 +34,7 @@ struct InboxView: View {
                     signInPrompt
                 }
             }
-            .navigationTitle("Activity")
+            .navigationTitle("Inbox")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if viewModel.hasUnread {
