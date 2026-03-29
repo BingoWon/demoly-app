@@ -104,19 +104,8 @@ struct MainTabView: View {
 
     private func handleTabChange(from oldValue: Int, to newValue: Int) {
         if newValue == 1 {
-            if Clerk.shared.user == nil {
-                selectedTab = oldValue
-                authManager.showAuthSheet = true
-                return
-            }
             previousTab = oldValue
             showingCreate = true
-        }
-
-        if newValue == 2 && Clerk.shared.user == nil {
-            selectedTab = oldValue
-            authManager.showAuthSheet = true
-            return
         }
 
         switch newValue {

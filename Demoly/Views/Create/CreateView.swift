@@ -6,6 +6,7 @@
 //
 
 import ClerkKit
+import ClerkKitUI
 import SwiftUI
 
 struct CreateView: View {
@@ -98,6 +99,9 @@ struct CreateView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(deleteError ?? "")
+        }
+        .sheet(isPresented: Bindable(authManager).showAuthSheet) {
+            AuthView()
         }
     }
 
