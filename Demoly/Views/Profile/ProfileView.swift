@@ -25,27 +25,7 @@ struct ProfileView: View {
     }
 
     private var signInPrompt: some View {
-        VStack(spacing: 24) {
-            Image(systemName: "person.circle")
-                .font(.system(size: 64))
-                .foregroundStyle(.secondary)
-
-            Text("Sign in to see your profile")
-                .font(.title3)
-                .foregroundStyle(.primary)
-
-            Button {
-                authManager.showAuthSheet = true
-            } label: {
-                Text("Sign In")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 200, height: 50)
-                    .background(Color.brand)
-                    .clipShape(Capsule())
-            }
-            .buttonStyle(.plain)
-        }
+        SignInPromptView(icon: "person.circle", message: "Sign in to see your profile")
     }
 }
 

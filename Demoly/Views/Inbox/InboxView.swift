@@ -56,28 +56,7 @@ struct InboxView: View {
     }
 
     private var signInPrompt: some View {
-        VStack(spacing: 24) {
-            Image(systemName: "bell.slash")
-                .font(.system(size: 64))
-                .foregroundStyle(.secondary)
-
-            Text("Sign in to see your activity")
-                .font(.title3)
-                .foregroundStyle(.primary)
-
-            Button {
-                authManager.showAuthSheet = true
-            } label: {
-                Text("Sign In")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 200, height: 50)
-                    .background(Color.brand)
-                    .clipShape(Capsule())
-            }
-            .buttonStyle(.plain)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        SignInPromptView(icon: "bell.slash", message: "Sign in to see your activity")
     }
 
     // MARK: - Activity List

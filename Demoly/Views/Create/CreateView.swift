@@ -145,27 +145,7 @@ struct CreateView: View {
     // MARK: - Sign In Prompt
 
     private var signInPrompt: some View {
-        VStack(spacing: 24) {
-            Image(systemName: "plus.square.dashed")
-                .font(.system(size: 64))
-                .foregroundStyle(.secondary)
-
-            Text("Sign in to create")
-                .font(.title2)
-                .foregroundStyle(.primary)
-
-            Button {
-                authManager.showAuthSheet = true
-            } label: {
-                Text("Sign In")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 200, height: 50)
-                    .background(Color.brand)
-                    .clipShape(Capsule())
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        SignInPromptView(icon: "plus.square.dashed", message: "Sign in to create")
     }
 }
 
