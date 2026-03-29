@@ -4,6 +4,7 @@
 //
 
 import ClerkKit
+import ClerkKitUI
 import SwiftUI
 
 struct CommentSheet: View {
@@ -46,6 +47,9 @@ struct CommentSheet: View {
         .presentationDragIndicator(.visible)
         .task {
             await loadComments()
+        }
+        .sheet(isPresented: Bindable(authManager).showAuthSheet) {
+            AuthView()
         }
     }
 

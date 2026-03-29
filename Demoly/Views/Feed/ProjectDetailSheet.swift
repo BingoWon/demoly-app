@@ -6,6 +6,7 @@
 //
 
 import ClerkKit
+import ClerkKitUI
 import SwiftUI
 
 struct ProjectDetailSheet: View {
@@ -57,6 +58,9 @@ struct ProjectDetailSheet: View {
             if let profile = creator {
                 isFollowing = profile.isFollowing ?? false
             }
+        }
+        .sheet(isPresented: Bindable(authManager).showAuthSheet) {
+            AuthView()
         }
         .sheet(isPresented: $showComments) {
             CommentSheet(project: project)

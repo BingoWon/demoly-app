@@ -121,6 +121,19 @@ struct SettingsView: View {
                             Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
                                 .foregroundStyle(.red)
                         }
+                        .confirmationDialog("Sign Out", isPresented: $showLogoutConfirm) {
+                            Button("Sign Out", role: .destructive) {
+                                Task {
+                                    try? await Clerk.shared.auth.signOut()
+                                    CurrentUserProfile.shared.reset()
+                                    InteractionStore.shared.reset()
+                                    dismiss()
+                                }
+                            }
+                            Button("Cancel", role: .cancel) {}
+                        } message: {
+                            Text("Are you sure you want to sign out?")
+                        }
                     }
 
                     Section {
@@ -129,6 +142,16 @@ struct SettingsView: View {
                         } label: {
                             Label("Delete Account", systemImage: "person.crop.circle.badge.xmark")
                                 .foregroundStyle(.red)
+                        }
+                        .confirmationDialog("Delete Account", isPresented: $showDeleteConfirm) {
+                            Button("Delete Account", role: .destructive) {
+                                Task { await performDeleteAccount() }
+                            }
+                            Button("Cancel", role: .cancel) {}
+                        } message: {
+                            Text(
+                                "This will permanently delete your account, all projects, and all associated data. This action cannot be undone."
+                            )
                         }
                     } footer: {
                         Text("Permanently deletes your account and all associated data. This cannot be undone.")
@@ -142,27 +165,6 @@ struct SettingsView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     SheetCloseButton { dismiss() }
                 }
-            }
-            .confirmationDialog("Sign Out", isPresented: $showLogoutConfirm) {
-                Button("Sign Out", role: .destructive) {
-                    Task {
-                        try? await Clerk.shared.auth.signOut()
-                        CurrentUserProfile.shared.reset()
-                        InteractionStore.shared.reset()
-                        dismiss()
-                    }
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("Are you sure you want to sign out?")
-            }
-            .confirmationDialog("Delete Account", isPresented: $showDeleteConfirm) {
-                Button("Delete Account", role: .destructive) {
-                    Task { await performDeleteAccount() }
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("This will permanently delete your account, all projects, and all associated data. This action cannot be undone.")
             }
             .alert(
                 "Deletion Failed",

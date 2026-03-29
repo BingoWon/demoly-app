@@ -11,22 +11,27 @@ import SwiftUI
 struct InboxView: View {
     var refreshTrigger = 0
 
+    @Environment(AuthManager.self) private var authManager
     @State private var viewModel = InboxViewModel()
     @State private var selectedActivity: Activity?
 
     var body: some View {
         NavigationStack {
             Group {
-                if viewModel.isLoading, viewModel.activities.isEmpty {
-                    ProgressView().tint(.primary)
-                } else if viewModel.activities.isEmpty {
-                    ContentUnavailableView {
-                        Label("No Activity", systemImage: "bell.slash")
-                    } description: {
-                        Text("When someone interacts with your projects, you'll see it here.")
+                if Clerk.shared.user != nil {
+                    if viewModel.isLoading, viewModel.activities.isEmpty {
+                        ProgressView().tint(.primary)
+                    } else if viewModel.activities.isEmpty {
+                        ContentUnavailableView {
+                            Label("No Activity", systemImage: "bell.slash")
+                        } description: {
+                            Text("When someone interacts with your projects, you'll see it here.")
+                        }
+                    } else {
+                        activityList
                     }
                 } else {
-                    activityList
+                    signInPrompt
                 }
             }
             .navigationTitle("Activity")
@@ -46,12 +51,39 @@ struct InboxView: View {
             }
         }
         .task {
-            await viewModel.loadActivities()
+            if Clerk.shared.user != nil {
+                await viewModel.loadActivities()
+            }
         }
         .onChange(of: refreshTrigger) { _, _ in
-            guard refreshTrigger > 0 else { return }
+            guard refreshTrigger > 0, Clerk.shared.user != nil else { return }
             Task { await viewModel.loadActivities() }
         }
+    }
+
+    private var signInPrompt: some View {
+        VStack(spacing: 24) {
+            Image(systemName: "bell.slash")
+                .font(.system(size: 64))
+                .foregroundStyle(.secondary)
+
+            Text("Sign in to see your activity")
+                .font(.title3)
+                .foregroundStyle(.primary)
+
+            Button {
+                authManager.showAuthSheet = true
+            } label: {
+                Text("Sign In")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 200, height: 50)
+                    .background(Color.brand)
+                    .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - Activity List

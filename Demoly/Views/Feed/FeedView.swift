@@ -199,6 +199,7 @@ struct LikeButton: View {
     let projectId: String
     var size: Size = .regular
 
+    @Environment(AuthManager.self) private var authManager
     private let store = InteractionStore.shared
 
     enum Size {
@@ -221,7 +222,9 @@ struct LikeButton: View {
 
     var body: some View {
         Button {
-            Task { await store.toggleLike(projectId: projectId) }
+            authManager.requireLogin {
+                Task { await store.toggleLike(projectId: projectId) }
+            }
         } label: {
             HStack(spacing: 3) {
                 Image(systemName: store.isLiked(projectId) ? "heart.fill" : "heart")
