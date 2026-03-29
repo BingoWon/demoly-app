@@ -100,9 +100,6 @@ struct CreateView: View {
         } message: {
             Text(deleteError ?? "")
         }
-        .sheet(isPresented: Bindable(authManager).showAuthSheet) {
-            AuthView()
-        }
     }
 
     // MARK: - Content

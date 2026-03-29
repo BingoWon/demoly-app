@@ -48,9 +48,6 @@ struct CommentSheet: View {
         .task {
             await loadComments()
         }
-        .sheet(isPresented: Bindable(authManager).showAuthSheet) {
-            AuthView()
-        }
     }
 
     // MARK: - Empty State

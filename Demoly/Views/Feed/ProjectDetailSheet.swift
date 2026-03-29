@@ -59,9 +59,6 @@ struct ProjectDetailSheet: View {
                 isFollowing = profile.isFollowing ?? false
             }
         }
-        .sheet(isPresented: Bindable(authManager).showAuthSheet) {
-            AuthView()
-        }
         .sheet(isPresented: $showComments) {
             CommentSheet(project: project)
         }

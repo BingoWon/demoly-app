@@ -16,9 +16,6 @@ struct MainTabView: View {
     @State private var createSubTab: CreateSubTab = .chat
     @State private var showingCreate = false
     @State private var unreadCount = 0
-    @State private var feedRefreshTrigger = 0
-    @State private var inboxRefreshTrigger = 0
-    @State private var profileRefreshTrigger = 0
 
     init() {
         let editor = ProjectEditorViewModel()
@@ -61,17 +58,17 @@ struct MainTabView: View {
         if #available(iOS 26.0, *) {
             TabView(selection: $selectedTab) {
                 Tab("Home", systemImage: "house.fill", value: 0) {
-                    FeedView(refreshTrigger: feedRefreshTrigger)
+                    FeedView()
                 }
                 Tab("Create", systemImage: "wand.and.stars", value: 1) {
                     Color.appBackground.ignoresSafeArea()
                 }
                 Tab("Inbox", systemImage: "bell.fill", value: 2) {
-                    InboxView(refreshTrigger: inboxRefreshTrigger)
+                    InboxView()
                 }
                 .badge(unreadCount)
                 Tab("Profile", systemImage: "person.fill", value: 3) {
-                    ProfileView(editProject: editProject, refreshTrigger: profileRefreshTrigger)
+                    ProfileView(editProject: editProject)
                 }
                 Tab("Search", systemImage: "magnifyingglass", value: 4, role: .search) {
                     NavigationStack {
@@ -83,17 +80,17 @@ struct MainTabView: View {
             .tabBarMinimizeBehavior(.onScrollDown)
         } else {
             TabView(selection: $selectedTab) {
-                FeedView(refreshTrigger: feedRefreshTrigger)
+                FeedView()
                     .tabItem { Label("Home", systemImage: "house.fill") }
                     .tag(0)
                 Color.appBackground.ignoresSafeArea()
                     .tabItem { Label("Create", systemImage: "wand.and.stars") }
                     .tag(1)
-                InboxView(refreshTrigger: inboxRefreshTrigger)
+                InboxView()
                     .tabItem { Label("Inbox", systemImage: "bell.fill") }
                     .tag(2)
                     .badge(unreadCount)
-                ProfileView(editProject: editProject, refreshTrigger: profileRefreshTrigger)
+                ProfileView(editProject: editProject)
                     .tabItem { Label("Profile", systemImage: "person.fill") }
                     .tag(3)
             }

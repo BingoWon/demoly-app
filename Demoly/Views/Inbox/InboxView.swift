@@ -9,8 +9,6 @@ import ClerkKit
 import SwiftUI
 
 struct InboxView: View {
-    var refreshTrigger = 0
-
     @Environment(AuthManager.self) private var authManager
     @State private var viewModel = InboxViewModel()
     @State private var selectedActivity: Activity?
@@ -54,10 +52,6 @@ struct InboxView: View {
             if Clerk.shared.user != nil {
                 await viewModel.loadActivities()
             }
-        }
-        .onChange(of: refreshTrigger) { _, _ in
-            guard refreshTrigger > 0, Clerk.shared.user != nil else { return }
-            Task { await viewModel.loadActivities() }
         }
     }
 
