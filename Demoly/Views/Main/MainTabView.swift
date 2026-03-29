@@ -14,7 +14,6 @@ struct MainTabView: View {
     @State private var projectEditor: ProjectEditorViewModel
     @State private var chatViewModel: ChatViewModel
     @State private var createSubTab: CreateSubTab = .chat
-    @State private var showingCreate = false
     @State private var unreadCount = 0
 
     init() {
@@ -26,28 +25,11 @@ struct MainTabView: View {
     var body: some View {
         tabContent
             .tint(.primary)
-            .fullScreenCover(isPresented: $showingCreate) {
-                NavigationStack {
-                    CreateView(
-                        projectEditor: projectEditor,
-                        chatViewModel: chatViewModel,
-                        selectedSubTab: $createSubTab,
-                        onBack: closeCreate
-                    )
-                }
-                .environment(authManager)
-                .tint(.primary)
-            }
             .task {
                 await loadUnreadCount()
             }
             .onChange(of: selectedTab) { oldValue, newValue in
                 handleTabChange(from: oldValue, to: newValue)
-            }
-            .onChange(of: showingCreate) { _, isShowing in
-                if !isShowing, selectedTab == 1 {
-                    selectedTab = previousTab
-                }
             }
     }
 
@@ -61,7 +43,16 @@ struct MainTabView: View {
                     FeedView()
                 }
                 Tab("Create", systemImage: "wand.and.stars", value: 1) {
-                    Color.appBackground.ignoresSafeArea()
+                    NavigationStack {
+                        CreateView(
+                            projectEditor: projectEditor,
+                            chatViewModel: chatViewModel,
+                            selectedSubTab: $createSubTab,
+                            onBack: closeCreate
+                        )
+                    }
+                    .environment(authManager)
+                    .toolbar(.hidden, for: .tabBar)
                 }
                 Tab("Inbox", systemImage: "bell.fill", value: 2) {
                     InboxView()
@@ -83,9 +74,18 @@ struct MainTabView: View {
                 FeedView()
                     .tabItem { Label("Home", systemImage: "house.fill") }
                     .tag(0)
-                Color.appBackground.ignoresSafeArea()
-                    .tabItem { Label("Create", systemImage: "wand.and.stars") }
-                    .tag(1)
+                NavigationStack {
+                    CreateView(
+                        projectEditor: projectEditor,
+                        chatViewModel: chatViewModel,
+                        selectedSubTab: $createSubTab,
+                        onBack: closeCreate
+                    )
+                }
+                .environment(authManager)
+                .toolbar(.hidden, for: .tabBar)
+                .tabItem { Label("Create", systemImage: "wand.and.stars") }
+                .tag(1)
                 InboxView()
                     .tabItem { Label("Inbox", systemImage: "bell.fill") }
                     .tag(2)
@@ -101,8 +101,9 @@ struct MainTabView: View {
 
     private func handleTabChange(from oldValue: Int, to newValue: Int) {
         if newValue == 1 {
-            previousTab = oldValue
-            showingCreate = true
+            if oldValue != 1 {
+                previousTab = oldValue
+            }
         }
 
         if newValue == 2 {
@@ -121,14 +122,19 @@ struct MainTabView: View {
         }
         chatViewModel.clear()
         createSubTab = .chat
-        showingCreate = false
+        
+        selectedTab = previousTab == 1 ? 0 : previousTab
     }
 
     private func editProject(_ project: Project) {
         projectEditor.load(project: project)
         chatViewModel.loadFromProjectEditor()
         createSubTab = .preview
-        showingCreate = true
+        
+        if selectedTab != 1 {
+            previousTab = selectedTab
+        }
+        selectedTab = 1
     }
 
     private func loadUnreadCount() async {
