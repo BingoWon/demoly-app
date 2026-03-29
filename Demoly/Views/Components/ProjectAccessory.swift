@@ -11,16 +11,12 @@ import SwiftUI
 
 struct FloatingProjectAccessory: View {
     @Binding var showDetail: Bool
-    var onLike: (() -> Void)?
-    var onComment: (() -> Void)?
-    var onCollect: (() -> Void)?
-    var onShare: (() -> Void)?
 
     var body: some View {
         if #available(iOS 26.0, *) {
-            GlassProjectAccessory(showDetail: $showDetail, onLike: onLike, onComment: onComment, onCollect: onCollect, onShare: onShare)
+            GlassProjectAccessory(showDetail: $showDetail)
         } else {
-            ProjectAccessoryContent(showDetail: $showDetail, onLike: onLike, onComment: onComment, onCollect: onCollect, onShare: onShare)
+            ProjectAccessoryContent(showDetail: $showDetail)
                 .frame(height: 48)
                 .glassBackground()
                 .padding(.horizontal, 20)
@@ -31,15 +27,11 @@ struct FloatingProjectAccessory: View {
 @available(iOS 26.0, *)
 private struct GlassProjectAccessory: View {
     @Binding var showDetail: Bool
-    var onLike: (() -> Void)?
-    var onComment: (() -> Void)?
-    var onCollect: (() -> Void)?
-    var onShare: (() -> Void)?
     @Namespace private var ns
 
     var body: some View {
         GlassEffectContainer(spacing: 8) {
-            ProjectAccessoryContent(showDetail: $showDetail, onLike: onLike, onComment: onComment, onCollect: onCollect, onShare: onShare)
+            ProjectAccessoryContent(showDetail: $showDetail)
                 .frame(height: 48)
                 .glassEffect(.regular.interactive(), in: .capsule)
                 .glassEffectID("projectAccessory", in: ns)
@@ -85,16 +77,10 @@ private struct GlassCreateAccessory: View {
 
 private struct ProjectAccessoryContent: View {
     @Binding var showDetail: Bool
-    var onLike: (() -> Void)?
-    var onComment: (() -> Void)?
-    var onCollect: (() -> Void)?
-    var onShare: (() -> Void)?
 
     private let feed = FeedViewModel.shared
     private var currentProject: Project? { feed.currentProject }
     private var creator: Profile? { currentProject?.creator }
-
-    private let store = InteractionStore.shared
 
     var body: some View {
         HStack(spacing: 0) {
@@ -108,7 +94,7 @@ private struct ProjectAccessoryContent: View {
 
             Divider().frame(height: 18).overlay(Color.border)
 
-            interactionButtons
+            navigationButtons
 
             Spacer().frame(width: 4)
         }
@@ -140,33 +126,25 @@ private struct ProjectAccessoryContent: View {
         .padding(.leading, 12)
     }
 
-    private var interactionButtons: some View {
-        HStack(spacing: 10) {
-            Button(action: { onLike?() }) {
-                Image(systemName: store.isLiked(currentProject?.id ?? "") ? "heart.fill" : "heart")
-                    .symbolEffect(.bounce, value: store.isLiked(currentProject?.id ?? ""))
+    private var navigationButtons: some View {
+        HStack(spacing: 0) {
+            Button {
+                withAnimation(.contentNavigation) { feed.goToPrevious() }
+            } label: {
+                Image(systemName: "chevron.up")
+                    .font(.system(size: 16, weight: .semibold))
+                    .frame(width: 44, height: 36)
             }
-            .tint(store.isLiked(currentProject?.id ?? "") ? .red : .primary)
+            .opacity(feed.currentIndex == 0 ? 0.3 : 1)
 
-            Button(action: { onComment?() }) {
-                Image(systemName: "bubble.right")
-            }
+            Divider().frame(height: 18).overlay(Color.border)
 
-            Button(action: { onCollect?() }) {
-                Image(systemName: store.isCollected(currentProject?.id ?? "") ? "bookmark.fill" : "bookmark")
-                    .symbolEffect(.bounce, value: store.isCollected(currentProject?.id ?? ""))
-            }
-            .tint(store.isCollected(currentProject?.id ?? "") ? .yellow : .primary)
-
-            if let p = currentProject {
-                ProjectShareLink(project: p) {
-                    Image(systemName: "square.and.arrow.up")
-                        .frame(minWidth: 24)
-                }
-            } else {
-                Button(action: { onShare?() }) {
-                    Image(systemName: "square.and.arrow.up")
-                }
+            Button {
+                withAnimation(.contentNavigation) { feed.goToNext() }
+            } label: {
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 16, weight: .semibold))
+                    .frame(width: 44, height: 36)
             }
         }
     }

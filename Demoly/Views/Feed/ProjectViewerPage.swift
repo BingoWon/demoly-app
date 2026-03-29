@@ -8,78 +8,68 @@
 import SwiftUI
 
 struct ProjectViewerPage: View {
-    let project: Project
+    let initialProject: Project
     @Environment(AuthManager.self) private var authManager
     @Environment(\.dismiss) private var dismiss
 
     @State private var showComments = false
     @State private var showDetail = false
 
+    private let feed = FeedViewModel.shared
     private let store = InteractionStore.shared
+
+    init(project: Project) {
+        initialProject = project
+    }
+
+    private var currentProject: Project {
+        feed.currentProject ?? initialProject
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
             projectContent
 
-            FloatingProjectAccessory(
-                showDetail: $showDetail,
-                onLike: { authManager.requireLogin { toggleLike() } },
-                onComment: { showComments = true },
-                onCollect: { authManager.requireLogin { toggleCollect() } },
-                onShare: nil  // Handled internally by ShareLink
-            )
+            FloatingProjectAccessory(showDetail: $showDetail)
         }
         .toolbar(.hidden, for: .tabBar)
+        .modifier(
+            ViewerToolbarModifier(
+                projectId: currentProject.id,
+                showComments: $showComments,
+                onLike: { authManager.requireLogin { toggleLike() } },
+                onCollect: { authManager.requireLogin { toggleCollect() } },
+                project: currentProject
+            )
+        )
         .sheet(isPresented: $showComments) {
-            CommentSheet(project: project)
+            CommentSheet(project: currentProject)
         }
         .sheet(isPresented: $showDetail) {
-            ProjectDetailSheet(project: project)
+            ProjectDetailSheet(project: currentProject)
+        }
+        .onAppear {
+            feed.setCurrentProject(initialProject)
         }
     }
+
+    @State private var scrolledID: String?
 
     @ViewBuilder
     private var projectContent: some View {
-        let webView = ProjectWebView(project: project)
-            // Removed .id(feed.currentIndex) entirely to avoid dependency
-            .ignoresSafeArea()
-
-        if #available(iOS 26.0, *) {
-            webView.backgroundExtensionEffect()
-        } else {
-            webView
-        }
-    }
-
-    // MARK: - Actions
-
-    private func toggleLike() {
-        Task { await store.toggleLike(projectId: project.id) }
-    }
-
-    private func toggleCollect() {
-        Task { await store.toggleCollect(projectId: project.id) }
-    }
-}
-
-// Removed ViewerToolbarModifier since interactions are now in the bottom floating accessory.
-
-// MARK: - App Feed Pager View (TikTok Style Container)
-
-struct FeedPagerView: View {
-    let initialProject: Project
-    @Environment(\.dismiss) private var dismiss
-
-    private let feed = FeedViewModel.shared
-    @State private var scrolledID: String?
-
-    var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             LazyVStack(spacing: 0) {
-                ForEach(feed.projects) { project in
-                    ProjectViewerPage(project: project)
-                        .id(project.id)
-                        .containerRelativeFrame([.horizontal, .vertical])
+                ForEach(feed.projects) { proj in
+                    let webView = ProjectWebView(project: proj)
+                        .ignoresSafeArea()
+
+                    if #available(iOS 26.0, *) {
+                        webView.backgroundExtensionEffect()
+                            .containerRelativeFrame([.horizontal, .vertical])
+                    } else {
+                        webView
+                            .containerRelativeFrame([.horizontal, .vertical])
+                    }
                 }
             }
             .scrollTargetLayout()
@@ -87,18 +77,6 @@ struct FeedPagerView: View {
         .scrollTargetBehavior(.paging)
         .scrollPosition(id: $scrolledID)
         .ignoresSafeArea()
-        .overlay(alignment: .topLeading) {
-            Button(action: { dismiss() }) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(.white)
-                    .padding(12)
-                    .background(Color.black.opacity(0.3))
-                    .clipShape(Circle())
-            }
-            .padding(.leading, 16)
-            .padding(.top, 56)  // Account for safe area
-        }
         .onAppear {
             if scrolledID == nil {
                 scrolledID = initialProject.id
@@ -114,11 +92,61 @@ struct FeedPagerView: View {
                 }
             }
         }
-        // Completely hide the default navigation and tab bars for immersive experience
-        .toolbar(.hidden, for: .navigationBar)
-        .toolbar(.hidden, for: .tabBar)
+    }
+
+    // MARK: - Actions
+
+    private func toggleLike() {
+        Task { await store.toggleLike(projectId: currentProject.id) }
+    }
+
+    private func toggleCollect() {
+        Task { await store.toggleCollect(projectId: currentProject.id) }
     }
 }
+
+// MARK: - Viewer Toolbar Modifier
+
+private struct ViewerToolbarModifier: ViewModifier {
+    let projectId: String
+    @Binding var showComments: Bool
+    let onLike: () -> Void
+    let onCollect: () -> Void
+    let project: Project
+
+    private let store = InteractionStore.shared
+
+    func body(content: Content) -> some View {
+        content
+            .toolbar {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button(action: onLike) {
+                        Image(systemName: store.isLiked(projectId) ? "heart.fill" : "heart")
+                            .symbolEffect(.bounce, value: store.isLiked(projectId))
+                    }
+                    .tint(store.isLiked(projectId) ? .red : .primary)
+
+                    Button {
+                        showComments = true
+                    } label: {
+                        Image(systemName: "bubble.right")
+                    }
+
+                    Button(action: onCollect) {
+                        Image(systemName: store.isCollected(projectId) ? "bookmark.fill" : "bookmark")
+                            .symbolEffect(.bounce, value: store.isCollected(projectId))
+                    }
+                    .tint(store.isCollected(projectId) ? .yellow : .primary)
+
+                    ProjectShareLink(project: project) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                }
+            }
+            .toolbarBackground(.hidden, for: .navigationBar)
+    }
+}
+
 #Preview {
     NavigationStack {
         ProjectViewerPage(project: .sample)
