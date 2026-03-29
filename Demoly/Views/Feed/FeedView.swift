@@ -26,7 +26,7 @@ struct FeedView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
             .navigationDestination(item: $selectedProject) { project in
-                ProjectViewerPage(project: project)
+                FeedPagerView(initialProject: project)
             }
         }
         .sheet(isPresented: $showSearch) {

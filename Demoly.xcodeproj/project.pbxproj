@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D7A1B2C42F7A8B0000AABB01 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = D7A1B2C32F7A8B0000AABB01 /* AppIcon.icon */; };
 		D73043832EDE7C000059DD01 /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = D73043842EDE7C000059DD01 /* Runestone */; };
 		D730457E2EDE7B030059DD01 /* TreeSitterCSSRunestone in Frameworks */ = {isa = PBXBuildFile; productRef = D730457D2EDE7B030059DD01 /* TreeSitterCSSRunestone */; };
 		D73045802EDE7B030059DD01 /* TreeSitterHTMLRunestone in Frameworks */ = {isa = PBXBuildFile; productRef = D730457F2EDE7B030059DD01 /* TreeSitterHTMLRunestone */; };
@@ -16,6 +15,7 @@
 		D73048A02EE04B4C0059DD01 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = D730489F2EE04B4C0059DD01 /* Kingfisher */; };
 		D7486DD32F66501400F13D19 /* ClerkKit in Frameworks */ = {isa = PBXBuildFile; productRef = D7486DD22F66501400F13D19 /* ClerkKit */; };
 		D7486DD52F66501400F13D19 /* ClerkKitUI in Frameworks */ = {isa = PBXBuildFile; productRef = D7486DD42F66501400F13D19 /* ClerkKitUI */; };
+		D7A1B2C42F7A8B0000AABB01 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = D7A1B2C32F7A8B0000AABB01 /* AppIcon.icon */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -37,11 +37,11 @@
 
 /* Begin PBXFileReference section */
 		D7A1B2C32F7A8B0000AABB01 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
-		D7C0F1A02F67000A0059DD01 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
-		D7C0F1A12F67000A0059DD01 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
-		D7BF49A82EDDAA1200218489 /* Demoly.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Demoly.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D7BF49A82EDDAA1200218489 /* Demoly Dev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Demoly Dev.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D7BF49B52EDDAA1400218489 /* DemolyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DemolyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D7BF49BF2EDDAA1400218489 /* DemolyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DemolyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D7C0F1A02F67000A0059DD01 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		D7C0F1A12F67000A0059DD01 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -95,15 +95,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		D7C0F1A22F67000A0059DD01 /* Config */ = {
-			isa = PBXGroup;
-			children = (
-				D7C0F1A02F67000A0059DD01 /* Debug.xcconfig */,
-				D7C0F1A12F67000A0059DD01 /* Release.xcconfig */,
-			);
-			path = Config;
-			sourceTree = "<group>";
-		};
 		D7BF499F2EDDAA1200218489 = {
 			isa = PBXGroup;
 			children = (
@@ -119,11 +110,20 @@
 		D7BF49A92EDDAA1200218489 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D7BF49A82EDDAA1200218489 /* Demoly.app */,
+				D7BF49A82EDDAA1200218489 /* Demoly Dev.app */,
 				D7BF49B52EDDAA1400218489 /* DemolyTests.xctest */,
 				D7BF49BF2EDDAA1400218489 /* DemolyUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		D7C0F1A22F67000A0059DD01 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				D7C0F1A02F67000A0059DD01 /* Debug.xcconfig */,
+				D7C0F1A12F67000A0059DD01 /* Release.xcconfig */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -156,7 +156,7 @@
 				D7486DD42F66501400F13D19 /* ClerkKitUI */,
 			);
 			productName = Demoly;
-			productReference = D7BF49A82EDDAA1200218489 /* Demoly.app */;
+			productReference = D7BF49A82EDDAA1200218489 /* Demoly Dev.app */;
 			productType = "com.apple.product-type.application";
 		};
 		D7BF49B42EDDAA1400218489 /* DemolyTests */ = {

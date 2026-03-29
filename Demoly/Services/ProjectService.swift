@@ -16,7 +16,6 @@ actor ProjectService {
 
     struct FeedResponse: Decodable {
         let items: [Project]
-        let total: Int
         let hasMore: Bool
     }
 
