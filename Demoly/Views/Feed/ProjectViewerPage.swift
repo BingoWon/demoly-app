@@ -92,6 +92,15 @@ struct ProjectViewerPage: View {
                 }
             }
         }
+        .onChange(of: feed.currentIndex) { _, newIndex in
+            guard newIndex >= 0 && newIndex < feed.projects.count else { return }
+            let targetID = feed.projects[newIndex].id
+            if scrolledID != targetID {
+                withAnimation {
+                    scrolledID = targetID
+                }
+            }
+        }
     }
 
     // MARK: - Actions
