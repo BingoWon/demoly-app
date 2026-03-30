@@ -189,52 +189,30 @@ struct SearchContentView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
 
-            ForEach(viewModel.projects) { project in
-                Button {
-                    selectedProject = project
-                } label: {
-                    projectRow(project)
-                }
-            }
-        }
-    }
-
-    private func projectRow(_ project: Project) -> some View {
-        HStack(spacing: 12) {
-            CachedThumbnail(project: project, size: CGSize(width: 60, height: 60))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(project.displayTitle)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-
-                HStack(spacing: 8) {
-                    Text("@\(project.creator?.handle ?? "unknown")")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
-
-                    HStack(spacing: 2) {
-                        Image(systemName: "heart.fill")
-                            .font(.system(size: 10))
-                        Text(project.likeCount.formatted)
-                            .font(.system(size: 11))
+            GeometryReader { geo in
+                let (columns, columnWidth) = GridMetrics.compute(
+                    width: geo.size.width - 32,
+                    minColumnWidth: GridMetrics.feedMinColumnWidth,
+                    spacing: GridMetrics.feedSpacing
+                )
+                MasonryGrid(
+                    projects: viewModel.projects,
+                    columns: columns,
+                    columnWidth: columnWidth,
+                    spacing: GridMetrics.feedSpacing
+                ) { project in
+                    Button { selectedProject = project } label: {
+                        ProjectGridCell(project: project, columnWidth: columnWidth)
                     }
-                    .foregroundStyle(.tertiary)
+                    .buttonStyle(.plain)
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 4)
             }
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12))
-                .foregroundStyle(.tertiary)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
     }
 }
+
 
 // MARK: - Sheet Wrapper (iOS 18 / non-tab contexts)
 

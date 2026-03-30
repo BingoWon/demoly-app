@@ -45,6 +45,9 @@ enum GridMetrics {
         let cw = columnWidth(width: width, columns: cols, spacing: spacing)
         return (cols, cw)
     }
+
+    /// Preview aspect ratio: iPhone portrait (9:19.5)
+    static let previewAspectRatio: CGFloat = 9.0 / 19.5
 }
 
 // MARK: - MasonryGrid
@@ -101,16 +104,10 @@ struct MasonryGrid<Item: Identifiable, Content: View>: View {
 // MARK: - Project convenience initializer
 
 extension MasonryGrid where Item == Project {
-    /// Adaptive project grid — pass pre-computed `columns` and `columnWidth`
-    /// from `GridMetrics.compute(width:minColumnWidth:spacing:)`.
-    ///
-    /// - Parameter infoHeight: Extra height below thumbnail (e.g. 60 for
-    ///   title + creator row, 0 for thumbnail-only grids).
     init(
         projects: [Project],
         columns: Int,
         columnWidth: CGFloat,
-        infoHeight: CGFloat = 0,
         spacing: CGFloat = 4,
         @ViewBuilder content: @escaping (Project) -> Content
     ) {
@@ -120,7 +117,7 @@ extension MasonryGrid where Item == Project {
             spacing: spacing,
             content: content,
             heightProvider: { _ in
-                columnWidth / Thumbnail.aspectRatio + infoHeight
+                columnWidth / GridMetrics.previewAspectRatio
             }
         )
     }

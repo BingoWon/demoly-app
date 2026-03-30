@@ -5,7 +5,6 @@
 
 import ClerkKit
 import SwiftUI
-import WebKit
 
 @MainActor
 @Observable
@@ -56,13 +55,6 @@ final class ProjectEditorViewModel {
         didSet { if isPublished != oldValue { markDirty() } }
     }
 
-    // MARK: - Thumbnail (auto-managed)
-
-    var thumbnailUrl: String?
-    var thumbnailAspectRatio: CGFloat?
-
-    weak var previewWebView: WKWebView?
-
     // MARK: - State
 
     private var isLoading = false
@@ -100,10 +92,7 @@ final class ProjectEditorViewModel {
 
     // MARK: - Save
 
-    /// - Parameter captureThumbnail: When `true`, captures and uploads a thumbnail
-    ///   from the preview WebView after saving. Skipped during auto-save to avoid
-    ///   excessive screenshot + upload cycles during rapid editing.
-    func save(captureThumbnail: Bool = true) async {
+    func save() async {
         guard hasContent, Clerk.shared.user != nil else { return }
 
         isSaving = true
@@ -120,8 +109,6 @@ final class ProjectEditorViewModel {
                 jsContent: javascript,
                 chatMessages: chatMessages.isEmpty ? nil : chatMessages.map { $0.mapValues { AnyCodable($0) } },
                 isPublished: isPublished,
-                thumbnailUrl: thumbnailUrl,
-                thumbnailAspectRatio: thumbnailAspectRatio.map { Double($0) }
             )
 
             let effectiveProjectId: String
@@ -132,16 +119,6 @@ final class ProjectEditorViewModel {
                 let created = try await ProjectService.shared.createProject(payload: payload)
                 effectiveProjectId = created.id
                 projectId = effectiveProjectId
-            }
-
-            if captureThumbnail, let webView = previewWebView {
-                do {
-                    let result = try await ThumbnailService.shared.captureAndUpload(from: webView, projectId: effectiveProjectId)
-                    thumbnailUrl = result.url
-                    thumbnailAspectRatio = result.aspectRatio
-                } catch {
-                    print("[ProjectEditor] Thumbnail capture failed: \(error.localizedDescription)")
-                }
             }
 
             isDirty = false
@@ -170,12 +147,9 @@ final class ProjectEditorViewModel {
         description = ""
         tags = []
         isPublished = false
-        thumbnailUrl = nil
-        thumbnailAspectRatio = nil
         isDirty = false
         lastSaved = nil
         saveError = nil
-        previewWebView = nil
     }
 
     func load(project: Project) {
@@ -195,8 +169,6 @@ final class ProjectEditorViewModel {
         javascript = project.jsContent ?? ""
         chatMessages = project.chatMessages ?? []
         isPublished = project.isPublished
-        thumbnailUrl = project.thumbnailUrl
-        thumbnailAspectRatio = project.thumbnailAspectRatio
         lastSaved = project.updatedAt
     }
 
@@ -215,7 +187,7 @@ final class ProjectEditorViewModel {
             do {
                 try await Task.sleep(nanoseconds: autoSaveDelay)
                 guard !Task.isCancelled, hasContent, isDirty, !isSaving else { return }
-                await save(captureThumbnail: false)
+                await save()
             } catch {}
         }
     }

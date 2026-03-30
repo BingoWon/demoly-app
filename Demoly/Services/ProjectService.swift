@@ -57,8 +57,6 @@ actor ProjectService {
         let jsContent: String?
         let chatMessages: [[String: AnyCodable]]?
         let isPublished: Bool
-        let thumbnailUrl: String?
-        let thumbnailAspectRatio: Double?
     }
 
     func createProject(payload: CreateProjectPayload) async throws -> Project {

@@ -118,13 +118,14 @@ struct ProfileProjectCell: View {
     let columnWidth: CGFloat
     var showDraftBadge = false
 
-    private var imageHeight: CGFloat {
-        max(columnWidth / Thumbnail.aspectRatio, 1)
+    private var cellHeight: CGFloat {
+        max(columnWidth / GridMetrics.previewAspectRatio, 1)
     }
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            CachedThumbnail(project: project, size: CGSize(width: columnWidth, height: imageHeight))
+            ProjectWebView(project: project, isInteractive: false, isLazy: true)
+                .frame(width: columnWidth, height: cellHeight)
                 .clipShape(RoundedRectangle(cornerRadius: 4))
 
             if showDraftBadge {

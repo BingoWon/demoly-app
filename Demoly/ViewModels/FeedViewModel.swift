@@ -62,7 +62,6 @@ final class FeedViewModel {
 
     func refresh() async {
         currentTask?.cancel()
-        ThumbnailCache.clearMemory()
         await doLoadFeed()
     }
 

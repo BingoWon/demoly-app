@@ -53,7 +53,6 @@ final class CurrentUserProfile {
         }
         isRefreshing = true
         defer { isRefreshing = false }
-        ThumbnailCache.clearMemory()
         await fetchData()
     }
 

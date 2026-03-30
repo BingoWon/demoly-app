@@ -15,7 +15,6 @@ struct DemolyApp: App {
     init() {
         let clerk = Clerk.configure(publishableKey: Config.clerkPublishableKey)
         _clerk = State(initialValue: clerk)
-        ThumbnailCache.configure()
     }
 
     var body: some Scene {

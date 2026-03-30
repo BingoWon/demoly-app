@@ -31,10 +31,7 @@ struct ProjectPreviewView: View {
             PreviewWebView(
                 html: projectEditor.html,
                 css: projectEditor.css,
-                javascript: projectEditor.javascript,
-                onWebViewReady: { webView in
-                    projectEditor.previewWebView = webView
-                }
+                javascript: projectEditor.javascript
             )
             .id(contentHash)
             .ignoresSafeArea()
@@ -65,7 +62,6 @@ private struct PreviewWebView: UIViewRepresentable {
     let html: String
     let css: String
     let javascript: String
-    let onWebViewReady: (WKWebView) -> Void
 
     func makeUIView(context _: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
@@ -83,11 +79,6 @@ private struct PreviewWebView: UIViewRepresentable {
 
         let renderedHTML = ProjectRenderer.render(html: html, css: css, javascript: javascript)
         webView.loadHTMLString(renderedHTML, baseURL: nil)
-
-        // Notify parent after a short delay to ensure rendering is complete
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            onWebViewReady(webView)
-        }
 
         return webView
     }

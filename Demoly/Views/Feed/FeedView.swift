@@ -119,7 +119,7 @@ struct ProjectGridCell: View {
     let columnWidth: CGFloat
 
     private var cellHeight: CGFloat {
-        max(columnWidth / Thumbnail.aspectRatio, 1)
+        max(columnWidth / GridMetrics.previewAspectRatio, 1)
     }
 
     var body: some View {

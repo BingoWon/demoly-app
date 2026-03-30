@@ -13,9 +13,6 @@ nonisolated struct Project: Identifiable, Equatable, Hashable, @unchecked Sendab
     var htmlContent: String?
     var cssContent: String?
     var jsContent: String?
-    var thumbnailUrl: String?
-    /// Stored for backend compatibility; display uses `Thumbnail.aspectRatio`.
-    var thumbnailAspectRatio: CGFloat?
     var tags: [String]?
     var chatMessages: [[String: Any]]?
     var isPublished: Bool
@@ -35,7 +32,7 @@ nonisolated struct Project: Identifiable, Equatable, Hashable, @unchecked Sendab
     static func == (lhs: Project, rhs: Project) -> Bool {
         lhs.id == rhs.id && lhs.userId == rhs.userId && lhs.title == rhs.title && lhs.description == rhs.description
             && lhs.htmlContent == rhs.htmlContent && lhs.cssContent == rhs.cssContent && lhs.jsContent == rhs.jsContent
-            && lhs.thumbnailUrl == rhs.thumbnailUrl && lhs.isPublished == rhs.isPublished && lhs.updatedAt == rhs.updatedAt
+            && lhs.isPublished == rhs.isPublished && lhs.updatedAt == rhs.updatedAt
     }
 
     func hash(into hasher: inout Hasher) {
@@ -44,7 +41,7 @@ nonisolated struct Project: Identifiable, Equatable, Hashable, @unchecked Sendab
 
     enum CodingKeys: String, CodingKey {
         case id, userId, title, description, htmlContent, cssContent, jsContent
-        case thumbnailUrl, thumbnailAspectRatio, tags, chatMessages
+        case tags, chatMessages
         case isPublished, viewCount, likeCount, collectCount, commentCount, shareCount
         case createdAt, updatedAt, creator
         case isLikedByCurrentUser = "is_liked"
@@ -53,13 +50,6 @@ nonisolated struct Project: Identifiable, Equatable, Hashable, @unchecked Sendab
 
     var displayTitle: String {
         title.isEmpty ? "Untitled" : title
-    }
-
-    func resolvedThumbnailURL() -> URL? {
-        guard let thumbnailUrl else { return nil }
-        if thumbnailUrl.hasPrefix("http") { return URL(string: thumbnailUrl) }
-        let ts = Int(updatedAt.timeIntervalSince1970)
-        return URL(string: "\(Config.hostURL)\(thumbnailUrl)?v=\(ts)")
     }
 }
 
@@ -75,12 +65,6 @@ nonisolated extension Project: Codable {
         htmlContent = try container.decodeIfPresent(String.self, forKey: .htmlContent)
         cssContent = try container.decodeIfPresent(String.self, forKey: .cssContent)
         jsContent = try container.decodeIfPresent(String.self, forKey: .jsContent)
-        thumbnailUrl = try container.decodeIfPresent(String.self, forKey: .thumbnailUrl)
-        if let ratio = try container.decodeIfPresent(Double.self, forKey: .thumbnailAspectRatio) {
-            thumbnailAspectRatio = CGFloat(ratio)
-        } else {
-            thumbnailAspectRatio = nil
-        }
         tags = try container.decodeIfPresent([String].self, forKey: .tags)
         isPublished = try container.decodeIfPresent(Bool.self, forKey: .isPublished) ?? false
         viewCount = try container.decodeIfPresent(Int.self, forKey: .viewCount) ?? 0
@@ -119,10 +103,6 @@ nonisolated extension Project: Codable {
         try container.encodeIfPresent(htmlContent, forKey: .htmlContent)
         try container.encodeIfPresent(cssContent, forKey: .cssContent)
         try container.encodeIfPresent(jsContent, forKey: .jsContent)
-        try container.encodeIfPresent(thumbnailUrl, forKey: .thumbnailUrl)
-        if let ratio = thumbnailAspectRatio {
-            try container.encode(Double(ratio), forKey: .thumbnailAspectRatio)
-        }
         try container.encodeIfPresent(tags, forKey: .tags)
         try container.encode(isPublished, forKey: .isPublished)
         try container.encode(viewCount, forKey: .viewCount)
@@ -199,7 +179,6 @@ extension Project {
         htmlContent: "<div class=\"container\"><div class=\"pulse\"></div><h1>Demoly</h1></div>",
         cssContent: ".container { display: flex; align-items: center; justify-content: center; height: 100vh; background: #1a1a2e; }",
         jsContent: nil,
-        thumbnailUrl: nil,
         tags: ["animation", "neon", "css"],
         chatMessages: nil,
         isPublished: true,
