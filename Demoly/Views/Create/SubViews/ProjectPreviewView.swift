@@ -2,11 +2,12 @@
 //  ProjectPreviewView.swift
 //  Demoly
 //
-//  Live preview of project using WKWebView
+//  Live preview of the project being edited.
+//  Uses ProjectWebView(html:css:javascript:) directly — no separate WebView wrapper needed.
+//  Content is re-rendered via .id(contentHash) whenever code changes.
 //
 
 import SwiftUI
-import WebKit
 
 struct ProjectPreviewView: View {
     @Bindable var projectEditor: ProjectEditorViewModel
@@ -15,7 +16,7 @@ struct ProjectPreviewView: View {
         projectEditor.html.isEmpty && projectEditor.css.isEmpty && projectEditor.javascript.isEmpty
     }
 
-    /// Content hash for change detection
+    /// Changes when any code field changes, causing ProjectWebView to rebuild.
     private var contentHash: Int {
         var hasher = Hasher()
         hasher.combine(projectEditor.html)
@@ -28,7 +29,7 @@ struct ProjectPreviewView: View {
         if isEmpty {
             emptyState
         } else {
-            PreviewWebView(
+            ProjectWebView(
                 html: projectEditor.html,
                 css: projectEditor.css,
                 javascript: projectEditor.javascript
@@ -53,38 +54,6 @@ struct ProjectPreviewView: View {
                 .foregroundStyle(.tertiary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
-
-// MARK: - WebView (uses shared ProjectRenderer)
-
-private struct PreviewWebView: UIViewRepresentable {
-    let html: String
-    let css: String
-    let javascript: String
-
-    func makeUIView(context _: Context) -> WKWebView {
-        let config = WKWebViewConfiguration()
-        config.allowsInlineMediaPlayback = true
-        config.mediaTypesRequiringUserActionForPlayback = []
-
-        let webView = WKWebView(frame: .zero, configuration: config)
-        webView.isOpaque = false
-        webView.backgroundColor = .black
-        webView.scrollView.backgroundColor = .black
-        webView.scrollView.contentInsetAdjustmentBehavior = .never
-        webView.scrollView.bounces = false
-        webView.scrollView.alwaysBounceVertical = false
-        webView.scrollView.alwaysBounceHorizontal = false
-
-        let renderedHTML = ProjectRenderer.render(html: html, css: css, javascript: javascript)
-        webView.loadHTMLString(renderedHTML, baseURL: nil)
-
-        return webView
-    }
-
-    func updateUIView(_: WKWebView, context _: Context) {
-        // Handled by .id() modifier - view is recreated on content change
     }
 }
 

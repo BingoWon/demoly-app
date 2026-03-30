@@ -39,8 +39,8 @@ struct FeedView: View {
         GeometryReader { geometry in
             let (columns, columnWidth) = GridMetrics.compute(
                 width: geometry.size.width,
-                minColumnWidth: 170,
-                spacing: 4
+                minColumnWidth: GridMetrics.feedMinColumnWidth,
+                spacing: GridMetrics.feedSpacing
             )
 
             ScrollView {

@@ -103,8 +103,10 @@ struct ProfileContentView: View {
                 columnWidth: columnWidth,
                 spacing: 2
             ) { project in
-                ProfileProjectCell(project: project, columnWidth: columnWidth, showDraftBadge: !project.isPublished)
-                    .onTapGesture { editProject(project) }
+                Button { editProject(project) } label: {
+                    ProfileProjectCell(project: project, columnWidth: columnWidth, showDraftBadge: !project.isPublished)
+                }
+                .buttonStyle(.plain)
             }
             .padding(.top, 2)
         }

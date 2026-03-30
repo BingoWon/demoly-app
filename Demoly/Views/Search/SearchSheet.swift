@@ -12,6 +12,7 @@ import SwiftUI
 struct SearchContentView: View {
     @State private var viewModel = SearchViewModel()
     @State private var selectedProject: Project?
+    @State private var containerWidth: CGFloat = 320
 
     var body: some View {
         ZStack {
@@ -29,6 +30,7 @@ struct SearchContentView: View {
         .navigationDestination(item: $selectedProject) { project in
             ProjectViewerPage(project: project)
         }
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { containerWidth = $0 }
         .task {
             await viewModel.loadTrending()
         }
@@ -182,33 +184,31 @@ struct SearchContentView: View {
     // MARK: - Projects Results
 
     private var projectsResults: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        let (columns, columnWidth) = GridMetrics.compute(
+            width: containerWidth - 32,
+            minColumnWidth: GridMetrics.feedMinColumnWidth,
+            spacing: GridMetrics.feedSpacing
+        )
+        return VStack(alignment: .leading, spacing: 0) {
             Text("Projects")
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
 
-            GeometryReader { geo in
-                let (columns, columnWidth) = GridMetrics.compute(
-                    width: geo.size.width - 32,
-                    minColumnWidth: GridMetrics.feedMinColumnWidth,
-                    spacing: GridMetrics.feedSpacing
-                )
-                MasonryGrid(
-                    projects: viewModel.projects,
-                    columns: columns,
-                    columnWidth: columnWidth,
-                    spacing: GridMetrics.feedSpacing
-                ) { project in
-                    Button { selectedProject = project } label: {
-                        ProjectGridCell(project: project, columnWidth: columnWidth)
-                    }
-                    .buttonStyle(.plain)
+            MasonryGrid(
+                projects: viewModel.projects,
+                columns: columns,
+                columnWidth: columnWidth,
+                spacing: GridMetrics.feedSpacing
+            ) { project in
+                Button { selectedProject = project } label: {
+                    ProjectGridCell(project: project, columnWidth: columnWidth)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 4)
+                .buttonStyle(.plain)
             }
+            .padding(.horizontal, 16)
+            .padding(.top, 4)
         }
     }
 }
