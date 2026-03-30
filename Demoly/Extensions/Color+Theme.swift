@@ -10,8 +10,16 @@ import SwiftUI
 extension Color {
     // MARK: - Brand (same in both modes)
 
-    static let brand = Color(hex: "a855f7")
-    static let brandSecondary = Color(hex: "6366f1")
+    static let brand = Color(hex: "FB629C") // Pink
+    static let brandSecondary = Color(hex: "FDD1B6") // Peach
+
+    // MARK: - New Brand Palette
+
+    static let brandSage = Color(hex: "99BB97")
+    static let brandOrange = Color(hex: "F18917")
+    static let brandRed = Color(hex: "AD0709")
+    static let brandCream = Color(hex: "E1E5DB")
+    static let brandBrown = Color(hex: "4B2C16")
 
     // MARK: - Adaptive Backgrounds
 
@@ -69,7 +77,11 @@ extension Color {
 
 extension ShapeStyle where Self == LinearGradient {
     static var brandGradient: LinearGradient {
-        LinearGradient(colors: [.brand, .brandSecondary], startPoint: .topLeading, endPoint: .bottomTrailing)
+        LinearGradient(
+            colors: [Color(hex: "FDD1B6"), Color(hex: "FDB5AF"), Color(hex: "FB629C")],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
 
     static var appBackgroundGradient: LinearGradient {

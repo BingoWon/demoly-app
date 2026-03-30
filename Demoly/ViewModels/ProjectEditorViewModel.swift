@@ -11,9 +11,17 @@ import SwiftUI
 final class ProjectEditorViewModel {
     // MARK: - Default Templates (fetched from backend via AIConfig)
 
-    static var defaultHTML: String { AIConfig.shared.defaultHTML }
-    static var defaultCSS: String { AIConfig.shared.defaultCSS }
-    static var defaultJS: String { AIConfig.shared.defaultJS }
+    static var defaultHTML: String {
+        AIConfig.shared.defaultHTML
+    }
+
+    static var defaultCSS: String {
+        AIConfig.shared.defaultCSS
+    }
+
+    static var defaultJS: String {
+        AIConfig.shared.defaultJS
+    }
 
     // MARK: - Identity
 
@@ -108,7 +116,7 @@ final class ProjectEditorViewModel {
                 cssContent: css,
                 jsContent: javascript,
                 chatMessages: chatMessages.isEmpty ? nil : chatMessages.map { $0.mapValues { AnyCodable($0) } },
-                isPublished: isPublished,
+                isPublished: isPublished
             )
 
             let effectiveProjectId: String

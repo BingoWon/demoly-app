@@ -60,6 +60,12 @@ final class FeedViewModel {
         performLoad()
     }
 
+    func retryIfNeeded() {
+        if projects.isEmpty, error != nil {
+            performLoad()
+        }
+    }
+
     func refresh() async {
         currentTask?.cancel()
         await doLoadFeed()

@@ -88,7 +88,7 @@ struct ProjectOptionsSheet: View {
             Section {
                 TextField("Enter description", text: $projectEditor.description, axis: .vertical)
                     .font(.system(size: 16))
-                    .lineLimit(3...6)
+                    .lineLimit(3 ... 6)
             } header: {
                 Label("Description", systemImage: "text.alignleft")
             }

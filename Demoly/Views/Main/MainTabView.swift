@@ -122,7 +122,7 @@ struct MainTabView: View {
         }
         chatViewModel.clear()
         createSubTab = .chat
-        
+
         selectedTab = previousTab == 1 ? 0 : previousTab
     }
 
@@ -130,7 +130,7 @@ struct MainTabView: View {
         projectEditor.load(project: project)
         chatViewModel.loadFromProjectEditor()
         createSubTab = .preview
-        
+
         if selectedTab != 1 {
             previousTab = selectedTab
         }

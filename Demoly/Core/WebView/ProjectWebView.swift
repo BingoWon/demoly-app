@@ -25,8 +25,8 @@ struct ProjectWebView: View {
 
     /// Feed / grid usage: renders a Project model.
     init(project: Project, isInteractive: Bool = true, isLazy: Bool = false) {
-        self.renderedHTML = ProjectRenderer.render(project)
-        self.changeToken = project.id
+        renderedHTML = ProjectRenderer.render(project)
+        changeToken = project.id
         self.isInteractive = isInteractive
         self.isLazy = isLazy
     }
@@ -34,8 +34,8 @@ struct ProjectWebView: View {
     /// Editor preview usage: renders raw HTML / CSS / JS.
     init(html: String, css: String, javascript: String, isInteractive: Bool = true) {
         let r = ProjectRenderer.render(html: html, css: css, javascript: javascript)
-        self.renderedHTML = r
-        self.changeToken = String(r.hashValue)
+        renderedHTML = r
+        changeToken = String(r.hashValue)
         self.isInteractive = isInteractive
     }
 
@@ -90,7 +90,7 @@ private struct LegacyProjectWebView: UIViewRepresentable {
     let changeToken: String
     let isInteractive: Bool
 
-    func makeUIView(context: Context) -> WKWebView {
+    func makeUIView(context _: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
@@ -114,13 +114,15 @@ private struct LegacyProjectWebView: UIViewRepresentable {
         webView.loadHTMLString(renderedHTML, baseURL: nil)
     }
 
-    func makeCoordinator() -> Coordinator { Coordinator() }
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
 
     class Coordinator {
         var lastChangeToken: String?
     }
 
-    static func dismantleUIView(_ uiView: WKWebView, coordinator: Coordinator) {
+    static func dismantleUIView(_ uiView: WKWebView, coordinator _: Coordinator) {
         // Clear JS engine when the cell is recycled / scrolled far away
         uiView.loadHTMLString("", baseURL: nil)
     }

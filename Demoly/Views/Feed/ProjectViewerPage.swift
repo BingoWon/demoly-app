@@ -55,7 +55,6 @@ struct ProjectViewerPage: View {
 
     @State private var scrolledID: String?
 
-    @ViewBuilder
     private var projectContent: some View {
         ScrollView(.vertical, showsIndicators: false) {
             LazyVStack(spacing: 0) {

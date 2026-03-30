@@ -29,14 +29,14 @@ struct MarkdownText: View {
     @ViewBuilder
     private func renderBlock(_ block: MarkdownBlock) -> some View {
         switch block {
-        case .heading(let level, let text):
+        case let .heading(level, text):
             Text(inlineMarkdown(text))
                 .font(.system(size: headingSize(level), weight: .bold))
                 .foregroundStyle(.primary)
                 .textSelection(.enabled)
                 .padding(.top, level == 1 ? 4 : 2)
 
-        case .listItem(let text, let ordered, let index):
+        case let .listItem(text, ordered, index):
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(ordered ? "\(index)." : "•")
                     .font(.system(size: 14))
@@ -48,13 +48,13 @@ struct MarkdownText: View {
                     .textSelection(.enabled)
             }
 
-        case .paragraph(let text):
+        case let .paragraph(text):
             Text(inlineMarkdown(text))
                 .font(.system(size: 15))
                 .foregroundStyle(.primary)
                 .textSelection(.enabled)
 
-        case .blockquote(let text):
+        case let .blockquote(text):
             HStack(spacing: 8) {
                 RoundedRectangle(cornerRadius: 1)
                     .fill(Color.brand.opacity(0.5))
@@ -98,8 +98,8 @@ struct MarkdownText: View {
                     attributed[range].font = .system(size: 14, design: .monospaced)
                     attributed[range].backgroundColor =
                         colorScheme == .dark
-                        ? Color.white.opacity(0.1)
-                        : Color.black.opacity(0.1)
+                            ? Color.white.opacity(0.1)
+                            : Color.black.opacity(0.1)
                 }
             }
 
@@ -231,9 +231,9 @@ struct RichMessageContent: View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach(Array(blocks.enumerated()), id: \.offset) { _, block in
                 switch block {
-                case .text(let text):
+                case let .text(text):
                     MarkdownText(content: text)
-                case .code(let code, let language):
+                case let .code(code, language):
                     CodeBlockView(code: code, language: language)
                 }
             }
@@ -255,7 +255,7 @@ struct RichMessageContent: View {
             let matchRange = match.range
 
             if searchStart < matchRange.lowerBound {
-                let text = String(content[searchStart..<matchRange.lowerBound])
+                let text = String(content[searchStart ..< matchRange.lowerBound])
                     .trimmingCharacters(in: .whitespacesAndNewlines)
                 if !text.isEmpty { blocks.append(.text(text)) }
             }

@@ -51,49 +51,49 @@ private struct AIConfigResponse: Decodable {
 
 // MARK: - Fallbacks
 
-extension AIConfig {
-    fileprivate static let fallbackSystemPrompt = """
-        You are a creative AI assistant in Demoly, a social app for sharing HTML/CSS/JS creative projects.
-        Help users create interactive, visually appealing web components.
-        """
+private extension AIConfig {
+    static let fallbackSystemPrompt = """
+    You are a creative AI assistant in Demoly, a social app for sharing HTML/CSS/JS creative projects.
+    Help users create interactive, visually appealing web components.
+    """
 
-    fileprivate static let fallbackHTML = """
-        <div class="container">
-          <h1>Hello, World!</h1>
-          <p>Start creating your masterpiece</p>
-        </div>
-        """
+    static let fallbackHTML = """
+    <div class="container">
+      <h1>Hello, World!</h1>
+      <p>Start creating your masterpiece</p>
+    </div>
+    """
 
-    fileprivate static let fallbackCSS = """
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-        }
+    static let fallbackCSS = """
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        body {
-          height: 100dvh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, #1a1a2e, #16213e);
-          font-family: system-ui, -apple-system, sans-serif;
-        }
+    body {
+      height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      font-family: system-ui, -apple-system, sans-serif;
+    }
 
-        .container {
-          text-align: center;
-          color: white;
-        }
+    .container {
+      text-align: center;
+      color: white;
+    }
 
-        h1 {
-          font-size: 2.5rem;
-          margin-bottom: 0.5rem;
-        }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
 
-        p {
-          opacity: 0.7;
-        }
-        """
+    p {
+      opacity: 0.7;
+    }
+    """
 
-    fileprivate static let fallbackJS = ""
+    static let fallbackJS = ""
 }

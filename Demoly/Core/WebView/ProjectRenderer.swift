@@ -21,7 +21,7 @@ enum ProjectRenderer {
         if html.lowercased().contains("<html") {
             return applyDynamicPlatformPolicy(html)
         }
-        
+
         return """
         <!DOCTYPE html>
         <html lang="en">
@@ -45,9 +45,9 @@ enum ProjectRenderer {
             .replacingOccurrences(of: "maximum-scale=1.0", with: "", options: .caseInsensitive)
             .replacingOccurrences(of: "user-scalable=no", with: "", options: .caseInsensitive)
             .replacingOccurrences(of: "maximum-scale=1", with: "", options: .caseInsensitive)
-        
+
         let overrideStyle = "<style>html, body { overflow: auto !important; height: auto !important; min-height: 100vh; }</style>"
-        
+
         if let range = result.range(of: "</head>", options: .caseInsensitive) {
             result.insert(contentsOf: overrideStyle, at: range.lowerBound)
         } else if let range = result.range(of: "<body>", options: .caseInsensitive) {
@@ -55,7 +55,7 @@ enum ProjectRenderer {
         } else {
             result.append(overrideStyle)
         }
-        
+
         return result
     }
 

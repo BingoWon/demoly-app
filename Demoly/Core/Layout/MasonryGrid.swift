@@ -75,7 +75,7 @@ struct MasonryGrid<Item: Identifiable, Content: View>: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: spacing) {
-            ForEach(0..<columns, id: \.self) { columnIndex in
+            ForEach(0 ..< columns, id: \.self) { columnIndex in
                 LazyVStack(spacing: spacing) {
                     ForEach(itemsForColumn(columnIndex)) { item in
                         content(item)

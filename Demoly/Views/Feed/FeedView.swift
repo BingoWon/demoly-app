@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct FeedView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showSearch = false
     @State private var selectedProject: Project?
 
@@ -31,6 +32,11 @@ struct FeedView: View {
         .task {
             feed.loadInitial()
         }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                feed.retryIfNeeded()
+            }
+        }
     }
 
     // MARK: - Grid View
@@ -46,6 +52,11 @@ struct FeedView: View {
             ScrollView {
                 if feed.isLoading, feed.projects.isEmpty {
                     loadingState
+                } else if let error = feed.error, feed.projects.isEmpty {
+                    NetworkErrorView(message: error) {
+                        feed.loadInitial()
+                    }
+                    .frame(minHeight: geometry.size.height)
                 } else if feed.isEmpty {
                     emptyState
                 } else {

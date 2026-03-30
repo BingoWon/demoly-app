@@ -153,7 +153,7 @@ struct EditProfileView: View {
                 guard let item else { return }
                 Task {
                     if let data = try? await item.loadTransferable(type: Data.self),
-                        let image = UIImage(data: data)
+                       let image = UIImage(data: data)
                     {
                         avatarImage = image
                     }
@@ -195,7 +195,7 @@ struct EditProfileView: View {
                     } else if let url = profile?.resolvedAvatarURL {
                         AsyncImage(url: url) { phase in
                             switch phase {
-                            case .success(let image):
+                            case let .success(image):
                                 image.resizable().scaledToFill()
                             default:
                                 avatarFallback

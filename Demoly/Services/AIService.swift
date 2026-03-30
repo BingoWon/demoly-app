@@ -43,7 +43,7 @@ final class AIService {
 
                         let jsonStr = String(line.dropFirst(6))
                         guard let data = jsonStr.data(using: .utf8),
-                            let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+                              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
                         else { continue }
 
                         if let usage = json["usage"] as? [String: Any] {
@@ -63,8 +63,8 @@ final class AIService {
                         }
 
                         guard let choices = json["choices"] as? [[String: Any]],
-                            let choice = choices.first,
-                            let delta = choice["delta"] as? [String: Any]
+                              let choice = choices.first,
+                              let delta = choice["delta"] as? [String: Any]
                         else { continue }
 
                         if let reasoning = delta["reasoning_content"] as? String, !reasoning.isEmpty {
@@ -84,16 +84,16 @@ final class AIService {
                                 }
 
                                 if let id = tc["id"] as? String,
-                                    let function = tc["function"] as? [String: Any],
-                                    let name = function["name"] as? String,
-                                    !toolCallStarted.contains(index)
+                                   let function = tc["function"] as? [String: Any],
+                                   let name = function["name"] as? String,
+                                   !toolCallStarted.contains(index)
                                 {
                                     toolCallStarted.insert(index)
                                     continuation.yield(.toolCallStart(index: index, id: id, name: name))
                                 }
 
                                 if let function = tc["function"] as? [String: Any],
-                                    let args = function["arguments"] as? String
+                                   let args = function["arguments"] as? String
                                 {
                                     toolCallArguments[index]! += args
                                     continuation.yield(.toolCallArguments(index: index, delta: args))

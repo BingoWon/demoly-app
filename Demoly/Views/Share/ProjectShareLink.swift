@@ -1,5 +1,5 @@
 //
-//  ShareSheet.swift
+//  ProjectShareLink.swift
 //  Demoly
 //
 
@@ -27,6 +27,6 @@ struct ProjectShareLink<Label: View>: View {
 extension ProjectShareLink where Label == SwiftUI.Label<Text, Image> {
     init(project: Project) {
         self.project = project
-        self.label = Label("Share", systemImage: "square.and.arrow.up")
+        label = Label("Share", systemImage: "square.and.arrow.up")
     }
 }

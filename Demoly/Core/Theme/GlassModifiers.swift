@@ -22,14 +22,14 @@ struct GlassBackgroundModifier: ViewModifier {
             switch shape {
             case .capsule:
                 content.glassEffect(.regular.interactive(), in: .capsule)
-            case .roundedRect(let radius):
+            case let .roundedRect(radius):
                 content.glassEffect(.regular.interactive(), in: .rect(cornerRadius: radius))
             }
         } else {
             switch shape {
             case .capsule:
                 materialFallback(content, shape: Capsule())
-            case .roundedRect(let radius):
+            case let .roundedRect(radius):
                 materialFallback(content, shape: RoundedRectangle(cornerRadius: radius))
             }
         }

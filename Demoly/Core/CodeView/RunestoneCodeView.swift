@@ -135,17 +135,17 @@ private struct CodeTextView: UIViewRepresentable {
     RunestoneCodeView(
         language: .html,
         code: """
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <title>Hello World</title>
-            </head>
-            <body>
-                <h1 class="title">Hello, Demoly!</h1>
-            </body>
-            </html>
-            """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>Hello World</title>
+        </head>
+        <body>
+            <h1 class="title">Hello, Demoly!</h1>
+        </body>
+        </html>
+        """
     )
     .frame(height: 300)
 }

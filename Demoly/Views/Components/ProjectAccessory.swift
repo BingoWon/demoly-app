@@ -79,8 +79,13 @@ private struct ProjectAccessoryContent: View {
     @Binding var showDetail: Bool
 
     private let feed = FeedViewModel.shared
-    private var currentProject: Project? { feed.currentProject }
-    private var creator: Profile? { currentProject?.creator }
+    private var currentProject: Project? {
+        feed.currentProject
+    }
+
+    private var creator: Profile? {
+        currentProject?.creator
+    }
 
     var body: some View {
         HStack(spacing: 0) {

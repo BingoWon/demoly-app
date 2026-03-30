@@ -130,6 +130,11 @@ struct ProfileProjectCell: View {
                 .frame(width: columnWidth, height: cellHeight)
                 .clipShape(RoundedRectangle(cornerRadius: 4))
 
+            // Transparent overlay claims the full hit area for SwiftUI
+            // so touches never fall into the underlying WKWebView
+            Color.clear
+                .contentShape(RoundedRectangle(cornerRadius: 4))
+
             if showDraftBadge {
                 Text("Draft")
                     .font(.system(size: 8, weight: .semibold))

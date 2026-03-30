@@ -5,9 +5,8 @@
 //  Created by Bin Wang on 12/1/25.
 //
 
-import Testing
-
 @testable import Demoly
+import Testing
 
 struct DemolyTests {
     @Test func example() {

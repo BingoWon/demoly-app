@@ -141,7 +141,7 @@ struct ChatEditorView: View {
             TextField("Message...", text: $chatViewModel.inputText, axis: .vertical)
                 .font(.system(size: 16))
                 .foregroundStyle(.primary)
-                .lineLimit(1...5)
+                .lineLimit(1 ... 5)
                 .focused($isInputFocused)
                 .tint(Color.brand)
                 .padding(.horizontal, 16)

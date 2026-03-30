@@ -24,10 +24,10 @@ enum APIError: LocalizedError {
         case .unauthorized: "Please sign in"
         case .notFound: "Not found"
         case .forbidden: "Access denied"
-        case .serverError(let code, let msg): msg ?? "Server error (\(code))"
-        case .decodingFailed(let err): "Decoding error: \(err.localizedDescription)"
+        case let .serverError(code, msg): msg ?? "Server error (\(code))"
+        case let .decodingFailed(err): "Decoding error: \(err.localizedDescription)"
         case .encodingFailed: "Failed to encode data"
-        case .networkError(let err): err.localizedDescription
+        case let .networkError(err): err.localizedDescription
         }
     }
 }
@@ -210,7 +210,7 @@ actor APIClient {
     private func validateResponse(_ response: URLResponse, data: Data) throws {
         guard let http = response as? HTTPURLResponse else { return }
         switch http.statusCode {
-        case 200...299: return
+        case 200 ... 299: return
         case 401: throw APIError.unauthorized
         case 403: throw APIError.forbidden
         case 404: throw APIError.notFound

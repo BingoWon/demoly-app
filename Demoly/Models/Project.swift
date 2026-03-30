@@ -82,8 +82,8 @@ nonisolated extension Project: Codable {
             if let rawMessages = try? container.decode([[String: AnyCodable]].self, forKey: .chatMessages) {
                 chatMessages = rawMessages.map { dict in dict.mapValues { $0.value } }
             } else if let messagesString = try? container.decode(String.self, forKey: .chatMessages),
-                let data = messagesString.data(using: .utf8),
-                let messages = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]]
+                      let data = messagesString.data(using: .utf8),
+                      let messages = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]]
             {
                 chatMessages = messages
             } else {

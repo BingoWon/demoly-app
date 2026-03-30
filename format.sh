@@ -1,22 +1,13 @@
 #!/bin/bash
 
-# Demoly iOS App - Code Formatter
-# Uses apple/swift-format (AST-based, official Swift formatter)
+# demoly-app/format.sh
+# 格式化整个 iOS 项目代码
 
-set -e
-
-cd "$(dirname "$0")"
-
-if ! command -v swift-format &> /dev/null; then
-    echo "Error: swift-format not found"
-    echo "Install with: brew install swift-format"
-    exit 1
+echo "Running SwiftFormat..."
+if command -v swiftformat &> /dev/null; then
+  swiftformat .
+else
+  echo "Error: swiftformat is not installed."
+  echo "Please install it using: brew install swiftformat"
+  exit 1
 fi
-
-echo "Formatting..."
-swift-format format --configuration .swift-format --recursive --in-place Demoly/ DemolyTests/ DemolyUITests/
-
-echo "Linting..."
-swift-format lint --configuration .swift-format --recursive Demoly/ DemolyTests/ DemolyUITests/ 2>&1 || true
-
-echo "Done."

@@ -213,7 +213,6 @@ struct SearchContentView: View {
     }
 }
 
-
 // MARK: - Sheet Wrapper (iOS 18 / non-tab contexts)
 
 struct SearchSheet: View {

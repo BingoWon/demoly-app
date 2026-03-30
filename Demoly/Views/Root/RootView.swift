@@ -14,7 +14,7 @@ struct RootView: View {
 
     var body: some View {
         @Bindable var authManager = authManager
-        
+
         MainTabView()
             .sheet(isPresented: $authManager.showAuthSheet) {
                 AuthContainerView()
