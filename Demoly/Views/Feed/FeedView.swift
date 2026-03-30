@@ -129,7 +129,7 @@ struct ProjectGridCell: View {
             LikeButton(projectId: project.id, size: .compact)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 5)
-                .background(.ultraThinMaterial, in: Capsule())
+                .glassBackground()
                 .padding(8)
         }
         .frame(width: columnWidth, height: cellHeight)
