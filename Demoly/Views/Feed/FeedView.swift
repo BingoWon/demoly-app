@@ -55,8 +55,10 @@ struct FeedView: View {
                         columnWidth: columnWidth,
                         spacing: 4
                     ) { project in
-                        ProjectGridCell(project: project, columnWidth: columnWidth)
-                            .onTapGesture { selectedProject = project }
+                        Button { selectedProject = project } label: {
+                            ProjectGridCell(project: project, columnWidth: columnWidth)
+                        }
+                        .buttonStyle(.plain)
                     }
                     .padding(.top, 4)
                 }
@@ -122,9 +124,14 @@ struct ProjectGridCell: View {
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            GridProjectWebView(project: project)
+            ProjectWebView(project: project, isInteractive: false, isLazy: true)
                 .frame(width: columnWidth, height: cellHeight)
                 .clipped()
+
+            // Transparent overlay claims the full hit area for SwiftUI
+            // so touches never fall into the underlying WKWebView
+            Color.clear
+                .contentShape(RoundedRectangle(cornerRadius: 12))
 
             LikeButton(projectId: project.id, size: .compact)
                 .padding(.horizontal, 8)

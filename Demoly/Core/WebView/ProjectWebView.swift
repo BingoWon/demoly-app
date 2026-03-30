@@ -6,7 +6,8 @@
 //  iOS 18: UIViewRepresentable + WKWebView
 //
 //  isInteractive: false → UIKit touches blocked, SwiftUI taps fall through
-//  isLazy: true        → HTML loaded on appear, cleared on disappear (grid mode)
+//  isLazy: true (iOS 26) → HTML cleared on disappear to free memory
+//  iOS 18 cleanup is handled by dismantleUIView
 //
 
 import SwiftUI
@@ -21,7 +22,7 @@ struct ProjectWebView: View {
         if #available(iOS 26.0, *) {
             NativeProjectWebView(project: project, isInteractive: isInteractive, isLazy: isLazy)
         } else {
-            LegacyProjectWebView(project: project, isInteractive: isInteractive, isLazy: isLazy)
+            LegacyProjectWebView(project: project, isInteractive: isInteractive)
         }
     }
 }
@@ -56,7 +57,6 @@ private struct NativeProjectWebView: View {
 private struct LegacyProjectWebView: UIViewRepresentable {
     let project: Project
     let isInteractive: Bool
-    let isLazy: Bool
 
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
@@ -93,29 +93,5 @@ private struct LegacyProjectWebView: UIViewRepresentable {
     static func dismantleUIView(_ uiView: WKWebView, coordinator: Coordinator) {
         // Clear JS engine when the cell is recycled / scrolled far away
         uiView.loadHTMLString("", baseURL: nil)
-    }
-}
-
-// MARK: - Grid preview wrapper
-
-/// Wraps ProjectWebView with visibility-driven load/unload for masonry grid cells.
-/// - Renders a black placeholder until the cell scrolls into view (lazy first load)
-/// - Clears the WebView when the cell scrolls out (frees JS engine memory)
-/// - Blocks all touches so taps fall through to .onTapGesture on the parent cell
-struct GridProjectWebView: View {
-    let project: Project
-
-    @State private var isVisible = false
-
-    var body: some View {
-        Group {
-            if isVisible {
-                ProjectWebView(project: project, isInteractive: false, isLazy: true)
-            } else {
-                Color.black
-            }
-        }
-        .onAppear { isVisible = true }
-        .onDisappear { isVisible = false }
     }
 }
