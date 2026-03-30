@@ -53,7 +53,6 @@ struct FeedView: View {
                         projects: feed.projects,
                         columns: columns,
                         columnWidth: columnWidth,
-                        infoHeight: 60,
                         spacing: 4
                     ) { project in
                         ProjectGridCell(project: project, columnWidth: columnWidth)
@@ -117,46 +116,24 @@ struct ProjectGridCell: View {
     let project: Project
     let columnWidth: CGFloat
 
-    private var imageHeight: CGFloat {
+    private var cellHeight: CGFloat {
         max(columnWidth / Thumbnail.aspectRatio, 1)
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            CachedThumbnail(project: project, size: CGSize(width: columnWidth, height: imageHeight))
+        ZStack(alignment: .bottomTrailing) {
+            ProjectWebView(project: project)
+                .disabled(true) // static preview — no interaction
+                .frame(width: columnWidth, height: cellHeight)
+                .clipped()
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text(project.displayTitle)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(.primary)
-                    .lineLimit(2)
-
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(Color.brand)
-                        .frame(width: 18, height: 18)
-                        .overlay {
-                            Text(project.creator?.initial ?? "U")
-                                .font(.system(size: 8, weight: .bold))
-                                .foregroundStyle(.white)
-                        }
-
-                    Text(project.creator?.displayName ?? project.creator?.handle ?? "User")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-
-                    Spacer()
-
-                    LikeButton(projectId: project.id, size: .compact)
-                }
-            }
-            .padding(.horizontal, 10)
-            .padding(.top, 8)
-            .padding(.bottom, 5)
+            LikeButton(projectId: project.id, size: .compact)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 5)
+                    .background(.ultraThinMaterial, in: Capsule())
+                    .padding(8)
         }
-        .frame(width: columnWidth)
-        .background(Color.secondaryBackground)
+        .frame(width: columnWidth, height: cellHeight)
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
