@@ -10,7 +10,7 @@ import SwiftUI
 
 struct InboxView: View {
     @Environment(AuthManager.self) private var authManager
-    @State private var viewModel = InboxViewModel()
+    private let viewModel = InboxViewModel.shared
     @State private var selectedActivity: Activity?
 
     var body: some View {

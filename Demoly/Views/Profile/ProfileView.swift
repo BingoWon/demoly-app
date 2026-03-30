@@ -40,31 +40,35 @@ struct ProfileContentView: View {
 
     @State private var showSettings = false
     @State private var showEditProfile = false
+    @State private var containerWidth: CGFloat = UIScreen.main.bounds.width
 
     var body: some View {
-        GeometryReader { geometry in
-            let (columns, columnWidth) = GridMetrics.profileLayout(
-                width: geometry.size.width
-            )
+        let (columns, columnWidth) = GridMetrics.profileLayout(
+            width: containerWidth
+        )
 
-            ScrollView {
-                VStack(spacing: 8) {
-                    ProfileHeaderView(
-                        profile: userProfile.profile,
-                        showEditButton: true,
-                        onEditTapped: { showEditProfile = true }
-                    )
+        ScrollView {
+            VStack(spacing: 8) {
+                ProfileHeaderView(
+                    profile: userProfile.profile,
+                    showEditButton: true,
+                    onEditTapped: { showEditProfile = true }
+                )
 
-                    ProfileStatsRow(
-                        projectCount: userProfile.projectCount,
-                        followerCount: userProfile.followerCount,
-                        followingCount: userProfile.followingCount
-                    )
+                ProfileStatsRow(
+                    projectCount: userProfile.projectCount,
+                    followerCount: userProfile.followerCount,
+                    followingCount: userProfile.followingCount
+                )
 
-                    projectGrid(columns: columns, columnWidth: columnWidth)
-                }
+                projectGrid(columns: columns, columnWidth: columnWidth)
             }
-            .refreshable { await userProfile.refresh() }
+        }
+        .refreshable { await userProfile.refresh() }
+        .onGeometryChange(for: CGFloat.self) { proxy in
+            proxy.size.width
+        } action: { newWidth in
+            containerWidth = newWidth
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { toolbarContent }
@@ -97,17 +101,15 @@ struct ProfileContentView: View {
             }
             .padding(.vertical, 40)
         } else {
-            MasonryGrid(
-                projects: userProfile.projects,
-                columns: columns,
-                columnWidth: columnWidth,
-                spacing: 2
-            ) { project in
-                Button { editProject(project) } label: {
-                    ProfileProjectCell(project: project, columnWidth: columnWidth, showDraftBadge: !project.isPublished)
+            LazyVGrid(columns: GridMetrics.gridItems(columns: columns, spacing: 2), spacing: 2) {
+                ForEach(userProfile.projects) { project in
+                    Button { editProject(project) } label: {
+                        ProfileProjectCell(project: project, columnWidth: columnWidth, showDraftBadge: !project.isPublished)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
+            .padding(.horizontal, 2)
             .padding(.top, 2)
         }
     }
@@ -126,7 +128,7 @@ struct ProfileProjectCell: View {
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            ProjectWebView(project: project, isInteractive: false, isLazy: true)
+            ProjectWebView(project: project, isInteractive: false, isLazy: true, useGridViewport: true)
                 .frame(width: columnWidth, height: cellHeight)
                 .clipShape(RoundedRectangle(cornerRadius: 4))
 

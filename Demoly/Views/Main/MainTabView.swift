@@ -14,7 +14,7 @@ struct MainTabView: View {
     @State private var projectEditor: ProjectEditorViewModel
     @State private var chatViewModel: ChatViewModel
     @State private var createSubTab: CreateSubTab = .chat
-    @State private var unreadCount = 0
+    private let inbox = InboxViewModel.shared
 
     init() {
         let editor = ProjectEditorViewModel()
@@ -26,7 +26,7 @@ struct MainTabView: View {
         tabContent
             .tint(.primary)
             .task {
-                await loadUnreadCount()
+                await prefetchData()
             }
             .onChange(of: selectedTab) { oldValue, newValue in
                 handleTabChange(from: oldValue, to: newValue)
@@ -57,7 +57,7 @@ struct MainTabView: View {
                 Tab("Inbox", systemImage: "bell.fill", value: 2) {
                     InboxView()
                 }
-                .badge(unreadCount)
+                .badge(inbox.unreadCount)
                 Tab("Profile", systemImage: "person.fill", value: 3) {
                     ProfileView(editProject: editProject)
                 }
@@ -89,7 +89,7 @@ struct MainTabView: View {
                 InboxView()
                     .tabItem { Label("Inbox", systemImage: "bell.fill") }
                     .tag(2)
-                    .badge(unreadCount)
+                    .badge(inbox.unreadCount)
                 ProfileView(editProject: editProject)
                     .tabItem { Label("Profile", systemImage: "person.fill") }
                     .tag(3)
@@ -107,7 +107,7 @@ struct MainTabView: View {
         }
 
         if newValue == 2 {
-            Task { await loadUnreadCount() }
+            Task { await inbox.loadActivities() }
         }
     }
 
@@ -137,16 +137,10 @@ struct MainTabView: View {
         selectedTab = 1
     }
 
-    private func loadUnreadCount() async {
-        guard Clerk.shared.user != nil else {
-            unreadCount = 0
-            return
-        }
-        do {
-            unreadCount = try await ActivityService.shared.fetchUnreadCount()
-        } catch {
-            print("Failed to load unread count: \(error)")
-        }
+    /// Prefetch Inbox data so it's instantly available when the user switches tabs.
+    private func prefetchData() async {
+        guard Clerk.shared.user != nil else { return }
+        await inbox.loadActivities()
     }
 }
 

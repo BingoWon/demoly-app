@@ -2,7 +2,7 @@
 //  FeedView.swift
 //  Demoly
 //
-//  Xiaohongshu-style masonry grid discover page with native navigation
+//  Grid-based discover page with native navigation
 //
 
 import SwiftUI
@@ -11,6 +11,7 @@ struct FeedView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var showSearch = false
     @State private var selectedProject: Project?
+    @State private var containerWidth: CGFloat = UIScreen.main.bounds.width
 
     private let feed = FeedViewModel.shared
 
@@ -42,39 +43,39 @@ struct FeedView: View {
     // MARK: - Grid View
 
     private var gridView: some View {
-        GeometryReader { geometry in
-            let (columns, columnWidth) = GridMetrics.compute(
-                width: geometry.size.width,
-                minColumnWidth: GridMetrics.feedMinColumnWidth,
-                spacing: GridMetrics.feedSpacing
-            )
+        let (columns, columnWidth) = GridMetrics.compute(
+            width: containerWidth,
+            minColumnWidth: GridMetrics.feedMinColumnWidth,
+            spacing: GridMetrics.feedSpacing
+        )
 
-            ScrollView {
-                if feed.isLoading, feed.projects.isEmpty {
-                    loadingState
-                } else if let error = feed.error, feed.projects.isEmpty {
-                    NetworkErrorView(message: error) {
-                        feed.loadInitial()
-                    }
-                    .frame(minHeight: geometry.size.height)
-                } else if feed.isEmpty {
-                    emptyState
-                } else {
-                    MasonryGrid(
-                        projects: feed.projects,
-                        columns: columns,
-                        columnWidth: columnWidth,
-                        spacing: 4
-                    ) { project in
+        return ScrollView {
+            if feed.isLoading, feed.projects.isEmpty {
+                loadingState
+            } else if let error = feed.error, feed.projects.isEmpty {
+                NetworkErrorView(message: error) {
+                    feed.loadInitial()
+                }
+            } else if feed.isEmpty {
+                emptyState
+            } else {
+                LazyVGrid(columns: GridMetrics.gridItems(columns: columns, spacing: 4), spacing: 4) {
+                    ForEach(feed.projects) { project in
                         Button { selectedProject = project } label: {
                             ProjectGridCell(project: project, columnWidth: columnWidth)
                         }
                         .buttonStyle(.plain)
                     }
-                    .padding(.top, 4)
                 }
+                .padding(.horizontal, 4)
+                .padding(.top, 4)
             }
-            .refreshable { await feed.refresh() }
+        }
+        .refreshable { await feed.refresh() }
+        .onGeometryChange(for: CGFloat.self) { proxy in
+            proxy.size.width
+        } action: { newWidth in
+            containerWidth = newWidth
         }
     }
 
@@ -135,7 +136,7 @@ struct ProjectGridCell: View {
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            ProjectWebView(project: project, isInteractive: false, isLazy: true)
+            ProjectWebView(project: project, isInteractive: false, isLazy: true, useGridViewport: true)
                 .frame(width: columnWidth, height: cellHeight)
                 .clipped()
 

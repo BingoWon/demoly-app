@@ -10,6 +10,7 @@ import SwiftUI
 struct UserProfileView: View {
     let username: String
     @State private var viewModel: OtherUserProfileViewModel
+    @State private var containerWidth: CGFloat = UIScreen.main.bounds.width
 
     init(username: String) {
         self.username = username
@@ -17,27 +18,30 @@ struct UserProfileView: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            let (columns, columnWidth) = GridMetrics.profileLayout(
-                width: geometry.size.width
-            )
+        let (columns, columnWidth) = GridMetrics.profileLayout(
+            width: containerWidth
+        )
 
-            ScrollView {
-                VStack(spacing: 8) {
-                    ProfileHeaderView(profile: viewModel.profile, isLoading: viewModel.isLoading)
+        ScrollView {
+            VStack(spacing: 8) {
+                ProfileHeaderView(profile: viewModel.profile, isLoading: viewModel.isLoading)
 
-                    ProfileStatsRow(
-                        projectCount: viewModel.projectCount,
-                        followerCount: viewModel.followerCount,
-                        followingCount: viewModel.followingCount,
-                        isLoading: viewModel.isLoading
-                    )
+                ProfileStatsRow(
+                    projectCount: viewModel.projectCount,
+                    followerCount: viewModel.followerCount,
+                    followingCount: viewModel.followingCount,
+                    isLoading: viewModel.isLoading
+                )
 
-                    actionButtons
+                actionButtons
 
-                    projectMasonryGrid(columns: columns, columnWidth: columnWidth)
-                }
+                projectGrid(columns: columns, columnWidth: columnWidth)
             }
+        }
+        .onGeometryChange(for: CGFloat.self) { proxy in
+            proxy.size.width
+        } action: { newWidth in
+            containerWidth = newWidth
         }
         .navigationBarTitleDisplayMode(.inline)
         .task {
@@ -69,9 +73,9 @@ struct UserProfileView: View {
         }
     }
 
-    // MARK: - Project Masonry Grid
+    // MARK: - Project Grid
 
-    private func projectMasonryGrid(columns: Int, columnWidth: CGFloat) -> some View {
+    private func projectGrid(columns: Int, columnWidth: CGFloat) -> some View {
         Group {
             if viewModel.projects.isEmpty, !viewModel.isLoading {
                 ContentUnavailableView {
@@ -79,14 +83,12 @@ struct UserProfileView: View {
                 }
                 .padding(.vertical, 40)
             } else {
-                MasonryGrid(
-                    projects: viewModel.projects,
-                    columns: columns,
-                    columnWidth: columnWidth,
-                    spacing: 2
-                ) { project in
-                    ProfileProjectCell(project: project, columnWidth: columnWidth)
+                LazyVGrid(columns: GridMetrics.gridItems(columns: columns, spacing: 2), spacing: 2) {
+                    ForEach(viewModel.projects) { project in
+                        ProfileProjectCell(project: project, columnWidth: columnWidth)
+                    }
                 }
+                .padding(.horizontal, 2)
                 .padding(.top, 2)
             }
         }

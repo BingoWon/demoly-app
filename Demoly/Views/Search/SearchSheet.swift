@@ -196,16 +196,13 @@ struct SearchContentView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
 
-            MasonryGrid(
-                projects: viewModel.projects,
-                columns: columns,
-                columnWidth: columnWidth,
-                spacing: GridMetrics.feedSpacing
-            ) { project in
-                Button { selectedProject = project } label: {
-                    ProjectGridCell(project: project, columnWidth: columnWidth)
+            LazyVGrid(columns: GridMetrics.gridItems(columns: columns, spacing: GridMetrics.feedSpacing), spacing: GridMetrics.feedSpacing) {
+                ForEach(viewModel.projects) { project in
+                    Button { selectedProject = project } label: {
+                        ProjectGridCell(project: project, columnWidth: columnWidth)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
             .padding(.horizontal, 16)
             .padding(.top, 4)

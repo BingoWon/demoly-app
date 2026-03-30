@@ -7,6 +7,8 @@
 //
 //  isInteractive: false → UIKit touches blocked, SwiftUI taps fall through
 //  isLazy: true         → HTML cleared on disappear to free memory
+//  useGridViewport      → injects viewport width=390 so WKWebView renders at
+//                         design width and auto-scales to fit the cell frame
 //  changeToken          → triggers a reload when content changes without
 //                         recreating the UIView (coordinator-based dedup)
 //
@@ -14,28 +16,36 @@
 import SwiftUI
 import WebKit
 
+// MARK: - Constants
+
+/// The canonical iPhone design width. When `useGridViewport` is true, WKWebView
+/// renders the page at this width and automatically scales to its actual frame.
+private let DESIGN_WIDTH: CGFloat = 390
+
 // MARK: - Public Interface
 
 struct ProjectWebView: View {
     private let renderedHTML: String
-    /// Uniquely identifies the current content. When it changes, the WebView reloads.
     private let changeToken: String
     var isInteractive: Bool = true
     var isLazy: Bool = false
+    /// When true, forces viewport to DESIGN_WIDTH so the content scales to fit.
+    var useGridViewport: Bool = false
 
     /// Feed / grid usage: renders a Project model.
-    init(project: Project, isInteractive: Bool = true, isLazy: Bool = false) {
-        renderedHTML = ProjectRenderer.render(project)
-        changeToken = project.id
+    init(project: Project, isInteractive: Bool = true, isLazy: Bool = false, useGridViewport: Bool = false) {
+        self.renderedHTML = ProjectRenderer.render(project)
+        self.changeToken = project.id
         self.isInteractive = isInteractive
         self.isLazy = isLazy
+        self.useGridViewport = useGridViewport
     }
 
     /// Editor preview usage: renders raw HTML / CSS / JS.
     init(html: String, css: String, javascript: String, isInteractive: Bool = true) {
         let r = ProjectRenderer.render(html: html, css: css, javascript: javascript)
-        renderedHTML = r
-        changeToken = String(r.hashValue)
+        self.renderedHTML = r
+        self.changeToken = String(r.hashValue)
         self.isInteractive = isInteractive
     }
 
@@ -45,17 +55,20 @@ struct ProjectWebView: View {
                 renderedHTML: renderedHTML,
                 changeToken: changeToken,
                 isInteractive: isInteractive,
-                isLazy: isLazy
+                isLazy: isLazy,
+                useGridViewport: useGridViewport
             )
         } else {
             LegacyProjectWebView(
                 renderedHTML: renderedHTML,
                 changeToken: changeToken,
-                isInteractive: isInteractive
+                isInteractive: isInteractive,
+                useGridViewport: useGridViewport
             )
         }
     }
 }
+
 
 // MARK: - iOS 26: Native SwiftUI WebView
 
@@ -65,6 +78,7 @@ private struct NativeProjectWebView: View {
     let changeToken: String
     let isInteractive: Bool
     let isLazy: Bool
+    let useGridViewport: Bool
 
     @State private var webPage = WebPage()
 
@@ -79,7 +93,8 @@ private struct NativeProjectWebView: View {
     }
 
     private func load() {
-        webPage.load(html: renderedHTML)
+        let html = useGridViewport ? injectFixedViewport(renderedHTML) : renderedHTML
+        webPage.load(html: html)
     }
 }
 
@@ -89,6 +104,7 @@ private struct LegacyProjectWebView: UIViewRepresentable {
     let renderedHTML: String
     let changeToken: String
     let isInteractive: Bool
+    let useGridViewport: Bool
 
     func makeUIView(context _: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
@@ -103,7 +119,7 @@ private struct LegacyProjectWebView: UIViewRepresentable {
         webView.scrollView.bounces = false
         webView.scrollView.alwaysBounceVertical = false
         webView.scrollView.alwaysBounceHorizontal = false
-        // Blocks UIKit-level touches in grid preview so taps reach SwiftUI
+        webView.scrollView.isScrollEnabled = false
         webView.isUserInteractionEnabled = isInteractive
         return webView
     }
@@ -111,7 +127,8 @@ private struct LegacyProjectWebView: UIViewRepresentable {
     func updateUIView(_ webView: WKWebView, context: Context) {
         guard context.coordinator.lastChangeToken != changeToken else { return }
         context.coordinator.lastChangeToken = changeToken
-        webView.loadHTMLString(renderedHTML, baseURL: nil)
+        let html = useGridViewport ? injectFixedViewport(renderedHTML) : renderedHTML
+        webView.loadHTMLString(html, baseURL: nil)
     }
 
     func makeCoordinator() -> Coordinator {
@@ -123,7 +140,27 @@ private struct LegacyProjectWebView: UIViewRepresentable {
     }
 
     static func dismantleUIView(_ uiView: WKWebView, coordinator _: Coordinator) {
-        // Clear JS engine when the cell is recycled / scrolled far away
         uiView.loadHTMLString("", baseURL: nil)
     }
+}
+
+// MARK: - Viewport Injection
+
+/// Replaces / injects `<meta name="viewport">` with a fixed design width
+/// so WKWebView renders at DESIGN_WIDTH and auto-scales to the cell frame.
+private func injectFixedViewport(_ html: String) -> String {
+    let fixedTag = "<meta name=\"viewport\" content=\"width=\(Int(DESIGN_WIDTH))\">"
+    // Try to replace existing viewport tag
+    if let range = html.range(of: "<meta[^>]*name=[\"']viewport[\"'][^>]*>", options: .regularExpression, range: html.startIndex..<html.endIndex) {
+        var result = html
+        result.replaceSubrange(range, with: fixedTag)
+        return result
+    }
+    // Inject before </head> if no viewport exists
+    if let range = html.range(of: "</head>", options: .caseInsensitive) {
+        var result = html
+        result.insert(contentsOf: fixedTag, at: range.lowerBound)
+        return result
+    }
+    return html
 }

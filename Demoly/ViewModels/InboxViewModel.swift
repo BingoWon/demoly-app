@@ -9,6 +9,7 @@ import Foundation
 @MainActor
 @Observable
 final class InboxViewModel {
+    static let shared = InboxViewModel()
     private(set) var activities: [Activity] = []
     private(set) var isLoading = false
 
