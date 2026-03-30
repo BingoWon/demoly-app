@@ -122,16 +122,15 @@ struct ProjectGridCell: View {
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            ProjectWebView(project: project)
-                .disabled(true) // static preview — no interaction
+            GridProjectWebView(project: project)
                 .frame(width: columnWidth, height: cellHeight)
                 .clipped()
 
             LikeButton(projectId: project.id, size: .compact)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 5)
-                    .background(.ultraThinMaterial, in: Capsule())
-                    .padding(8)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 5)
+                .background(.ultraThinMaterial, in: Capsule())
+                .padding(8)
         }
         .frame(width: columnWidth, height: cellHeight)
         .clipShape(RoundedRectangle(cornerRadius: 12))
