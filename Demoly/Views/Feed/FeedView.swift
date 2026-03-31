@@ -136,7 +136,7 @@ struct ProjectGridCell: View {
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            ProjectWebView(project: project, isInteractive: false, isLazy: true, useGridViewport: true)
+            ProjectWebView(project: project, isInteractive: false, isLazy: true, displayWidth: columnWidth)
                 .frame(width: columnWidth, height: cellHeight)
                 .clipped()
 

@@ -2,15 +2,25 @@
 //  ProjectWebView.swift
 //  Demoly
 //
-//  iOS 26: Native SwiftUI WebView + WebPage
-//  iOS 18: UIViewRepresentable + WKWebView
+//  Grid preview rendering strategy (device-agnostic):
 //
-//  isInteractive: false → UIKit touches blocked, SwiftUI taps fall through
+//  WKWebView always renders at DESIGN_WIDTH (390 pt) — the iPhone design canvas.
+//  When `displayWidth` is provided (grid/thumbnail), SwiftUI's `.scaleEffect`
+//  uniformly scales the rendered output from the top-leading corner so the
+//  displayed footprint is exactly `displayWidth` wide.
+//
+//  WHY NOT viewport injection?
+//  `viewport width=N` only shrinks content when N > frame width; on iPad the
+//  grid cells can be wider than 390 pt, so the browser renders at full size
+//  and the content overflows. SwiftUI `.scaleEffect` works on all device sizes
+//  because the scale factor is derived purely from layout geometry.
+//
+//  displayWidth == nil  → full-screen interactive viewer (scale = 1)
+//  displayWidth != nil  → grid thumbnail (scale = displayWidth / DESIGN_WIDTH)
+//
+//  isInteractive: false → UIKit touches blocked, SwiftUI taps pass through
 //  isLazy: true         → HTML cleared on disappear to free memory
-//  useGridViewport      → injects viewport width=390 so WKWebView renders at
-//                         design width and auto-scales to fit the cell frame
-//  changeToken          → triggers a reload when content changes without
-//                         recreating the UIView (coordinator-based dedup)
+//  changeToken          → coordinator-based dedup prevents redundant reloads
 //
 
 import SwiftUI
@@ -18,9 +28,8 @@ import WebKit
 
 // MARK: - Constants
 
-/// The canonical iPhone design width. When `useGridViewport` is true, WKWebView
-/// renders the page at this width and automatically scales to its actual frame.
-private let DESIGN_WIDTH: CGFloat = 390
+/// The canonical iPhone portrait design width for all project HTML rendering.
+let DESIGN_WIDTH: CGFloat = 390
 
 // MARK: - Public Interface
 
@@ -29,19 +38,26 @@ struct ProjectWebView: View {
     private let changeToken: String
     var isInteractive: Bool = true
     var isLazy: Bool = false
-    /// When true, forces viewport to DESIGN_WIDTH so the content scales to fit.
-    var useGridViewport: Bool = false
+    /// Provide to render at DESIGN_WIDTH and scale down to this width.
+    var displayWidth: CGFloat?
 
-    /// Feed / grid usage: renders a Project model.
-    init(project: Project, isInteractive: Bool = true, isLazy: Bool = false, useGridViewport: Bool = false) {
+    // MARK: Initialisers
+
+    /// Grid / thumbnail usage — scales content to fit `displayWidth`.
+    init(
+        project: Project,
+        isInteractive: Bool = true,
+        isLazy: Bool = false,
+        displayWidth: CGFloat? = nil
+    ) {
         self.renderedHTML = ProjectRenderer.render(project)
         self.changeToken = project.id
         self.isInteractive = isInteractive
         self.isLazy = isLazy
-        self.useGridViewport = useGridViewport
+        self.displayWidth = displayWidth
     }
 
-    /// Editor preview usage: renders raw HTML / CSS / JS.
+    /// Editor preview — renders at full DESIGN_WIDTH, no scaling.
     init(html: String, css: String, javascript: String, isInteractive: Bool = true) {
         let r = ProjectRenderer.render(html: html, css: css, javascript: javascript)
         self.renderedHTML = r
@@ -56,19 +72,26 @@ struct ProjectWebView: View {
                 changeToken: changeToken,
                 isInteractive: isInteractive,
                 isLazy: isLazy,
-                useGridViewport: useGridViewport
+                displayWidth: displayWidth
             )
         } else {
             LegacyProjectWebView(
                 renderedHTML: renderedHTML,
                 changeToken: changeToken,
                 isInteractive: isInteractive,
-                useGridViewport: useGridViewport
+                displayWidth: displayWidth
             )
         }
     }
 }
 
+// MARK: - Scale helper
+
+/// Uniform scale factor to display DESIGN_WIDTH content in `displayWidth` pt.
+private func gridScale(for displayWidth: CGFloat?) -> CGFloat {
+    guard let w = displayWidth, w > 0 else { return 1 }
+    return w / DESIGN_WIDTH
+}
 
 // MARK: - iOS 26: Native SwiftUI WebView
 
@@ -78,33 +101,38 @@ private struct NativeProjectWebView: View {
     let changeToken: String
     let isInteractive: Bool
     let isLazy: Bool
-    let useGridViewport: Bool
+    let displayWidth: CGFloat?
 
     @State private var webPage = WebPage()
 
     var body: some View {
+        let s = gridScale(for: displayWidth)
         WebView(webPage)
             .webViewContentBackground(.hidden)
             .webViewBackForwardNavigationGestures(.disabled)
             .allowsHitTesting(isInteractive)
-            .onAppear { load() }
-            .onDisappear { if isLazy { webPage.load(URLRequest(url: URL(string: "about:blank")!)) } }
-            .onChange(of: changeToken) { _, _ in load() }
-    }
-
-    private func load() {
-        let html = useGridViewport ? injectFixedViewport(renderedHTML) : renderedHTML
-        webPage.load(html: html)
+            // Always render at the design canvas width…
+            .frame(width: DESIGN_WIDTH)
+            // …then scale uniformly from the top-leading origin…
+            .scaleEffect(s, anchor: .topLeading)
+            // …and collapse the layout footprint to the actual display size.
+            .frame(width: displayWidth ?? DESIGN_WIDTH, alignment: .topLeading)
+            .onAppear { webPage.load(html: renderedHTML) }
+            .onDisappear {
+                if isLazy { webPage.load(URLRequest(url: URL(string: "about:blank")!)) }
+            }
+            .onChange(of: changeToken) { _, _ in webPage.load(html: renderedHTML) }
     }
 }
 
 // MARK: - iOS 18: WKWebView via UIViewRepresentable
 
-private struct LegacyProjectWebView: UIViewRepresentable {
+/// Raw WKWebView wrapper — no transforms applied inside UIViewRepresentable.
+/// Scaling is done purely on the SwiftUI layer in `LegacyProjectWebView` below.
+private struct RawWKWebView: UIViewRepresentable {
     let renderedHTML: String
     let changeToken: String
     let isInteractive: Bool
-    let useGridViewport: Bool
 
     func makeUIView(context _: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
@@ -127,13 +155,10 @@ private struct LegacyProjectWebView: UIViewRepresentable {
     func updateUIView(_ webView: WKWebView, context: Context) {
         guard context.coordinator.lastChangeToken != changeToken else { return }
         context.coordinator.lastChangeToken = changeToken
-        let html = useGridViewport ? injectFixedViewport(renderedHTML) : renderedHTML
-        webView.loadHTMLString(html, baseURL: nil)
+        webView.loadHTMLString(renderedHTML, baseURL: nil)
     }
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator()
-    }
+    func makeCoordinator() -> Coordinator { Coordinator() }
 
     class Coordinator {
         var lastChangeToken: String?
@@ -144,23 +169,26 @@ private struct LegacyProjectWebView: UIViewRepresentable {
     }
 }
 
-// MARK: - Viewport Injection
+/// SwiftUI wrapper: renders at DESIGN_WIDTH, scales to `displayWidth` on the
+/// SwiftUI layer only — zero UIKit transform involvement.
+private struct LegacyProjectWebView: View {
+    let renderedHTML: String
+    let changeToken: String
+    let isInteractive: Bool
+    let displayWidth: CGFloat?
 
-/// Replaces / injects `<meta name="viewport">` with a fixed design width
-/// so WKWebView renders at DESIGN_WIDTH and auto-scales to the cell frame.
-private func injectFixedViewport(_ html: String) -> String {
-    let fixedTag = "<meta name=\"viewport\" content=\"width=\(Int(DESIGN_WIDTH))\">"
-    // Try to replace existing viewport tag
-    if let range = html.range(of: "<meta[^>]*name=[\"']viewport[\"'][^>]*>", options: .regularExpression, range: html.startIndex..<html.endIndex) {
-        var result = html
-        result.replaceSubrange(range, with: fixedTag)
-        return result
+    var body: some View {
+        let s = gridScale(for: displayWidth)
+        RawWKWebView(
+            renderedHTML: renderedHTML,
+            changeToken: changeToken,
+            isInteractive: isInteractive
+        )
+        // Always render at the design canvas width…
+        .frame(width: DESIGN_WIDTH)
+        // …then scale uniformly from the top-leading origin…
+        .scaleEffect(s, anchor: .topLeading)
+        // …and collapse the layout footprint to the actual display size.
+        .frame(width: displayWidth ?? DESIGN_WIDTH, alignment: .topLeading)
     }
-    // Inject before </head> if no viewport exists
-    if let range = html.range(of: "</head>", options: .caseInsensitive) {
-        var result = html
-        result.insert(contentsOf: fixedTag, at: range.lowerBound)
-        return result
-    }
-    return html
 }
