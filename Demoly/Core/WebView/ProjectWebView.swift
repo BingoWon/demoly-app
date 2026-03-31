@@ -126,20 +126,19 @@ private struct NativeProjectWebView: View {
     var body: some View {
         let s = gridScale(for: displayWidth)
         let dh = displayHeight(for: displayWidth)
+        let isGrid = displayWidth != nil
         WebView(webPage)
             .webViewContentBackground(.hidden)
             .webViewBackForwardNavigationGestures(.disabled)
             .allowsHitTesting(isInteractive)
-            // 1. Force the canvas to the design dimensions.
-            .frame(width: DESIGN_WIDTH, height: dh != nil ? DESIGN_HEIGHT : nil)
-            // 2. Scale visually from the top-leading origin.
-            .scaleEffect(s, anchor: .topLeading)
-            // 3. Collapse BOTH width and height so layout matches the visible area.
-            .frame(
-                width: displayWidth ?? DESIGN_WIDTH,
-                height: dh,
-                alignment: .topLeading
-            )
+            // Grid thumbnail: render at design canvas then scale to fit cell.
+            // Full-screen viewer: no frame constraints — fills parent naturally.
+            .frame(width: isGrid ? DESIGN_WIDTH : nil,
+                   height: isGrid ? DESIGN_HEIGHT : nil)
+            .scaleEffect(isGrid ? s : 1, anchor: .topLeading)
+            .frame(width: isGrid ? displayWidth : nil,
+                   height: isGrid ? dh : nil,
+                   alignment: .topLeading)
             .onAppear { webPage.load(html: renderedHTML) }
             .onDisappear {
                 if isLazy { webPage.load(URLRequest(url: URL(string: "about:blank")!)) }
@@ -194,8 +193,8 @@ private struct RawWKWebView: UIViewRepresentable {
 
 // MARK: - iOS 18: SwiftUI wrapper with scaling
 
-/// Renders `RawWKWebView` at the design canvas, then scales + collapses layout
-/// to the target display dimensions — all on the SwiftUI layer only.
+/// Renders `RawWKWebView` at the design canvas for grid thumbnails, or fills
+/// the parent container naturally for full-screen viewer / preview usage.
 private struct LegacyProjectWebView: View {
     let renderedHTML: String
     let changeToken: String
@@ -205,20 +204,19 @@ private struct LegacyProjectWebView: View {
     var body: some View {
         let s = gridScale(for: displayWidth)
         let dh = displayHeight(for: displayWidth)
+        let isGrid = displayWidth != nil
         RawWKWebView(
             renderedHTML: renderedHTML,
             changeToken: changeToken,
             isInteractive: isInteractive
         )
-        // 1. Force the canvas to the design dimensions.
-        .frame(width: DESIGN_WIDTH, height: dh != nil ? DESIGN_HEIGHT : nil)
-        // 2. Scale visually from the top-leading origin.
-        .scaleEffect(s, anchor: .topLeading)
-        // 3. Collapse BOTH width and height so layout matches the visible area.
-        .frame(
-            width: displayWidth ?? DESIGN_WIDTH,
-            height: dh,
-            alignment: .topLeading
-        )
+        // Grid thumbnail: render at design canvas then scale to fit cell.
+        // Full-screen viewer: no frame constraints — fills parent naturally.
+        .frame(width: isGrid ? DESIGN_WIDTH : nil,
+               height: isGrid ? DESIGN_HEIGHT : nil)
+        .scaleEffect(isGrid ? s : 1, anchor: .topLeading)
+        .frame(width: isGrid ? displayWidth : nil,
+               height: isGrid ? dh : nil,
+               alignment: .topLeading)
     }
 }
