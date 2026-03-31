@@ -137,7 +137,6 @@ struct ProjectGridCell: View {
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             ProjectWebView(project: project, isInteractive: false, isLazy: true, displayWidth: columnWidth)
-                .frame(width: columnWidth, height: cellHeight)
                 .clipped()
 
             // Transparent overlay claims the full hit area for SwiftUI

@@ -2,7 +2,7 @@
 //  ProjectWebView.swift
 //  Demoly
 //
-//  Grid preview rendering strategy (device-agnostic):
+//  Grid thumbnail rendering strategy (device-agnostic):
 //
 //  WKWebView always renders at the design canvas (DESIGN_WIDTH × DESIGN_HEIGHT).
 //  When `displayWidth` is provided, SwiftUI `.scaleEffect` scales the canvas
@@ -21,7 +21,7 @@
 //  leaving blank space below scaled content. Fixing both dimensions in the
 //  final `.frame` collapses layout to exactly the visible footprint.
 //
-//  displayWidth == nil  → full-screen interactive viewer (scale = 1, no height)
+//  displayWidth == nil  → full-screen viewer / editor preview (no constraints)
 //  displayWidth != nil  → grid thumbnail (both width and height managed)
 //
 //  isInteractive: false → UIKit touches blocked, SwiftUI taps pass through
@@ -35,13 +35,10 @@ import WebKit
 // MARK: - Design Canvas Constants
 
 /// Canonical iPhone portrait design width for all project HTML rendering.
-let DESIGN_WIDTH: CGFloat = 390
+private let DESIGN_WIDTH: CGFloat = 390
 
-/// Preview aspect ratio (9 : 19) — matches GridMetrics.previewAspectRatio.
-private let PREVIEW_ASPECT: CGFloat = 9.0 / 19.0
-
-/// Canonical canvas height for grid thumbnail rendering.
-private let DESIGN_HEIGHT: CGFloat = DESIGN_WIDTH / PREVIEW_ASPECT  // ≈ 823 pt
+/// Canonical canvas height derived from the shared preview aspect ratio (9:19).
+private let DESIGN_HEIGHT: CGFloat = DESIGN_WIDTH / GridMetrics.previewAspectRatio
 
 // MARK: - Public Interface
 
@@ -70,10 +67,10 @@ struct ProjectWebView: View {
     }
 
     /// Editor preview — renders raw HTML/CSS/JS at full size, no scaling.
-    init(html: String, css: String, javascript: String, isInteractive: Bool = true) {
+    init(html: String, css: String, javascript: String, changeToken: String = "", isInteractive: Bool = true) {
         let r = ProjectRenderer.render(html: html, css: css, javascript: javascript)
         self.renderedHTML = r
-        self.changeToken = String(r.hashValue)
+        self.changeToken = changeToken.isEmpty ? String(r.hashValue) : changeToken
         self.isInteractive = isInteractive
     }
 
@@ -97,18 +94,13 @@ struct ProjectWebView: View {
     }
 }
 
-// MARK: - Scale helper
+// MARK: - Scale helpers
 
-/// Uniform scale factor: design canvas → display cell.
-private func gridScale(for displayWidth: CGFloat?) -> CGFloat {
-    guard let w = displayWidth, w > 0 else { return 1 }
-    return w / DESIGN_WIDTH
-}
-
-/// Display height matching the preview aspect ratio for a given display width.
-private func displayHeight(for displayWidth: CGFloat?) -> CGFloat? {
-    guard let w = displayWidth, w > 0 else { return nil }
-    return w / PREVIEW_ASPECT
+private extension CGFloat {
+    /// Uniform scale factor: DESIGN_WIDTH → self (for grid thumbnails).
+    var gridScale: CGFloat { self / DESIGN_WIDTH }
+    /// Cell height matching the preview aspect ratio.
+    var previewHeight: CGFloat { self / GridMetrics.previewAspectRatio }
 }
 
 // MARK: - iOS 26: Native SwiftUI WebView
@@ -124,21 +116,19 @@ private struct NativeProjectWebView: View {
     @State private var webPage = WebPage()
 
     var body: some View {
-        let s = gridScale(for: displayWidth)
-        let dh = displayHeight(for: displayWidth)
         let isGrid = displayWidth != nil
+        let s = displayWidth?.gridScale ?? 1
+        let dh = displayWidth?.previewHeight
         WebView(webPage)
             .webViewContentBackground(.hidden)
             .webViewBackForwardNavigationGestures(.disabled)
             .allowsHitTesting(isInteractive)
-            // Grid thumbnail: render at design canvas then scale to fit cell.
-            // Full-screen viewer: no frame constraints — fills parent naturally.
+            // Grid: render at design canvas then scale to cell.
+            // Full-screen: no constraints — fills parent naturally.
             .frame(width: isGrid ? DESIGN_WIDTH : nil,
                    height: isGrid ? DESIGN_HEIGHT : nil)
             .scaleEffect(isGrid ? s : 1, anchor: .topLeading)
-            .frame(width: isGrid ? displayWidth : nil,
-                   height: isGrid ? dh : nil,
-                   alignment: .topLeading)
+            .frame(width: displayWidth, height: dh, alignment: .topLeading)
             .onAppear { webPage.load(html: renderedHTML) }
             .onDisappear {
                 if isLazy { webPage.load(URLRequest(url: URL(string: "about:blank")!)) }
@@ -193,8 +183,8 @@ private struct RawWKWebView: UIViewRepresentable {
 
 // MARK: - iOS 18: SwiftUI wrapper with scaling
 
-/// Renders `RawWKWebView` at the design canvas for grid thumbnails, or fills
-/// the parent container naturally for full-screen viewer / preview usage.
+/// Grid thumbnails: renders at design canvas and scales to `displayWidth`.
+/// Full-screen (displayWidth == nil): fills parent naturally, no constraints.
 private struct LegacyProjectWebView: View {
     let renderedHTML: String
     let changeToken: String
@@ -202,21 +192,19 @@ private struct LegacyProjectWebView: View {
     let displayWidth: CGFloat?
 
     var body: some View {
-        let s = gridScale(for: displayWidth)
-        let dh = displayHeight(for: displayWidth)
         let isGrid = displayWidth != nil
+        let s = displayWidth?.gridScale ?? 1
+        let dh = displayWidth?.previewHeight
         RawWKWebView(
             renderedHTML: renderedHTML,
             changeToken: changeToken,
             isInteractive: isInteractive
         )
-        // Grid thumbnail: render at design canvas then scale to fit cell.
-        // Full-screen viewer: no frame constraints — fills parent naturally.
+        // Grid: render at design canvas then scale to cell.
+        // Full-screen: no constraints — fills parent naturally.
         .frame(width: isGrid ? DESIGN_WIDTH : nil,
                height: isGrid ? DESIGN_HEIGHT : nil)
         .scaleEffect(isGrid ? s : 1, anchor: .topLeading)
-        .frame(width: isGrid ? displayWidth : nil,
-               height: isGrid ? dh : nil,
-               alignment: .topLeading)
+        .frame(width: displayWidth, height: dh, alignment: .topLeading)
     }
 }

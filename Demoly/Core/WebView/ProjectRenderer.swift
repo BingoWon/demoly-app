@@ -6,7 +6,7 @@
 import Foundation
 
 enum ProjectRenderer {
-    /// Render from Project model (for Feed)
+    /// Render from a Project model (Feed, Profile, Search, and all grid contexts).
     static func render(_ project: Project) -> String {
         render(
             title: project.title,

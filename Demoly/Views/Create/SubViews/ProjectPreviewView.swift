@@ -32,9 +32,9 @@ struct ProjectPreviewView: View {
             ProjectWebView(
                 html: projectEditor.html,
                 css: projectEditor.css,
-                javascript: projectEditor.javascript
+                javascript: projectEditor.javascript,
+                changeToken: String(contentHash)
             )
-            .id(contentHash)
             .ignoresSafeArea()
         }
     }
