@@ -4,19 +4,25 @@
 //
 //  Grid preview rendering strategy (device-agnostic):
 //
-//  WKWebView always renders at DESIGN_WIDTH (390 pt) — the iPhone design canvas.
-//  When `displayWidth` is provided (grid/thumbnail), SwiftUI's `.scaleEffect`
-//  uniformly scales the rendered output from the top-leading corner so the
-//  displayed footprint is exactly `displayWidth` wide.
+//  WKWebView always renders at the design canvas (DESIGN_WIDTH × DESIGN_HEIGHT).
+//  When `displayWidth` is provided, SwiftUI `.scaleEffect` scales the canvas
+//  uniformly and the outer `.frame` collapses BOTH width and height to the
+//  actual display footprint — ensuring no blank space below the content.
 //
 //  WHY NOT viewport injection?
-//  `viewport width=N` only shrinks content when N > frame width; on iPad the
-//  grid cells can be wider than 390 pt, so the browser renders at full size
-//  and the content overflows. SwiftUI `.scaleEffect` works on all device sizes
-//  because the scale factor is derived purely from layout geometry.
+//  `viewport width=N` only shrinks content when N > WKWebView frame width.
+//  On iPad, grid cells can be wider than 390pt so viewport injection has no
+//  effect. SwiftUI `.scaleEffect` works on all sizes because it is purely
+//  geometric and device-agnostic.
 //
-//  displayWidth == nil  → full-screen interactive viewer (scale = 1)
-//  displayWidth != nil  → grid thumbnail (scale = displayWidth / DESIGN_WIDTH)
+//  WHY explicit DESIGN_HEIGHT?
+//  `.scaleEffect` is visual-only — it does not change the layout size. If
+//  only width is forced, the layout height remains the full unscaled value,
+//  leaving blank space below scaled content. Fixing both dimensions in the
+//  final `.frame` collapses layout to exactly the visible footprint.
+//
+//  displayWidth == nil  → full-screen interactive viewer (scale = 1, no height)
+//  displayWidth != nil  → grid thumbnail (both width and height managed)
 //
 //  isInteractive: false → UIKit touches blocked, SwiftUI taps pass through
 //  isLazy: true         → HTML cleared on disappear to free memory
@@ -26,10 +32,16 @@
 import SwiftUI
 import WebKit
 
-// MARK: - Constants
+// MARK: - Design Canvas Constants
 
-/// The canonical iPhone portrait design width for all project HTML rendering.
+/// Canonical iPhone portrait design width for all project HTML rendering.
 let DESIGN_WIDTH: CGFloat = 390
+
+/// Preview aspect ratio (9 : 19) — matches GridMetrics.previewAspectRatio.
+private let PREVIEW_ASPECT: CGFloat = 9.0 / 19.0
+
+/// Canonical canvas height for grid thumbnail rendering.
+private let DESIGN_HEIGHT: CGFloat = DESIGN_WIDTH / PREVIEW_ASPECT  // ≈ 823 pt
 
 // MARK: - Public Interface
 
@@ -38,12 +50,12 @@ struct ProjectWebView: View {
     private let changeToken: String
     var isInteractive: Bool = true
     var isLazy: Bool = false
-    /// Provide to render at DESIGN_WIDTH and scale down to this width.
+    /// When set, content is rendered at the design canvas and scaled to this width.
     var displayWidth: CGFloat?
 
     // MARK: Initialisers
 
-    /// Grid / thumbnail usage — scales content to fit `displayWidth`.
+    /// Grid / thumbnail — scales a Project's rendered HTML to fit `displayWidth`.
     init(
         project: Project,
         isInteractive: Bool = true,
@@ -57,7 +69,7 @@ struct ProjectWebView: View {
         self.displayWidth = displayWidth
     }
 
-    /// Editor preview — renders at full DESIGN_WIDTH, no scaling.
+    /// Editor preview — renders raw HTML/CSS/JS at full size, no scaling.
     init(html: String, css: String, javascript: String, isInteractive: Bool = true) {
         let r = ProjectRenderer.render(html: html, css: css, javascript: javascript)
         self.renderedHTML = r
@@ -87,10 +99,16 @@ struct ProjectWebView: View {
 
 // MARK: - Scale helper
 
-/// Uniform scale factor to display DESIGN_WIDTH content in `displayWidth` pt.
+/// Uniform scale factor: design canvas → display cell.
 private func gridScale(for displayWidth: CGFloat?) -> CGFloat {
     guard let w = displayWidth, w > 0 else { return 1 }
     return w / DESIGN_WIDTH
+}
+
+/// Display height matching the preview aspect ratio for a given display width.
+private func displayHeight(for displayWidth: CGFloat?) -> CGFloat? {
+    guard let w = displayWidth, w > 0 else { return nil }
+    return w / PREVIEW_ASPECT
 }
 
 // MARK: - iOS 26: Native SwiftUI WebView
@@ -107,16 +125,21 @@ private struct NativeProjectWebView: View {
 
     var body: some View {
         let s = gridScale(for: displayWidth)
+        let dh = displayHeight(for: displayWidth)
         WebView(webPage)
             .webViewContentBackground(.hidden)
             .webViewBackForwardNavigationGestures(.disabled)
             .allowsHitTesting(isInteractive)
-            // Always render at the design canvas width…
-            .frame(width: DESIGN_WIDTH)
-            // …then scale uniformly from the top-leading origin…
+            // 1. Force the canvas to the design dimensions.
+            .frame(width: DESIGN_WIDTH, height: dh != nil ? DESIGN_HEIGHT : nil)
+            // 2. Scale visually from the top-leading origin.
             .scaleEffect(s, anchor: .topLeading)
-            // …and collapse the layout footprint to the actual display size.
-            .frame(width: displayWidth ?? DESIGN_WIDTH, alignment: .topLeading)
+            // 3. Collapse BOTH width and height so layout matches the visible area.
+            .frame(
+                width: displayWidth ?? DESIGN_WIDTH,
+                height: dh,
+                alignment: .topLeading
+            )
             .onAppear { webPage.load(html: renderedHTML) }
             .onDisappear {
                 if isLazy { webPage.load(URLRequest(url: URL(string: "about:blank")!)) }
@@ -125,10 +148,10 @@ private struct NativeProjectWebView: View {
     }
 }
 
-// MARK: - iOS 18: WKWebView via UIViewRepresentable
+// MARK: - iOS 18: Raw WKWebView (UIViewRepresentable, zero transforms)
 
-/// Raw WKWebView wrapper — no transforms applied inside UIViewRepresentable.
-/// Scaling is done purely on the SwiftUI layer in `LegacyProjectWebView` below.
+/// Barebone UIViewRepresentable — no transforms, no scaling applied internally.
+/// All geometry work happens on the SwiftUI side in `LegacyProjectWebView`.
 private struct RawWKWebView: UIViewRepresentable {
     let renderedHTML: String
     let changeToken: String
@@ -169,8 +192,10 @@ private struct RawWKWebView: UIViewRepresentable {
     }
 }
 
-/// SwiftUI wrapper: renders at DESIGN_WIDTH, scales to `displayWidth` on the
-/// SwiftUI layer only — zero UIKit transform involvement.
+// MARK: - iOS 18: SwiftUI wrapper with scaling
+
+/// Renders `RawWKWebView` at the design canvas, then scales + collapses layout
+/// to the target display dimensions — all on the SwiftUI layer only.
 private struct LegacyProjectWebView: View {
     let renderedHTML: String
     let changeToken: String
@@ -179,16 +204,21 @@ private struct LegacyProjectWebView: View {
 
     var body: some View {
         let s = gridScale(for: displayWidth)
+        let dh = displayHeight(for: displayWidth)
         RawWKWebView(
             renderedHTML: renderedHTML,
             changeToken: changeToken,
             isInteractive: isInteractive
         )
-        // Always render at the design canvas width…
-        .frame(width: DESIGN_WIDTH)
-        // …then scale uniformly from the top-leading origin…
+        // 1. Force the canvas to the design dimensions.
+        .frame(width: DESIGN_WIDTH, height: dh != nil ? DESIGN_HEIGHT : nil)
+        // 2. Scale visually from the top-leading origin.
         .scaleEffect(s, anchor: .topLeading)
-        // …and collapse the layout footprint to the actual display size.
-        .frame(width: displayWidth ?? DESIGN_WIDTH, alignment: .topLeading)
+        // 3. Collapse BOTH width and height so layout matches the visible area.
+        .frame(
+            width: displayWidth ?? DESIGN_WIDTH,
+            height: dh,
+            alignment: .topLeading
+        )
     }
 }

@@ -6,8 +6,8 @@
 // API Configuration
 API_BASE_URL = https:$()/$()/appleragmcp.com
 
-// Clerk Authentication (update to pk_live_ when using production Clerk instance)
-CLERK_PUBLISHABLE_KEY = pk_test_ZmFzdC1kYW5lLTg2LmNsZXJrLmFjY291bnRzLmRldiQ
+// Clerk Authentication (production instance)
+CLERK_PUBLISHABLE_KEY = pk_live_Y2xlcmsuYXBwbGVyYWdtY3AuY29tJA
 
 // App Configuration
 PRODUCT_BUNDLE_IDENTIFIER = com.demoly.app
