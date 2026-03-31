@@ -12,6 +12,10 @@ enum CreateSubTab: String, CaseIterable, Identifiable {
     case css
     case javascript
 
+    // Tabs shown in the floating accessory bar.
+    // To re-enable the chat entry point, add `.chat` as the first element.
+    static var allCases: [CreateSubTab] { [.preview, .html, .css, .javascript] }
+
     var id: String {
         rawValue
     }
