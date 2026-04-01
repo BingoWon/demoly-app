@@ -13,7 +13,7 @@ struct MainTabView: View {
     @State private var previousTab = 0
     @State private var projectEditor: ProjectEditorViewModel
     @State private var chatViewModel: ChatViewModel
-    @State private var createSubTab: CreateSubTab = .preview
+    @State private var createSubTab: CreateSubTab = .chat
     private let inbox = InboxViewModel.shared
 
     init() {
@@ -121,7 +121,7 @@ struct MainTabView: View {
             }
         }
         chatViewModel.clear()
-        createSubTab = .preview
+        createSubTab = .chat
 
         selectedTab = previousTab == 1 ? 0 : previousTab
     }
@@ -129,7 +129,7 @@ struct MainTabView: View {
     private func editProject(_ project: Project) {
         projectEditor.load(project: project)
         chatViewModel.loadFromProjectEditor()
-        createSubTab = .preview
+        createSubTab = .chat
 
         if selectedTab != 1 {
             previousTab = selectedTab
