@@ -15,6 +15,12 @@
 </p>
 
 <p align="center">
+  <a href="https://apps.apple.com/us/app/demoly/id6760873339">
+    <img src=".github/assets/app-store-badge.svg" height="50" alt="Download on the App Store" />
+  </a>
+</p>
+
+<p align="center">
   <a href="README.md"><strong>English</strong></a> · <a href="README.zh-CN.md">中文</a>
 </p>
 
@@ -40,7 +46,7 @@ Demoly is a creative platform for iOS where anyone can build and share interacti
 
 🎨 **Interactive** — Every project is a real web page you can tap, drag, scroll and play with
 
-🌍 **Discover** — Browse a masonry feed of amazing creations from the community
+🌍 **Discover** — Browse a feed of amazing creations from the community
 
 💬 **Social** — Like, save, comment, and follow your favorite creators
 
