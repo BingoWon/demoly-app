@@ -8,7 +8,7 @@
 	</array>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>webcredentials:clerk.appleragmcp.com</string>
+		<string>webcredentials:clerk.demoly.thebinwang.com</string>
 		<string>webcredentials:fast-dane-86.clerk.accounts.dev</string>
 	</array>
 </dict>

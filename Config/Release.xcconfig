@@ -4,7 +4,7 @@
 //
 
 // API Configuration
-API_BASE_URL = https:$()/$()/appleragmcp.com
+API_BASE_URL = https:$()/$()/demoly.thebinwang.com
 
 // Clerk Authentication (production instance)
 CLERK_PUBLISHABLE_KEY = pk_live_Y2xlcmsuYXBwbGVyYWdtY3AuY29tJA
