@@ -128,7 +128,7 @@ struct ProfileProjectCell: View {
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            ProjectWebView(project: project, isInteractive: false, isLazy: true, displayWidth: columnWidth)
+            ProjectWebView(project: project, displayWidth: columnWidth)
                 .clipShape(RoundedRectangle(cornerRadius: 4))
 
             // Transparent overlay claims the full hit area for SwiftUI

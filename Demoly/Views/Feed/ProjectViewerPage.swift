@@ -10,8 +10,8 @@ import SwiftUI
 struct ProjectViewerPage: View {
     let initialProject: Project
     @Environment(AuthManager.self) private var authManager
-    @Environment(\.dismiss) private var dismiss
 
+    @State private var scrolledID: String?
     @State private var showComments = false
     @State private var showDetail = false
 
@@ -48,27 +48,15 @@ struct ProjectViewerPage: View {
         .sheet(isPresented: $showDetail) {
             ProjectDetailSheet(project: currentProject)
         }
-        .onAppear {
-            feed.setCurrentProject(initialProject)
-        }
     }
-
-    @State private var scrolledID: String?
 
     private var projectContent: some View {
         ScrollView(.vertical, showsIndicators: false) {
             LazyVStack(spacing: 0) {
                 ForEach(feed.projects) { proj in
-                    let webView = ProjectWebView(project: proj)
+                    ProjectWebView(project: proj)
                         .ignoresSafeArea()
-
-                    if #available(iOS 26.0, *) {
-                        webView.backgroundExtensionEffect()
-                            .containerRelativeFrame([.horizontal, .vertical])
-                    } else {
-                        webView
-                            .containerRelativeFrame([.horizontal, .vertical])
-                    }
+                        .containerRelativeFrame([.horizontal, .vertical])
                 }
             }
             .scrollTargetLayout()
@@ -77,27 +65,20 @@ struct ProjectViewerPage: View {
         .scrollPosition(id: $scrolledID)
         .ignoresSafeArea()
         .onAppear {
-            if scrolledID == nil {
-                scrolledID = initialProject.id
-            }
+            if scrolledID == nil { scrolledID = initialProject.id }
         }
         .onChange(of: scrolledID) { _, newID in
-            if let newID = newID, let idx = feed.projects.firstIndex(where: { $0.id == newID }) {
-                feed.setCurrentProject(feed.projects[idx])
-
-                // Infinite loading trigger
-                if idx >= feed.projects.count - 3 {
-                    feed.loadMore()
-                }
-            }
+            guard let newID, let idx = feed.projects.firstIndex(where: { $0.id == newID }) else { return }
+            feed.setCurrentProject(feed.projects[idx])
+            ViewRecorder.shared.schedule(projectId: newID)
+            WebViewPool.shared.prefetch(around: idx, in: feed.projects)
+            if idx >= feed.projects.count - 3 { feed.loadMore() }
         }
         .onChange(of: feed.currentIndex) { _, newIndex in
-            guard newIndex >= 0 && newIndex < feed.projects.count else { return }
+            guard newIndex >= 0, newIndex < feed.projects.count else { return }
             let targetID = feed.projects[newIndex].id
             if scrolledID != targetID {
-                withAnimation {
-                    scrolledID = targetID
-                }
+                withAnimation { scrolledID = targetID }
             }
         }
     }

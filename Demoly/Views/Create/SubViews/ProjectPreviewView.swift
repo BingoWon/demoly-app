@@ -33,7 +33,7 @@ struct ProjectPreviewView: View {
                 html: projectEditor.html,
                 css: projectEditor.css,
                 javascript: projectEditor.javascript,
-                changeToken: String(contentHash)
+                token: String(contentHash)
             )
             .ignoresSafeArea()
         }

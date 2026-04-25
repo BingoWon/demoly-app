@@ -57,6 +57,10 @@ final class FeedViewModel {
     func loadInitial() {
         guard !hasInitialLoad || (projects.isEmpty && error != nil) else { return }
         hasInitialLoad = true
+        if projects.isEmpty, let snapshot = FeedSnapshotStore.load() {
+            projects = snapshot
+            InteractionStore.shared.updateFromProjects(snapshot)
+        }
         performLoad()
     }
 
@@ -73,6 +77,16 @@ final class FeedViewModel {
 
     func markNeedsRefresh() {
         needsRefresh = true
+    }
+
+    func reset() {
+        currentTask?.cancel()
+        projects = []
+        currentIndex = 0
+        error = nil
+        hasMorePages = true
+        hasInitialLoad = false
+        needsRefresh = false
     }
 
     func refreshIfNeeded() {
@@ -100,6 +114,7 @@ final class FeedViewModel {
             hasMorePages = response.hasMore
             currentIndex = 0
             InteractionStore.shared.updateFromProjects(projects)
+            FeedSnapshotStore.save(projects)
         } catch {
             guard !Task.isCancelled else { return }
             self.error = error.localizedDescription

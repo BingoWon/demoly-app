@@ -127,6 +127,9 @@ struct SettingsView: View {
                                     try? await Clerk.shared.auth.signOut()
                                     CurrentUserProfile.shared.reset()
                                     InteractionStore.shared.reset()
+                                    FeedViewModel.shared.reset()
+                                    ViewRecorder.shared.reset()
+                                    FeedSnapshotStore.clear()
                                     dismiss()
                                 }
                             }
@@ -205,6 +208,9 @@ struct SettingsView: View {
             try? await Clerk.shared.auth.signOut()
             CurrentUserProfile.shared.reset()
             InteractionStore.shared.reset()
+            FeedViewModel.shared.reset()
+            ViewRecorder.shared.reset()
+            FeedSnapshotStore.clear()
             dismiss()
         } catch {
             deleteError = error.localizedDescription

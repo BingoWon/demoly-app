@@ -2,209 +2,155 @@
 //  ProjectWebView.swift
 //  Demoly
 //
-//  Grid thumbnail rendering strategy (device-agnostic):
+//  Three rendering modes, one entry point.
 //
-//  WKWebView always renders at the design canvas (DESIGN_WIDTH × DESIGN_HEIGHT).
-//  When `displayWidth` is provided, SwiftUI `.scaleEffect` scales the canvas
-//  uniformly and the outer `.frame` collapses BOTH width and height to the
-//  actual display footprint — ensuring no blank space below the content.
-//
-//  WHY NOT viewport injection?
-//  `viewport width=N` only shrinks content when N > WKWebView frame width.
-//  On iPad, grid cells can be wider than 390pt so viewport injection has no
-//  effect. SwiftUI `.scaleEffect` works on all sizes because it is purely
-//  geometric and device-agnostic.
-//
-//  WHY explicit DESIGN_HEIGHT?
-//  `.scaleEffect` is visual-only — it does not change the layout size. If
-//  only width is forced, the layout height remains the full unscaled value,
-//  leaving blank space below scaled content. Fixing both dimensions in the
-//  final `.frame` collapses layout to exactly the visible footprint.
-//
-//  displayWidth == nil  → full-screen viewer / editor preview (no constraints)
-//  displayWidth != nil  → grid thumbnail (both width and height managed)
-//
-//  isInteractive: false → UIKit touches blocked, SwiftUI taps pass through
-//  isLazy: true         → HTML cleared on disappear to free memory
-//  changeToken          → coordinator-based dedup prevents redundant reloads
+//  • fullscreen — paging viewer; uses WebViewPool so swipes find a warm,
+//                 pre-rendered WKWebView and SwiftUI cell recycling never
+//                 discards the underlying instance.
+//  • thumbnail  — grid cell; renders at the canonical design canvas
+//                 (designWidth × designHeight) and scales geometrically
+//                 to fit the cell, so the layout collapses cleanly on iPad
+//                 widths where viewport injection is a no-op.
+//  • editor     — live preview in the create flow; keyed by an external
+//                 token so re-renders dedupe automatically.
 //
 
 import SwiftUI
 import WebKit
 
-// MARK: - Design Canvas Constants
+private let designWidth: CGFloat = 390
+private let designHeight: CGFloat = designWidth / GridMetrics.previewAspectRatio
 
-/// Canonical iPhone portrait design width for all project HTML rendering.
-private let DESIGN_WIDTH: CGFloat = 390
-
-/// Canonical canvas height derived from the shared preview aspect ratio (9:19).
-private let DESIGN_HEIGHT: CGFloat = DESIGN_WIDTH / GridMetrics.previewAspectRatio
-
-// MARK: - Public Interface
+// MARK: - Public API
 
 struct ProjectWebView: View {
-    private let renderedHTML: String
-    private let changeToken: String
-    var isInteractive: Bool = true
-    var isLazy: Bool = false
-    /// When set, content is rendered at the design canvas and scaled to this width.
-    var displayWidth: CGFloat?
-
-    // MARK: Initialisers
-
-    /// Grid / thumbnail — scales a Project's rendered HTML to fit `displayWidth`.
-    init(
-        project: Project,
-        isInteractive: Bool = true,
-        isLazy: Bool = false,
-        displayWidth: CGFloat? = nil
-    ) {
-        self.renderedHTML = ProjectRenderer.render(project)
-        self.changeToken = project.id
-        self.isInteractive = isInteractive
-        self.isLazy = isLazy
-        self.displayWidth = displayWidth
+    private enum Mode {
+        case fullscreen(Project)
+        case thumbnail(Project, displayWidth: CGFloat)
+        case editor(html: String, css: String, javascript: String, token: String)
     }
 
-    /// Editor preview — renders raw HTML/CSS/JS at full size, no scaling.
-    init(html: String, css: String, javascript: String, changeToken: String = "", isInteractive: Bool = true) {
-        let r = ProjectRenderer.render(html: html, css: css, javascript: javascript)
-        self.renderedHTML = r
-        self.changeToken = changeToken.isEmpty ? String(r.hashValue) : changeToken
-        self.isInteractive = isInteractive
+    private let mode: Mode
+
+    init(project: Project) {
+        mode = .fullscreen(project)
+    }
+
+    init(project: Project, displayWidth: CGFloat) {
+        mode = .thumbnail(project, displayWidth: displayWidth)
+    }
+
+    init(html: String, css: String, javascript: String, token: String) {
+        mode = .editor(html: html, css: css, javascript: javascript, token: token)
     }
 
     var body: some View {
-        if #available(iOS 26.0, *) {
-            NativeProjectWebView(
-                renderedHTML: renderedHTML,
-                changeToken: changeToken,
-                isInteractive: isInteractive,
-                isLazy: isLazy,
-                displayWidth: displayWidth
-            )
-        } else {
-            LegacyProjectWebView(
-                renderedHTML: renderedHTML,
-                changeToken: changeToken,
-                isInteractive: isInteractive,
-                displayWidth: displayWidth
-            )
+        switch mode {
+        case let .fullscreen(project):
+            FullscreenWebView(project: project)
+        case let .thumbnail(project, displayWidth):
+            ThumbnailWebView(project: project, displayWidth: displayWidth)
+        case let .editor(html, css, javascript, token):
+            EditorPreviewWebView(html: html, css: css, javascript: javascript, token: token)
         }
     }
 }
 
-// MARK: - Scale helpers
+// MARK: - Fullscreen (pooled)
 
-private extension CGFloat {
-    /// Uniform scale factor: DESIGN_WIDTH → self (for grid thumbnails).
-    var gridScale: CGFloat { self / DESIGN_WIDTH }
-    /// Cell height matching the preview aspect ratio.
-    var previewHeight: CGFloat { self / GridMetrics.previewAspectRatio }
+private struct FullscreenWebView: UIViewRepresentable {
+    let project: Project
+
+    func makeUIView(context _: Context) -> UIView {
+        let container = UIView()
+        container.backgroundColor = .black
+        return container
+    }
+
+    func updateUIView(_ container: UIView, context _: Context) {
+        let webView = WebViewPool.shared.webView(for: project)
+        guard webView.superview !== container else { return }
+        webView.removeFromSuperview()
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(webView)
+        NSLayoutConstraint.activate([
+            webView.topAnchor.constraint(equalTo: container.topAnchor),
+            webView.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            webView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            webView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+        ])
+    }
 }
 
-// MARK: - iOS 26: Native SwiftUI WebView
+// MARK: - Thumbnail (design-canvas + geometric scale)
 
-@available(iOS 26.0, *)
-private struct NativeProjectWebView: View {
-    let renderedHTML: String
-    let changeToken: String
-    let isInteractive: Bool
-    let isLazy: Bool
-    let displayWidth: CGFloat?
-
-    @State private var webPage = WebPage()
+private struct ThumbnailWebView: View {
+    let project: Project
+    let displayWidth: CGFloat
 
     var body: some View {
-        let isGrid = displayWidth != nil
-        let s = displayWidth?.gridScale ?? 1
-        let dh = displayWidth?.previewHeight
-        WebView(webPage)
-            .webViewContentBackground(.hidden)
-            .webViewBackForwardNavigationGestures(.disabled)
-            .allowsHitTesting(isInteractive)
-            // Grid: render at design canvas then scale to cell.
-            // Full-screen: no constraints — fills parent naturally.
-            .frame(width: isGrid ? DESIGN_WIDTH : nil,
-                   height: isGrid ? DESIGN_HEIGHT : nil)
-            .scaleEffect(isGrid ? s : 1, anchor: .topLeading)
-            .frame(width: displayWidth, height: dh, alignment: .topLeading)
-            .onAppear { webPage.load(html: renderedHTML) }
-            .onDisappear {
-                if isLazy { webPage.load(URLRequest(url: URL(string: "about:blank")!)) }
-            }
-            .onChange(of: changeToken) { _, _ in webPage.load(html: renderedHTML) }
+        let scale = displayWidth / designWidth
+        let height = displayWidth / GridMetrics.previewAspectRatio
+        Representable(project: project)
+            .frame(width: designWidth, height: designHeight)
+            .scaleEffect(scale, anchor: .topLeading)
+            .frame(width: displayWidth, height: height, alignment: .topLeading)
+    }
+
+    private struct Representable: UIViewRepresentable {
+        let project: Project
+
+        func makeUIView(context _: Context) -> WKWebView { WebViewFactory.make(interactive: false) }
+
+        func updateUIView(_ webView: WKWebView, context: Context) {
+            context.coordinator.loadIfChanged(
+                token: "\(project.id)#\(project.updatedAt.timeIntervalSince1970)",
+                into: webView,
+                html: ProjectRenderer.render(project)
+            )
+        }
+
+        func makeCoordinator() -> TokenCoordinator { TokenCoordinator() }
+
+        static func dismantleUIView(_ webView: WKWebView, coordinator _: TokenCoordinator) {
+            webView.stopLoading()
+        }
     }
 }
 
-// MARK: - iOS 18: Raw WKWebView (UIViewRepresentable, zero transforms)
+// MARK: - Editor preview
 
-/// Barebone UIViewRepresentable — no transforms, no scaling applied internally.
-/// All geometry work happens on the SwiftUI side in `LegacyProjectWebView`.
-private struct RawWKWebView: UIViewRepresentable {
-    let renderedHTML: String
-    let changeToken: String
-    let isInteractive: Bool
+private struct EditorPreviewWebView: UIViewRepresentable {
+    let html: String
+    let css: String
+    let javascript: String
+    let token: String
 
-    func makeUIView(context _: Context) -> WKWebView {
-        let config = WKWebViewConfiguration()
-        config.allowsInlineMediaPlayback = true
-        config.mediaTypesRequiringUserActionForPlayback = []
-
-        let webView = WKWebView(frame: .zero, configuration: config)
-        webView.isOpaque = false
-        webView.backgroundColor = .black
-        webView.scrollView.backgroundColor = .black
-        webView.scrollView.contentInsetAdjustmentBehavior = .never
-        webView.scrollView.bounces = false
-        webView.scrollView.alwaysBounceVertical = false
-        webView.scrollView.alwaysBounceHorizontal = false
-        webView.scrollView.isScrollEnabled = false
-        webView.isUserInteractionEnabled = isInteractive
-        return webView
-    }
+    func makeUIView(context _: Context) -> WKWebView { WebViewFactory.make(scrollable: true) }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
-        guard context.coordinator.lastChangeToken != changeToken else { return }
-        context.coordinator.lastChangeToken = changeToken
-        webView.loadHTMLString(renderedHTML, baseURL: nil)
+        context.coordinator.loadIfChanged(
+            token: token,
+            into: webView,
+            html: ProjectRenderer.render(html: html, css: css, javascript: javascript)
+        )
     }
 
-    func makeCoordinator() -> Coordinator { Coordinator() }
+    func makeCoordinator() -> TokenCoordinator { TokenCoordinator() }
 
-    class Coordinator {
-        var lastChangeToken: String?
-    }
-
-    static func dismantleUIView(_ uiView: WKWebView, coordinator _: Coordinator) {
-        uiView.loadHTMLString("", baseURL: nil)
+    static func dismantleUIView(_ webView: WKWebView, coordinator _: TokenCoordinator) {
+        webView.stopLoading()
     }
 }
 
-// MARK: - iOS 18: SwiftUI wrapper with scaling
+// MARK: - Coordinator
 
-/// Grid thumbnails: renders at design canvas and scales to `displayWidth`.
-/// Full-screen (displayWidth == nil): fills parent naturally, no constraints.
-private struct LegacyProjectWebView: View {
-    let renderedHTML: String
-    let changeToken: String
-    let isInteractive: Bool
-    let displayWidth: CGFloat?
+private final class TokenCoordinator {
+    private var token: String?
 
-    var body: some View {
-        let isGrid = displayWidth != nil
-        let s = displayWidth?.gridScale ?? 1
-        let dh = displayWidth?.previewHeight
-        RawWKWebView(
-            renderedHTML: renderedHTML,
-            changeToken: changeToken,
-            isInteractive: isInteractive
-        )
-        // Grid: render at design canvas then scale to cell.
-        // Full-screen: no constraints — fills parent naturally.
-        .frame(width: isGrid ? DESIGN_WIDTH : nil,
-               height: isGrid ? DESIGN_HEIGHT : nil)
-        .scaleEffect(isGrid ? s : 1, anchor: .topLeading)
-        .frame(width: displayWidth, height: dh, alignment: .topLeading)
+    func loadIfChanged(token newToken: String, into webView: WKWebView, html: @autoclosure () -> String) {
+        guard token != newToken else { return }
+        token = newToken
+        webView.loadHTMLString(html(), baseURL: nil)
     }
 }
