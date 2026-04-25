@@ -3,8 +3,9 @@
 // Demoly Development Configuration
 //
 
-// API Configuration (local dev server)
-API_BASE_URL = http:$()/$()/192.168.2.2:4399
+// API Configuration (local dev server, resolved via Bonjour/mDNS so it
+// survives DHCP changes — point Debug builds at this Mac without hardcoding IPs.)
+API_BASE_URL = http:$()/$()/Mac-mini.local:4399
 
 // Clerk Authentication (test instance)
 CLERK_PUBLISHABLE_KEY = pk_test_ZmFzdC1kYW5lLTg2LmNsZXJrLmFjY291bnRzLmRldiQ
