@@ -40,7 +40,7 @@ final class WebViewPool {
             return entry.webView
         }
 
-        let webView = WebViewFactory.make()
+        let webView = WebViewFactory.make(scrollable: true)
         webView.loadHTMLString(ProjectRenderer.render(project), baseURL: nil)
         entries[project.id] = Entry(webView: webView, version: project.updatedAt)
         touch(project.id)
