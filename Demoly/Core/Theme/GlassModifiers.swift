@@ -35,7 +35,7 @@ struct GlassBackgroundModifier: ViewModifier {
         }
     }
 
-    private func materialFallback<S: InsettableShape>(_ content: Content, shape: S) -> some View {
+    private func materialFallback(_ content: Content, shape: some InsettableShape) -> some View {
         content
             .background(shape.fill(.ultraThinMaterial))
             .overlay(shape.strokeBorder(Color.white.opacity(0.2), lineWidth: 0.5))

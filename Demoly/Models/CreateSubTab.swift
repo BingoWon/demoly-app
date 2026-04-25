@@ -12,8 +12,10 @@ enum CreateSubTab: String, CaseIterable, Identifiable {
     case css
     case javascript
 
-    // Tabs shown in the floating accessory bar.
-    static var allCases: [CreateSubTab] { [.chat, .preview, .html, .css, .javascript] }
+    /// Tabs shown in the floating accessory bar.
+    static var allCases: [CreateSubTab] {
+        [.chat, .preview, .html, .css, .javascript]
+    }
 
     var id: String {
         rawValue

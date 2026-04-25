@@ -100,7 +100,9 @@ private struct ThumbnailWebView: View {
     private struct Representable: UIViewRepresentable {
         let project: Project
 
-        func makeUIView(context _: Context) -> WKWebView { WebViewFactory.make(interactive: false) }
+        func makeUIView(context _: Context) -> WKWebView {
+            WebViewFactory.make(interactive: false)
+        }
 
         func updateUIView(_ webView: WKWebView, context: Context) {
             context.coordinator.loadIfChanged(
@@ -110,7 +112,9 @@ private struct ThumbnailWebView: View {
             )
         }
 
-        func makeCoordinator() -> TokenCoordinator { TokenCoordinator() }
+        func makeCoordinator() -> TokenCoordinator {
+            TokenCoordinator()
+        }
 
         static func dismantleUIView(_ webView: WKWebView, coordinator _: TokenCoordinator) {
             webView.stopLoading()
@@ -126,7 +130,9 @@ private struct EditorPreviewWebView: UIViewRepresentable {
     let javascript: String
     let token: String
 
-    func makeUIView(context _: Context) -> WKWebView { WebViewFactory.make(scrollable: true) }
+    func makeUIView(context _: Context) -> WKWebView {
+        WebViewFactory.make(scrollable: true)
+    }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
         context.coordinator.loadIfChanged(
@@ -136,7 +142,9 @@ private struct EditorPreviewWebView: UIViewRepresentable {
         )
     }
 
-    func makeCoordinator() -> TokenCoordinator { TokenCoordinator() }
+    func makeCoordinator() -> TokenCoordinator {
+        TokenCoordinator()
+    }
 
     static func dismantleUIView(_ webView: WKWebView, coordinator _: TokenCoordinator) {
         webView.stopLoading()

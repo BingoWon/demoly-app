@@ -7,7 +7,7 @@ import SwiftUI
 
 struct ActionPromptView: View {
     let icon: String
-    var title: String? = nil
+    var title: String?
     let message: String
     let buttonTitle: String
     let action: () -> Void

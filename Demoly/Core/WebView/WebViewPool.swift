@@ -53,7 +53,9 @@ final class WebViewPool {
         let lo = max(0, index - 1)
         let hi = min(projects.count - 1, index + 1)
         guard lo <= hi else { return }
-        for i in lo ... hi { _ = webView(for: projects[i]) }
+        for i in lo ... hi {
+            _ = webView(for: projects[i])
+        }
     }
 
     private func touch(_ id: String) {
