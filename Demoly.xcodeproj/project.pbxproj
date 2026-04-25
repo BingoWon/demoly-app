@@ -627,7 +627,7 @@
 			repositoryURL = "https://github.com/simonbs/Runestone.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.5.1;
+				minimumVersion = 0.5.2;
 			};
 		};
 		D730457C2EDE7B030059DD01 /* XCRemoteSwiftPackageReference "TreeSitterLanguages" */ = {
