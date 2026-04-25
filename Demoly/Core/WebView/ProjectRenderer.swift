@@ -98,6 +98,11 @@ enum ProjectRenderer {
     html, body {
         width: 100%;
         min-height: 100dvh;
+        /* Platform contract: works that exceed one viewport must remain reachable.
+           WebKit handles this scroll internally and yields the gesture to the
+           outer SwiftUI paging container at the edges, so the two compose without
+           UIKit-level coordination. */
+        overflow: auto !important;
         background: #000;
         color: #fff;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
